@@ -48,10 +48,12 @@ class Server {
         this.showErrorCb = cb;
     }
 
-    async login(login: string, password: string): Promise<boolean> {
+    async login(email: string, password: string): Promise<boolean> {
         const rnd = Math.round(Math.random() * 100000);
-        const hash = md5(`${md5(`${login}${password}`)}${rnd}`);
-        const user = await this.request<TUser>('login', { login, hash, rnd: `${rnd}` });
+        const passHash = md5(password);
+        const hash = md5(`${passHash}${rnd}`);
+        // Здесь мы передаем { email: email, hash: hash, ... }
+        const user = await this.request<TUser>('login', { email, hash, rnd: `${rnd}` });
         if (user) {
             this.store.setUser(user);
             return true;
@@ -65,10 +67,28 @@ class Server {
             this.store.clearUser();
         }
     }
+    // async logout(): Promise<void> {
+    //     const result = await this.request<boolean>('logout');
+    //     if (result) {
+    //         this.store.clearUser();
+    //     }
+    // }
 
-    registration(login: string, password: string, name: string): Promise<boolean | null> {
-        const hash = md5(`${login}${password}`);
-        return this.request<boolean>('registration', { login, hash, name });
+
+    async registration(email: string, password: string, name: string): Promise<boolean> {
+        const passHash = md5(password);
+        // 1. Ожидаем от сервера полный объект пользователя (TUser)
+        const user = await this.request<TUser>('registration', { email, password: passHash, name });
+
+        // 2. Если пользователь успешно создан и получен...
+        if (user) {
+            // 3. ...сохраняем его данные в store, чтобы он сразу вошел в систему
+            this.store.setUser(user);
+            return true;
+        }
+
+        // 4. Если что-то пошло не так, возвращаем false
+        return false;
     }
 
     sendMessage(message: string): void {

@@ -29,11 +29,7 @@ export interface IBasePage {
 }
 
 const PageManager: React.FC = () => {
-    const [page, setPage] = useState<PAGES>(PAGES.LOGIN); // Изменено для удобства отладки
-    const [player, setPlayer] = useState({
-        name: 'Guest',
-        balance: 1000
-    });
+    const [page, setPage] = useState<PAGES>(PAGES.LOGIN); 
 
     // Здесь можно будет добавить обработку для новых страниц
     // Например, отображение компонента таблицы лидеров
@@ -47,10 +43,7 @@ const PageManager: React.FC = () => {
             {page === PAGES.LOGIN && <Login setPage={setPage} />}
             {page === PAGES.REGISTER && <Register setPage={setPage} />}
             {page === PAGES.CHAT && <Chat setPage={setPage} />}
-            {/* Теперь вызов Lobby выглядит чисто. 
-              Вся логика навигации инкапсулирована внутри самого Lobby.
-            */}
-            {page === PAGES.LOBBY && <Lobby setPage={setPage} player={player} />}
+            {page === PAGES.LOBBY && <Lobby setPage={setPage} />}
             {page === PAGES.GAME && <GamePage setPage={setPage} />}
             {page === PAGES.NOT_FOUND && <NotFound setPage={setPage} />}
         </>

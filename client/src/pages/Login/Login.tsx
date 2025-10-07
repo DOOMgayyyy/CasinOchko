@@ -1,6 +1,6 @@
 import './Login.css';
 import { ServerContext } from '../../App';
-import React, { useEffect, useState, useRef, useContext } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import { IBasePage, PAGES } from '../PageManager';
 
 
@@ -11,21 +11,22 @@ const Login: React.FC<IBasePage> = (props) => {
   const loginRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
-  const loginClickHandler = async () => {
-    if (loginRef.current && passwordRef.current) {
-      const login = loginRef.current.value;
-      const password = passwordRef.current.value;
-      //if (1) { // тестовое условие, чтобы логин всегда был успешный и работал без бекенда
-      if (login && password && await server.login(login, password)) {
-          console.log("Just login")
-          setPage(PAGES.LOBBY);
-      }
+    const loginClickHandler = async () => {
+        if (loginRef.current && passwordRef.current) {
+          const email = loginRef.current.value;
+          const password = passwordRef.current.value;
+          if (email && password && await server.login(email, password)) {
+              console.log("Успешный вход");
+              setPage(PAGES.LOBBY);
+          } else {
+              console.error("Ошибка входа: проверьте email или пароль");
+              // Здесь можно показать ошибку пользователю
+          }
+        }
     }
-  }
-  const setRegisterPage = async () => {
-    setPage(PAGES.REGISTER);
-  }
-
+    const setRegisterPage = async () => {
+      setPage(PAGES.REGISTER);
+    }   
  
   return (
     <div className="main-login">

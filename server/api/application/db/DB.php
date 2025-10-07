@@ -58,7 +58,11 @@ class DB {
     }
 
     public function registration($email, $password, $name) {
-        $this->execute("INSERT INTO users (email,password,name) VALUES (?, ?, ?)",[$email, $password, $name]);
+        // Добавляем баланс 5000 для нового пользователя
+        $this->execute(
+            "INSERT INTO users (email, password, name, balance) VALUES (?, ?, ?, 5000)",
+            [$email, $password, $name]
+        );
     }
 
     public function getChatHash() {

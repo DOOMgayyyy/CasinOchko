@@ -46,6 +46,7 @@ class Application
         }
 
         if ($params['email'] && $params['password'] && $params['name']) {
+            // Пароль уже приходит хешированный с клиента
             return $this->user->registration($params['email'], $params['password'], $params['name']);
         }
         return ['error' => 242];

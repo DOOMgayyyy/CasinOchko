@@ -1,21 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import './Lobby.css';
 import SideMenu from './SideMenu/SideMenu';
 import PrivateRoom from './PrivateRoom/PrivateRoom';
 import { IBasePage, PAGES } from '../PageManager';
+import { StoreContext, ServerContext } from '../../App'; // 1. Импортируем контексты
 
-// Интерфейс стал намного проще
-export interface LobbyProps extends IBasePage {
-    player: {
-        name: string;
-        balance: number;
-    };
-}
+export interface LobbyProps extends IBasePage {}
 
-const Lobby: React.FC<LobbyProps> = ({
-    setPage, // Получаем setPage напрямую
-    player,
-}) => {
+const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
+    // 2. Получаем store и server из контекста
+    const store = useContext(StoreContext);
+    const server = useContext(ServerContext);
+    
+    // 3. Получаем актуальные данные пользователя из store
+    const player = store.getUser();
+
     const [showSideMenu, setShowSideMenu] = useState(false);
     const [showPrivateRoomPage, setShowPrivateRoomPage] = useState(false);
 
@@ -26,32 +25,33 @@ const Lobby: React.FC<LobbyProps> = ({
         totalHours: 47
     });
 
-    const handleEditName = () => {
-        console.log('Edit name clicked');
-    };
-
     const handleCreateRoom = () => {
         console.log('Create private room');
-        // Логика создания комнаты
     };
 
     const handleJoinRoom = () => {
         console.log('Join private room');
-        // Логика присоединения к комнате
     };
     
-    // Функция выхода, которая перенаправляет на страницу логина
-    const handleLogout = () => {
-        // Здесь также может быть логика очистки сессии или токена
-        setPage(PAGES.LOGIN);
+    // 4. Функция выхода теперь вызывает метод сервера и очищает данные
+    const handleLogout = async () => {
+        await server.logout(); // Вызываем метод logout из Server.ts
+        setPage(PAGES.LOGIN); // Перенаправляем на страницу входа
     };
+
+    // 5. Защита: если данных пользователя нет, перенаправляем на логин
+    if (!player) {
+        // Это предотвратит ошибку, если пользователь не авторизован
+        setPage(PAGES.LOGIN);
+        return null; 
+    }
 
     // Если показываем страницу приватной комнаты
     if (showPrivateRoomPage) {
         return (
             <PrivateRoom
                 player={player}
-                onBack={() => setShowPrivateRoomPage(false)} // Возврат в лобби
+                onBack={() => setShowPrivateRoomPage(false)}
                 onCreateRoom={handleCreateRoom}
                 onJoinRoom={handleJoinRoom}
                 onShowSideMenu={() => setShowSideMenu(true)}
@@ -66,6 +66,7 @@ const Lobby: React.FC<LobbyProps> = ({
             <header className="lobby-header">
                 <div className="header-left">
                     <button className="menu-btn" onClick={() => setShowSideMenu(true)}>☰</button>
+                    {/* 6. Данные берутся из 'player', полученного из store */}
                     <span className="player-name">{player.name}</span>
                 </div>
 
@@ -82,7 +83,6 @@ const Lobby: React.FC<LobbyProps> = ({
                     <span className="logo-ochko">OCHKO</span>
                 </div>
 
-                {/* Используем setPage напрямую для навигации */}
                 <button className="lobby-btn quick-game-btn" onClick={() => setPage(PAGES.QUICK_GAME)}>
                     Быстрая игра
                 </button>
@@ -101,8 +101,7 @@ const Lobby: React.FC<LobbyProps> = ({
                     player={player}
                     stats={playerStats}
                     onClose={() => setShowSideMenu(false)}
-                    onEditName={handleEditName}
-                    // Передаем навигационные функции напрямую в SideMenu
+                    onEditName={() => console.log('Edit name clicked')}
                     onShowRules={() => setPage(PAGES.RULES)}
                     onShowAuthors={() => setPage(PAGES.AUTHORS)}
                     onLogout={handleLogout}

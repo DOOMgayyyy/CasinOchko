@@ -1,28 +1,44 @@
 import './Register.css';
-import React, { useState } from 'react';
+import React, { useState, useRef, useContext } from 'react'; 
+import { ServerContext } from '../../App';
 import { IBasePage, PAGES } from '../PageManager';
 
 
 const Register: React.FC<IBasePage> = (props) => {
+  const { setPage } = props;
   const [showPwd, setShowPwd] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const { setPage } = props;
+  
+  const server = useContext(ServerContext);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const passwordConfirmRef = useRef<HTMLInputElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const registerClickHandler = async () => {
+    if (emailRef.current && passwordRef.current && passwordConfirmRef.current && nameRef.current) {
+      const email = emailRef.current.value;
+      const password = passwordRef.current.value;
+      const passwordConfirm = passwordConfirmRef.current.value;
+      const name = nameRef.current.value;
 
-  //const backClickHandler = () => setPage(PAGES.PRELOADER);
-  const setLoginPage = async () => {
-    setPage(PAGES.LOGIN);
-  }
-  // const RegisterClickHandler = async () => {
-  //   if (loginRef.current && passwordRef.current) {
-  //     const login = loginRef.current.value;
-  //     const password = passwordRef.current.value;
-  //     if (1) { // тестовое условие, чтобы логин всегда был успешный и работал без бекенда
-  //     //if (login && password && await server.login(login, password)) {
-  //         setPage(PAGES.REGISTER);
-  //     }
-  //   }
-  // }
+      if (password !== passwordConfirm) {
+        console.error("Пароли не совпадают");
+        return;
+      }
+      
+      // Вызываем метод регистрации
+      const success = await server.registration(email, password, name);
+      if (success) {
+        console.log("Регистрация прошла успешно");
+        setPage(PAGES.LOBBY); 
+      } else {
+        console.error("Ошибка регистрации");
+        // Здесь можно показать ошибку от сервера
+      }
+    }
+  };
 
+  const setLoginPage = () => setPage(PAGES.LOGIN);
 
   return (
     <div className="main-register">
@@ -39,6 +55,7 @@ const Register: React.FC<IBasePage> = (props) => {
           <div className="field">
             <label className="label" htmlFor="email">Email:</label>
             <input
+              ref={emailRef} // <--- ref
               className="input"
               id="email"
               type="email"
@@ -47,16 +64,17 @@ const Register: React.FC<IBasePage> = (props) => {
             />
           </div>
 
-          <div className="field">
-            <label className="label" htmlFor="password">Пароль:</label>
-            <div className="password-wrap">
-              <input
-                className="input"
-                id="password"
-                type={showPwd ? 'text' : 'password'}
-                placeholder="••••••••"
-                autoComplete="new-password"
-              />
+        <div className="field">
+          <label className="label" htmlFor="password">Пароль:</label>
+          <div className="password-wrap">
+            <input
+              ref={passwordRef} // <--- ref
+              className="input"
+              id="password"
+              type={showPwd ? 'text' : 'password'}
+              placeholder="••••••••"
+              autoComplete="new-password"
+            />
               <button
                 type="button"
                 className="toggle-visibility"
@@ -79,6 +97,7 @@ const Register: React.FC<IBasePage> = (props) => {
             <label className="label" htmlFor="passwordConfirm">Повторите пароль:</label>
             <div className="password-wrap">
               <input
+                ref={passwordConfirmRef} // <--- ref
                 className="input"
                 id="passwordConfirm"
                 type={showConfirm ? 'text' : 'password'}
@@ -103,21 +122,28 @@ const Register: React.FC<IBasePage> = (props) => {
             </div>
           </div>
 
-          <div className="field">
-            <label className="label" htmlFor="username">Ваше имя:</label>
-            <input className="input" id="username" type="text" autoComplete="nickname" placeholder="username" />
-          </div>
+        <div className="field">
+          <label className="label" htmlFor="username">Ваше имя:</label>
+          <input 
+            ref={nameRef} // <--- ref
+            className="input" 
+            id="username" 
+            type="text" 
+            autoComplete="nickname" 
+            placeholder="username" 
+          />
+        </div>
 
-          <div className="actions actions-split">
-            <a className="btn-link" href="#Login">
-              <span className="arrow">&lt;</span>
-              <span onClick={setLoginPage}>авторизация</span>
-            </a>
+        <div className="actions actions-split">
+          <a className="btn-link" href="#Login" onClick={(e) => { e.preventDefault(); setLoginPage(); }}>
+            <span className="arrow">&lt;</span>
+            <span>авторизация</span>
+          </a>
 
-            <button className="btn-link" type="button">
-              <span className="arrow">&gt;</span>
-              <span>создать аккаунт</span>
-            </button>
+          <button className="btn-link" type="button" onClick={registerClickHandler}>
+            <span className="arrow">&gt;</span>
+            <span>создать аккаунт</span>
+          </button>
           </div>
         </section>
       </main>
