@@ -13,11 +13,20 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     const server = useContext(ServerContext);
     
     // 3. Получаем актуальные данные пользователя из store
-    const player = store.getUser();
+    //const player = store.getUser();
+    //=================DEV ЗАГЛУШКА=============================
+    const [player] = useState({    
+    name: 'dev',
+    balance: 99999,
+    });
+    //==========================================================
+
+
+
 
     const [showSideMenu, setShowSideMenu] = useState(false);
     const [showPrivateRoomPage, setShowPrivateRoomPage] = useState(false);
-
+    ///
     const [playerStats] = useState({
         totalGames: 156,
         totalWins: 89,
