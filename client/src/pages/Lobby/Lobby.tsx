@@ -96,6 +96,10 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     Быстрая игра
                 </button>
 
+                <button className="lobby-btn blackjack-btn" onClick={() => setPage(PAGES.BLACKJACK)}>
+                    Blackjack
+                </button>
+
                 <button className="lobby-btn private-room-btn" onClick={() => setShowPrivateRoomPage(true)}>
                     Приватная комната
                 </button>
