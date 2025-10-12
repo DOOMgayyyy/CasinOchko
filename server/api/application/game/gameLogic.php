@@ -35,4 +35,55 @@ class gameLogic {
     public static function isBust(array $cards) {
         return self::calculateHandScore($cards) > 21;
     }
+
+    # Определяет победителя раунда между игроком и дилером
+    public static function determineWinner(Player $player, Dealer $dealer) {
+        $playerScore = $player->getScore();
+        $dealerScore = $dealer->getScore(true);
+
+        if ($playerScore > 21) {
+            return 'dealer_win';
+        }
+
+        if ($dealerScore > 21) {
+            return 'player_win';
+        }
+
+        if ($playerScore > $dealerScore) {
+            return 'player_win';
+        } elseif ($playerScore < $dealerScore) {
+            return 'dealer_win';
+        } else {
+            return 'push'; # Ничья
+        }
+    }
+
+    public static function payout(Player $player, $result) {
+        $bet = $player->currentBet;
+        $payout = 0;
+
+        if ($result === 'player_win') {
+            # Проверка на блэкджек
+            $playerHand = $player->getHand();
+            $isBlackjack = self::isBlackjack($playerHand);
+
+            if ($isBlackjack) {
+                $payout = $bet * 2.5; # Возврат ставки + 1.5x, если блэкджек
+            } else {
+                $payout = $bet * 2; # Возврат ставки + 1x
+            }
+
+            $player->balance += $payout;
+
+        } elseif ($result === 'dealer_win') {
+            $payout = 0;
+        } elseif ($result === 'push') {
+            $payout = $bet;
+            $player->balance += $payout; # Возврат ставки, если ничья
+        }
+
+        $player->currentBet = 0;
+
+        return $payout;
+    }
 }
