@@ -90,34 +90,69 @@ class Application
 
     // menu
     public function getUserStat($params) {
-        $token = $params['token'];
-        return true;
+        if ($params['token']) {
+            $user = $this->useer->getUserStat($params['token']);
+            if ($user){
+                return ['stats' => $this->user->getUserStat($user->id)];
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242];
     }
 
     public function getUserBalance($params) {
-        $token = $params['token'];
-        return true;
+        if ($params['token']){
+            $user = $this->user->getUser($params['token']);
+            if ($user){
+               return ['balance' => $this->user->getUserBalance($user->id)];
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242]; 
     }
 
     // lobby
     public function quickStart($params) {
-        $token = $params['token'];
-        return true;
+        if($params['token']){
+            $user = $this->user->getUser($params['token']);
+            if ($user){
+                return ['room' => $this->lobby->quickStart($user->id)];
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242];
     }
 
     public function createPrivateRoom($params) {
-        $token = $params['token'];
-        return true;
+        if($params['token']){
+            $user = $this->user->getUser($params['token']);
+            if ($user){
+                return ['private' => $this->lobby->createPrivateRoom($user->id)];
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242];
     }
 
     public function joinPrivateRoom($params) {
-        $token = $params['token'];
-        $code = $params['code'];
-        return true;
+        if ($params['token'] && $params['code']) {
+            $user = $this->user->getUser($params['token']);
+            if ($user) {
+                return ['room' => $this->lobby->joinPrivateRoom($user->id, $params['code'])];
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242];
     }
     
     public function getRatingTable($params) {
-        $token = $params['token'];
-        return true;
+        if($params['token']){
+            $user = $this->user->getUser($params['token']);
+            if ($user){
+                return ['rating' => $this->user->getRatingTable($user->id)];
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242];
     }
 }
