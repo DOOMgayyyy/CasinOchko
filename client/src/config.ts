@@ -36,7 +36,7 @@ const CONFIG = {
         LEFT: 0,
         TOP: 0,
         HEIGHT: 12,
-        WIDTH: 20,
+        WIDTH: 22.5,
     },
 };
 

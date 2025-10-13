@@ -1,4 +1,4 @@
-import './Register.css';
+import './Register.scss';
 import React, { useState, useRef, useContext } from 'react'; 
 import { ServerContext } from '../../App';
 import { IBasePage, PAGES } from '../PageManager';

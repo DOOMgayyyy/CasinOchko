@@ -21,9 +21,6 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     });
     //==========================================================
 
-
-
-
     const [showSideMenu, setShowSideMenu] = useState(false);
     const [showPrivateRoomPage, setShowPrivateRoomPage] = useState(false);
     ///
@@ -96,7 +93,7 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     Быстрая игра
                 </button>
 
-                <button className="lobby-btn blackjack-btn" onClick={() => setPage(PAGES.BLACKJACK)}>
+                <button className="lobby-btn blackjack-btn" onClick={() => setPage(PAGES.GAME)}>
                     Blackjack
                 </button>
 

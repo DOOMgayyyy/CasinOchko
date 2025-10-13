@@ -4,7 +4,11 @@ import Button from '../../components/Button/Button';
 import { IBasePage, PAGES } from '../PageManager';
 import Game from '../../game/Game';
 import { Canvas, useCanvas } from '../../services/canvas';
-import useSprites from './hooks/useSprites';
+
+import tableImgSrc from '../../assets/img/Table/Table.png';
+import chatIcon from '../../assets/img/chat_bubble.svg';
+
+import './Game.scss';
 
 const GAME_FIELD = 'game-field';
 const GREEN = '#00e81c';
@@ -12,50 +16,41 @@ const GREEN = '#00e81c';
 const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const { WINDOW, SPRITE_SIZE } = CONFIG;
     const { setPage } = props;
+    // для положения кнопок
+    const [isVerticalLayout, setIsVerticalLayout] = useState(false);
     let game: Game | null = null;
     // инициализация канваса
     let canvas: Canvas | null = null;
     const Canvas = useCanvas(render);
     let interval: NodeJS.Timeout | null = null;
-    // инициализация карты спрайтов
-    const [
-        [spritesImage],
-        getSprite,
-    ] = useSprites();
-
-    function printFillSprite(image: HTMLImageElement, canvas: Canvas, { x = 0, y = 0 }, points: number[]): void {
-        canvas.spriteFull(image, x, y, points[0], points[1], points[2]);
-    }
-
-    function printKapitoshka(canvas: Canvas, { x = 0, y = 0 }, points: number[]): void {
-        printFillSprite(spritesImage, canvas, { x, y }, points);
-    }
-
+    // инициализация стола
+    const [tableImage, setTableImage] = useState<HTMLImageElement | null>(null);
 
     // функция отрисовки одного кадра сцены
     function render(FPS: number): void {
         if (canvas && game) {
             canvas.clear();
-            const { kapitoshka } = game.getScene();
 
-            /************************/
-            /* нарисовать Капитошку */
-            /************************/
-            const { x, y } = kapitoshka;
-            printKapitoshka(canvas, { x, y }, getSprite(1));
-
-            /******************/
-            /* нарисовать FPS */
-            /******************/
-            canvas.text(WINDOW.LEFT + 0.2, WINDOW.TOP + 0.5, String(FPS), GREEN);
+            /**********************/
+            /* фон покерного стола */
+            /**********************/
+            if (tableImage) {
+                canvas.drawImageFit(tableImage, {
+                  mode: 'contain',
+                  alignX: 'center',
+                  alignY: 'center',
+                  zoom: 0.8,     // отдаление
+                  offsetX: 0,    // смещение в стороны
+                  offsetY: -80,   // смещение вверх вниз
+                });
+            }
+            
             /************************/
             /* отрендерить картинку */
             /************************/
             canvas.render();
         }
     }
-
-    const backClickHandler = () => setPage(PAGES.CHAT);
 
     /****************/
     /* Mouse Events */
@@ -69,6 +64,39 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const mouseRightClick = () => {
     }
     /****************/
+
+    const handleHit = () => {
+        console.log('Hit button clicked');
+        // Логика для взятия карты
+      };
+    
+      const handleStand = () => {
+        console.log('Stand button clicked');
+        // Логика для завершения хода
+      };
+    
+      const handleSplit = () => {
+        console.log('Split button clicked');
+        // Логика для сплита
+      };
+    
+      const handleDouble = () => {
+        console.log('Double button clicked');
+        // Логика для удвоения ставки
+      };
+    
+      const handleBackToLobby = () => {
+        setPage(PAGES.LOBBY);
+      };
+    
+      const toggleLayout = () => {
+        setIsVerticalLayout(!isVerticalLayout);
+      };
+    
+      const handleChatToggle = () => {
+        console.log('Chat toggle clicked');
+        // Логика для открытия/закрытия чата
+      };
 
     useEffect(() => {
         // инициализация игры
@@ -98,6 +126,12 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     });
 
     useEffect(() => {
+        const img = new Image();
+        img.src = tableImgSrc;
+        img.onload = () => setTableImage(img);
+    }, []);
+
+    useEffect(() => {
         const keyDownHandler = (event: KeyboardEvent) => {
             const delta = 0.2;
             const keyCode = event.keyCode ? event.keyCode : event.which ? event.which : 0;
@@ -124,10 +158,37 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         }
     });
 
-    return (<div className='game'>
-        <h1>Игра</h1>
-        <Button onClick={backClickHandler} text='Назад' />
-        <div id={GAME_FIELD} className={GAME_FIELD}></div>
+    return (<div className='game-page'>
+        {/* <h1>Игра</h1> */}
+        {/* <Button onClick={backClickHandler} text='Назад' /> */}
+        <div id={GAME_FIELD} className={GAME_FIELD}><div className={`game-controls ${isVerticalLayout ? 'vertical' : 'horizontal'}`}>
+            <button className="game-button hit-button" onClick={handleHit}>
+            Взять ещё
+            </button>
+            <button className="game-button stand-button" onClick={handleStand}>
+            Стоп
+            </button>
+            <button className="game-button split-button" onClick={handleSplit}>
+            Сплит
+            </button>
+            <button className="game-button double-button" onClick={handleDouble}>
+            Удвоить
+            </button>
+        </div>
+
+        <button className="back-to-lobby-button" onClick={handleBackToLobby}>
+            ← Назад в лобби
+        </button>
+
+        <div className="top-right-controls">
+        <span className="room-id">Комната AD12F </span>
+            <button className="chat-button" onClick={handleChatToggle}>
+            <img src={chatIcon} alt="Chat" className="chat-icon" />
+            </button>
+            <button className="layout-toggle-button" onClick={toggleLayout}>
+            {isVerticalLayout ? '⬇' : '⬅'}
+            </button>
+        </div></div>
     </div>)
 }
 
