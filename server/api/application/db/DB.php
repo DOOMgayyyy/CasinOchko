@@ -33,6 +33,7 @@ class DB {
         $sth->execute($params);
         return $sth->fetch(PDO::FETCH_OBJ);
     }
+    
 
     // получение НЕСКОЛЬКИХ записей
     private function queryAll($sql, $params = []) {
@@ -44,6 +45,11 @@ class DB {
     /*public function getUserByLogin($name) {
         return $this->query("SELECT * FROM users WHERE login=?", [$name]);
     }*/
+        // DB.php (Предлагаемое дополнение)
+
+    public function getUserById($userId) {
+        return $this->query("SELECT id, email, name, balance, token FROM users WHERE id=?", [$userId]);
+    }
 
     public function getUserByEmail($email) {
         return $this->query("SELECT * FROM users WHERE email=?", [$email]);
@@ -59,6 +65,20 @@ class DB {
 
     public function updateUserName($userId, $newName) {
         $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
+    }
+    public function isNameUnique($name, $excludingUserId = null) {
+        $sql = "SELECT COUNT(*) FROM users WHERE name = ?";
+        $params = [$name];
+
+        if ($excludingUserId !== null) {
+            // Если указан ID, исключаем его из проверки (пользователь может сохранить свое имя)
+            $sql .= " AND id != ?";
+            $params[] = $excludingUserId;
+        }
+        
+        // Выполняем запрос и возвращаем true, если COUNT(*) равен 0 (имя уникально)
+        $count = $this->query($sql, $params)->{'COUNT(*)'};
+        return $count == 0;
     }
 
     public function registration($email, $password, $name) {
