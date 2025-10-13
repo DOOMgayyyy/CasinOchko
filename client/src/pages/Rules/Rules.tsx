@@ -14,7 +14,7 @@ const Rules: React.FC<IBasePage> = (props: IBasePage) => {
             <button className="back-to-lobby-button" onClick={handleBackToLobby}>
             <span className="arrow">&lt;</span> Назад в лобби
             </button>
-            <h1>Rules</h1>
+            <h1>Правила</h1>
             <h2>1. Основные положения</h2>
             <p>Игра проводится по правилам американского блэкджека (21 очко) с адаптацией для онлайн-формата.</p>
             <h2>2. Цель игры</h2>
