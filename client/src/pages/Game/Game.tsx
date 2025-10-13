@@ -131,36 +131,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         img.onload = () => setTableImage(img);
     }, []);
 
-    useEffect(() => {
-        const keyDownHandler = (event: KeyboardEvent) => {
-            const delta = 0.2;
-            const keyCode = event.keyCode ? event.keyCode : event.which ? event.which : 0;
-            switch (keyCode) {
-                case 65: // a
-                    game?.move(-delta, 0);
-                break
-                case 68: // d
-                    game?.move(delta, 0);
-                break
-                case 87: // w
-                    game?.move(0, -delta);
-                break
-                case 83: // s
-                    game?.move(0, delta);
-                break
-            }
-        }
-
-        document.addEventListener('keydown', keyDownHandler);
-
-        return () => {
-            document.removeEventListener('keydown', keyDownHandler);
-        }
-    });
-
     return (<div className='game-page'>
-        {/* <h1>Игра</h1> */}
-        {/* <Button onClick={backClickHandler} text='Назад' /> */}
         <div id={GAME_FIELD} className={GAME_FIELD}><div className={`game-controls ${isVerticalLayout ? 'vertical' : 'horizontal'}`}>
             <button className="game-button hit-button" onClick={handleHit}>
             Взять ещё
