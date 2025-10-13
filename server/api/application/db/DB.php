@@ -57,6 +57,10 @@ class DB {
         $this->execute("UPDATE users SET token=? WHERE id=?", [$token, $userId]);
     }
 
+    public function updateUserName($userId, $newName) {
+        $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
+    }
+
     public function registration($email, $password, $name) {
         // Добавляем баланс 5000 для нового пользователя
         $this->execute(

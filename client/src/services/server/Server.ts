@@ -73,6 +73,17 @@ class Server {
     //         this.store.clearUser();
     //     }
     // }
+    async updateUserName(newName: string): Promise<boolean> {
+        // Вызываем серверный метод updateUserName, передавая новое имя
+        const result = await this.request<boolean>('updateUserName', { newName });
+        
+        if (result) {
+            // Если сервер вернул 'ok', обновляем имя локально в Store
+            this.store.setUserName(newName); 
+            return true;
+        }
+        return false;
+    }
 
 
     async registration(email: string, password: string, name: string): Promise<boolean> {
