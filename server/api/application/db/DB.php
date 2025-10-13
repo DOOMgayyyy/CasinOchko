@@ -45,7 +45,6 @@ class DB {
     /*public function getUserByLogin($name) {
         return $this->query("SELECT * FROM users WHERE login=?", [$name]);
     }*/
-        // DB.php (Предлагаемое дополнение)
 
     public function getUserById($userId) {
         return $this->query("SELECT id, email, name, balance, token FROM users WHERE id=?", [$userId]);
