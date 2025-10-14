@@ -102,9 +102,32 @@ class DB {
 
     public function getMessages() {
         return $this->queryAll("SELECT u.name AS author, m.message AS message,
-                                to_char(m.created, 'yyyy-mm-dd hh24:mi:ss') AS created FROM messages as m 
+                                m.created AS created FROM messages as m 
                                 LEFT JOIN users as u on u.id = m.user_id 
                                 ORDER BY m.created DESC"
         );
     }
+
+    public function getRoomId($userId) {
+        return $this->query(
+            "SELECT room_id FROM room_members WHERE user_id=?", 
+            [$userId]
+        );
+    }
+
+    public function getRoom($roomId) {
+        return $this->query("SELECT * FROM rooms WHERE id=?", [$roomId]);
+    }
+
+    public function getOpenRooms() {
+        return $this->queryAll("SELECT * FROM rooms WHERE type='open' AND status='playing'");
+    }
+
+    public function getMembersCount($roomId) {
+        return $this->query(
+            "SELECT count(*) AS count FROM room_members WHERE room_id=?", 
+            [$roomId]
+        );
+    }
+
 }

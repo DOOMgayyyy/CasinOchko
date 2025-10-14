@@ -23,8 +23,9 @@ class Answer
         '707' => 'could not send message',
         '708' => 'invalid code from E-mail',
         '709' => ' session did not start or you need use previous method',
-        '800' => 'not found object',
-        '801' => 'unknown state',
+
+        '800' => 'Невозможно войти в комнату. Игрок уже играет',
+
         '9000' => 'unknown error'
     );
 

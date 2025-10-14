@@ -91,7 +91,7 @@ class Application
     // menu
     public function getUserStat($params) {
         if ($params['token']) {
-            $user = $this->useer->getUserStat($params['token']);
+            $user = $this->user->getUserStat($params['token']);
             if ($user){
                 return ['stats' => $this->user->getUserStat($user->id)];
             }
@@ -116,7 +116,7 @@ class Application
         if($params['token']){
             $user = $this->user->getUser($params['token']);
             if ($user){
-                return ['room' => $this->lobby->quickStart($user->id)];
+                return $this->lobby->quickStart($user->id);
             }
             return ['error' => 705];
         }
