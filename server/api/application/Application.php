@@ -63,7 +63,7 @@ class Application
         }
         return ['error' => 242];
     }
-
+    //chat
     public function sendMessage($params)
     {
         if ($params['token'] && $params['message']) {

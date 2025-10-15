@@ -2,18 +2,15 @@
 class User
 {
     private $db;
-    function __construct($db)
-    {
+    function __construct($db){
         $this->db = $db;
     }
 
-    public function getUser($token)
-    {
+    public function getUser($token){
         return $this->db->getUserByToken($token);
     }
 
-    public function login($email, $hash, $rnd)
-    {
+    public function login($email, $hash, $rnd){
         // 1. Ищем пользователя по E-mail
         $user = $this->db->getUserByEmail($email);
         if ($user) {
@@ -33,8 +30,7 @@ class User
         return ['error' => 1005]; // Пользователь не существует
     }
 
-    public function logout($token)
-    {
+    public function logout($token){
         $user = $this->db->getUserByToken($token);
         if ($user) {
             $this->db->updateToken($user->id, null);
@@ -43,8 +39,7 @@ class User
         return ['error' => 1003];
     }
 
-    public function registration($email, $password, $name)
-    {
+    public function registration($email, $password, $name){
         //проверка email (уникальность)
         $user = $this->db->getUserByEmail($email);
         if ($user) {
@@ -68,8 +63,7 @@ class User
     }
 
     //обновление имени с проверкой уникальности 
-    public function updateUserName($userId, $newName)
-    {
+    public function updateUserName($userId, $newName){
         if ($this->isNameUnique($newName, $userId)) {
             $success = $this->db->updateUserName($userId, $newName);
             if ($success) {
@@ -81,13 +75,11 @@ class User
     }
 
     //проверка уникального имени
-    private function isNameUnique($name, $excludingUserId = null)
-    {
+    private function isNameUnique($name, $excludingUserId = null){
         return $this->db->isNameUnique($name, $excludingUserId);
     }
 
-    public function getBalance($token)
-    {
+    public function getUserBalance($token){
         $user = $this->db->getUserByToken($token);
         if ($user) {
             return [
