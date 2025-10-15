@@ -104,7 +104,7 @@ class Application
         if ($params['token']){
             $user = $this->user->getUser($params['token']);
             if ($user){
-               return ['balance' => $this->user->getUserBalance($user->id)];
+               return ['balance' => $user->balance];
             }
             return ['error' => 705];
         }
