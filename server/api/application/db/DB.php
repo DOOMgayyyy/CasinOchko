@@ -83,7 +83,7 @@ class DB {
     public function registration($email, $password, $name) {
         // Добавляем баланс 5000 для нового пользователя
         $this->execute(
-            "INSERT INTO users (email, password, name, balance) VALUES (?, ?, ?, 5000)",
+            "INSERT INTO users (email, password, name, balance) VALUES (?, ?, ?, ?)",
             [$email, $password, $name]
         );
     }
