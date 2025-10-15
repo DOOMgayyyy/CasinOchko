@@ -126,7 +126,7 @@ const GamePage: React.FC<IBasePage> = ({ setPage }) => {
       </div>
 
       <button className="back-to-lobby-button" onClick={handleBackToLobby}>
-        ← Назад в лобби
+      <span className="arrow">&lt;</span>Назад в лобби
       </button>
 
       <div className="top-right-controls">
