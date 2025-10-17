@@ -19,9 +19,10 @@ class Application
 
     public function login($params)
     {
-
-        if ($params['email'] && $params['hash'] && $params['rnd']) {
-            return $this->user->login($params['email'], $params['hash'], $params['rnd']);
+        // Ожидаем email и 'password' (сырой)
+        if ($params['email'] && $params['password']) {
+            // Передаем их в User::login
+            return $this->user->login($params['email'], $params['password']);
         }
         return ['error' => 242];
     }

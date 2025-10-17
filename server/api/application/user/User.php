@@ -10,11 +10,14 @@ class User
         return $this->db->getUserByToken($token);
     }
 
-    public function login($email, $hash, $rnd){
+    public function login($email, $password){ // Убираем $hash и $rnd, принимаем $password
         // 1. Ищем пользователя по E-mail
         $user = $this->db->getUserByEmail($email);
         if ($user) {
-            if (md5($user->password . $rnd) === $hash) {
+            // 2. Проверяем пароль с помощью password_verify
+            // $user->password теперь будет хэшем из password_hash()
+            if (password_verify($password, $user->password)) {
+                // Пароль верный! Генерируем токен
                 $token = md5(rand());
                 $this->db->updateToken($user->id, $token);
                 return [
@@ -45,8 +48,13 @@ class User
         if ($user) {
             return ['error' => 1007]; // user with this email is already registered
         }
-        //все гуд регестрируем
-        $this->db->registration($email, $password, $name);
+        
+        // Хэшируем пароль перед записью в БД
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        
+        // Передаем в БД уже хэшированный пароль
+        $this->db->registration($email, $hashedPassword, $name);
+        
         $user = $this->db->getUserByEmail($email);
         if ($user) {
             $token = md5(rand());
@@ -54,7 +62,7 @@ class User
             return [
                 'id' => $user->id,
                 'name' => $user->name,
-                'email' => $user->email, // Добавим email в ответ
+                'email' => $user->email,
                 'balance' => $user->balance,
                 'token' => $token
             ];
