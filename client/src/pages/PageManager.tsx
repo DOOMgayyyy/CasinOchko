@@ -8,7 +8,7 @@ import BlackjackPage from './GamePage/GamePage';
 import NotFound from './NotFound/NotFound';
 import Register from './Register/Register';
 import Lobby from './Lobby/Lobby';
-
+import Rules from './Rules/Rules';
 export enum PAGES {
     PRELOADER,
     LOGIN,
@@ -48,6 +48,7 @@ const PageManager: React.FC = () => {
             {page === PAGES.LOBBY && <Lobby setPage={setPage} />}
             {page === PAGES.GAME && <GamePage setPage={setPage} />}
             {page === PAGES.BLACKJACK && <BlackjackPage setPage={setPage} />}
+            {page === PAGES.RULES && <Rules setPage={setPage} />}
             {page === PAGES.NOT_FOUND && <NotFound setPage={setPage} />}
         </>
     );

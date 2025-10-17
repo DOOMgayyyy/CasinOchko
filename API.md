@@ -222,3 +222,24 @@ System: 242 - Params not set fully
 
 242 - Params not set fully
 705 - User is not found
+
+
+4.7. getBalance
+Получение баланса пользователя
+
+Параметры
+
+{
+    "token": string; - токен авторизации
+}
+Успешный ответ
+
+Answer<{
+    "balance": number;
+}>
+Ошибки
+
+242 - Params not set fully
+
+705 - User is not found
+
