@@ -91,7 +91,7 @@ class Application
     // menu
     public function getUserStat($params) {
         if ($params['token']) {
-            $user = $this->user->getUserStat($params['token']);
+            $user = $this->user->getUser($params['token']);
             if ($user){
                 return ['stats' => $this->user->getUserStat($user->id)];
             }
