@@ -94,6 +94,9 @@ sendMessage
 getMessages
 Получить сообщения в чате
 
+getRatingTable
+
+Получить таблицу рейтинга 
 
 3.1. Общие ошибки
 
@@ -222,3 +225,39 @@ System: 242 - Params not set fully
 
 242 - Params not set fully
 705 - User is not found
+
+4.7 getRatingTable 
+Получение топ-100 игроков по балансу
+
+Параметры
+{
+    "token": "string"  // токен авторизации пользователя
+}
+
+Успешный ответ
+
+Если токен валидный и пользователь найден:
+
+{
+    "rating": [
+        {
+            "id": 3,
+            "name": "Артём",
+            "balance": 1500
+        },
+        {
+            "id": 1,
+            "name": "Егор",
+            "balance": 1200
+        },
+        {
+            "id": 2,
+            "name": "Катя",
+            "balance": 950
+        }
+    ]
+}
+
+Ошибки
+242	Params not set fully (не передан токен)
+705	User is not found (токен невалидный, пользователь не найден)

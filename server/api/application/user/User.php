@@ -11,7 +11,12 @@ class User
     {
         return $this->db->getUserByToken($token);
     }
-    
+
+    public function getRatingTable($currentUserId = null)
+    {
+        return $this->db->getAllUsersByBalance();
+    }
+
     public function login($email, $hash, $rnd)
     {
         // 1. Ищем пользователя по E-mail
@@ -43,7 +48,8 @@ class User
         return ['error' => 1003];
     }
 
-    public function registration($email, $password, $name) {
+    public function registration($email, $password, $name)
+    {
         //проверка email (уникальность)
         $user = $this->db->getUserByEmail($email);
         if ($user) {
@@ -53,7 +59,7 @@ class User
         $this->db->registration($email, $password, $name);
         $user = $this->db->getUserByEmail($email);
         if ($user) {
-            $token = md5(rand()); 
+            $token = md5(rand());
             $this->db->updateToken($user->id, $token);
             return [
                 'id' => $user->id,

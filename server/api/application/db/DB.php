@@ -1,6 +1,7 @@
 <?php
 
-class DB {
+class DB
+{
     private $pdo;
     // разкомент тут MYsql и смена названия базы данных
     function __construct()
@@ -28,15 +29,17 @@ class DB {
     }
 
     // получение ОДНОЙ записи
-    private function query($sql, $params = []) {
+    private function query($sql, $params = [])
+    {
         $sth = $this->pdo->prepare($sql);
         $sth->execute($params);
         return $sth->fetch(PDO::FETCH_OBJ);
     }
-    
+
 
     // получение НЕСКОЛЬКИХ записей
-    private function queryAll($sql, $params = []) {
+    private function queryAll($sql, $params = [])
+    {
         $sth = $this->pdo->prepare($sql);
         $sth->execute($params);
         return $sth->fetchAll(PDO::FETCH_ASSOC);
@@ -46,26 +49,32 @@ class DB {
         return $this->query("SELECT * FROM users WHERE login=?", [$name]);
     }*/
 
-    public function getUserById($userId) {
+    public function getUserById($userId)
+    {
         return $this->query("SELECT id, email, name, balance, token FROM users WHERE id=?", [$userId]);
     }
 
-    public function getUserByEmail($email) {
+    public function getUserByEmail($email)
+    {
         return $this->query("SELECT * FROM users WHERE email=?", [$email]);
     }
 
-    public function getUserByToken($token) {
+    public function getUserByToken($token)
+    {
         return $this->query("SELECT * FROM users WHERE token=?", [$token]);
     }
 
-    public function updateToken($userId, $token) {
+    public function updateToken($userId, $token)
+    {
         $this->execute("UPDATE users SET token=? WHERE id=?", [$token, $userId]);
     }
 
-    public function updateUserName($userId, $newName) {
+    public function updateUserName($userId, $newName)
+    {
         $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
     }
-    public function isNameUnique($name, $excludingUserId = null) {
+    public function isNameUnique($name, $excludingUserId = null)
+    {
         $sql = "SELECT COUNT(*) FROM users WHERE name = ?";
         $params = [$name];
 
@@ -74,13 +83,14 @@ class DB {
             $sql .= " AND id != ?";
             $params[] = $excludingUserId;
         }
-        
+
         // Выполняем запрос и возвращаем true, если COUNT(*) равен 0 (имя уникально)
         $count = $this->query($sql, $params)->{'COUNT(*)'};
         return $count == 0;
     }
 
-    public function registration($email, $password, $name) {
+    public function registration($email, $password, $name)
+    {
         // Добавляем баланс 5000 для нового пользователя
         $this->execute(
             "INSERT INTO users (email, password, name, balance) VALUES (?, ?, ?, ?)",
@@ -88,19 +98,23 @@ class DB {
         );
     }
 
-    public function getChatHash() {
+    public function getChatHash()
+    {
         return $this->query("SELECT * FROM hashes WHERE id=1");
     }
 
-    public function updateChatHash($hash) {
+    public function updateChatHash($hash)
+    {
         $this->execute("UPDATE hashes SET chat_hash=? WHERE id=1", [$hash]);
     }
 
-    public function addMessage($userId, $message) {
+    public function addMessage($userId, $message)
+    {
         $this->execute('INSERT INTO messages (user_id, message, created) VALUES (?,?, now())', [$userId, $message]);
     }
 
-    public function getMessages() {
+    public function getMessages()
+    {
         return $this->queryAll("SELECT u.name AS author, m.message AS message,
                                 m.created AS created FROM messages as m 
                                 LEFT JOIN users as u on u.id = m.user_id 
@@ -108,26 +122,43 @@ class DB {
         );
     }
 
-    public function getRoomId($userId) {
+    public function getRoomId($userId)
+    {
         return $this->query(
-            "SELECT room_id FROM room_members WHERE user_id=?", 
+            "SELECT room_id FROM room_members WHERE user_id=?",
             [$userId]
         );
     }
 
-    public function getRoom($roomId) {
+    public function getRoom($roomId)
+    {
         return $this->query("SELECT * FROM rooms WHERE id=?", [$roomId]);
     }
 
-    public function getOpenRooms() {
+    public function getOpenRooms()
+    {
         return $this->queryAll("SELECT * FROM rooms WHERE type='open' AND status='playing'");
     }
 
-    public function getMembersCount($roomId) {
+    public function getMembersCount($roomId)
+    {
         return $this->query(
-            "SELECT count(*) AS count FROM room_members WHERE room_id=?", 
+            "SELECT count(*) AS count FROM room_members WHERE room_id=?",
             [$roomId]
         );
     }
+
+    public function getAllUsersByBalance()
+    {
+        return $this->queryAll("SELECT 
+                id,
+                name,
+                balance
+            FROM users
+            ORDER BY balance DESC
+            LIMIT 100
+    ");
+    }
+
 
 }
