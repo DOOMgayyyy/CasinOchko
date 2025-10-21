@@ -1,6 +1,8 @@
 <?php
 require_once('Card.php');
 require_once('gameLogic.php');
+require_once(__DIR__ . '/Stats.php');
+
 
 class Player
 {
@@ -10,6 +12,7 @@ class Player
     public $currentBet = 0;
     public $splitHands = []; //для сплита рука
     public $activeHandIndex = 0; //индекс активной руки
+    
 
     public function __construct($id, $balance = 1000) //заглушка 1000 баланс 
     {
