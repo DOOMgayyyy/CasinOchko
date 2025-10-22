@@ -93,7 +93,7 @@ class Application
         if ($params['token']) {
             $user = $this->user->getUser($params['token']);
             if ($user){
-                return ['stats' => $this->user->getUserStat($user->id)];
+                return $this->user->getUserStat($user->id);
             }
             return ['error' => 705];
         }
