@@ -67,7 +67,7 @@ class DB {
     }
 
     public function getUserStat($userId) {
-        return $this->query("SELECT name, balance, total_played, total_win, total_balance FROM users WHERE id=?", [$userId]);
+        return $this->query("SELECT total_played, total_win, total_balance FROM users WHERE id=?", [$userId]);
     }
 
     public function isNameUnique($name, $excludingUserId = null) {
