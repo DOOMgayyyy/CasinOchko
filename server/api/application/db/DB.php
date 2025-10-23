@@ -63,7 +63,7 @@ class DB {
     }
 
     public function updateUserName($userId, $newName) {
-        $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
+        return $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
     }
     public function isNameUnique($name, $excludingUserId = null) {
         $sql = "SELECT COUNT(*) FROM users WHERE name = ?";
