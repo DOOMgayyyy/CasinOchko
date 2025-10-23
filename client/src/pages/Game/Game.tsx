@@ -5,26 +5,37 @@ import { IBasePage, PAGES } from '../PageManager';
 import Game from '../../game/Game';
 import { Canvas, useCanvas } from '../../services/canvas';
 
+import cardJH from '../../assets/img/cards/JH.png';
+import cardKH from '../../assets/img/cards/KH.png';
+
 import tableImgSrc from '../../assets/img/Table/Table.png';
 import chatIcon from '../../assets/img/chat_bubble.svg';
-
 import './Game.scss';
 
 const GAME_FIELD = 'game-field';
-const GREEN = '#00e81c';
 
 const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const { WINDOW, SPRITE_SIZE } = CONFIG;
     const { setPage } = props;
-    // для положения кнопок
-    const [isVerticalLayout, setIsVerticalLayout] = useState(false);
+    
     let game: Game | null = null;
     // инициализация канваса
     let canvas: Canvas | null = null;
     const Canvas = useCanvas(render);
     let interval: NodeJS.Timeout | null = null;
+
     // инициализация стола
     const [tableImage, setTableImage] = useState<HTMLImageElement | null>(null);
+
+    // информация об игроках
+    const [players, setPlayers] = useState([
+        { id: 1, name: 'Decibek' + ':', balance: 42, score: 20, position: 'left-top' },
+        { id: 2, name: 'DOOMgay' + ':', balance: 66, score: 19, position: 'left-middle' },
+        { id: 3, name: 'safevitya' + ':', balance: 52, score: 17, position: 'left-bottom' },
+        { id: 4, name: 'Player228' + ':', balance: 2000, score: 17, position: 'right-bottom' },
+        { id: 5, name: 'Lotov123' + ':', balance: 220, score: 18, position: 'right-middle' },
+        { id: 6, name: 'Alexey Trusov' + ':', balance: 15, score: 24, position: 'right-top' },
+      ]);
 
     // функция отрисовки одного кадра сцены
     function render(FPS: number): void {
@@ -41,10 +52,10 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                   alignY: 'center',
                   zoom: 0.8,     // отдаление
                   offsetX: 0,    // смещение в стороны
-                  offsetY: -80,   // смещение вверх вниз
+                  offsetY: -78,   // смещение вверх вниз
                 });
             }
-            
+
             /************************/
             /* отрендерить картинку */
             /************************/
@@ -88,11 +99,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
       const handleBackToLobby = () => {
         setPage(PAGES.LOBBY);
       };
-    
-      const toggleLayout = () => {
-        setIsVerticalLayout(!isVerticalLayout);
-      };
-    
+        
       const handleChatToggle = () => {
         console.log('Chat toggle clicked');
         // Логика для открытия/закрытия чата
@@ -132,7 +139,46 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     }, []);
 
     return (<div className='game-page'>
-        <div id={GAME_FIELD} className={GAME_FIELD}><div className={`game-controls ${isVerticalLayout ? 'vertical' : 'horizontal'}`}>
+        <div className="game-scale-wrapper">
+            {/* дилер */}
+            <div className='diller-slot'>
+                <span className="diller-name">Дилер: </span>
+                <span className="diller-score">21</span>
+            </div>
+            {/* лого снизу */}
+            <div className="game-brand-logo" aria-label="CASINOCHKO">
+                <span className="brand-white">CASIN</span>
+                <span className="brand-yellow">OCHKO</span>
+            </div>
+
+            {/* карты справа */}
+            <div className="player-cards">
+                <span className="your-cards-label">Ваши карты:</span>
+            </div>
+            <div className="my-cards">
+                <div className="card">
+                    <img src={cardJH}/>
+                </div>
+                <div className="card">
+                    <img src={cardKH}/>
+                </div>
+            </div>
+        {/* надписи с инфой игроков за столом */}
+        <div id={GAME_FIELD} className={GAME_FIELD}>
+            <div className="players">
+                {players.map(player => (
+                    <div className={`player-slot ${player.position}`} key={player.id}>
+                    <span className="name">{player.name}</span>
+                    <span className="balance">${player.balance}</span>
+                    <span className="score">{player.score}</span>
+                    </div>
+                ))}
+            </div>
+
+        <span className='left-span'>ставок пока нет</span>
+
+        <div className='game-controls vertical'>
+            
             <button className="game-button hit-button" onClick={handleHit}>
             Взять ещё
             </button>
@@ -142,24 +188,18 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
             <button className="game-button split-button" onClick={handleSplit}>
             Сплит
             </button>
-            <button className="game-button double-button" onClick={handleDouble}>
-            Удвоить
-            </button>
+
         </div>
 
-        <button className="back-to-lobby-button" onClick={handleBackToLobby}>
-            ← Назад в лобби
-        </button>
-
-        <div className="top-right-controls">
-        <span className="room-id">Комната AD12F </span>
-            <button className="chat-button" onClick={handleChatToggle}>
-            <img src={chatIcon} alt="Chat" className="chat-icon" />
-            </button>
-            <button className="layout-toggle-button" onClick={toggleLayout}>
-            {isVerticalLayout ? '⬇' : '⬅'}
-            </button>
-        </div></div>
+        <button className="back-to-lobby-button" onClick={handleBackToLobby} />
+            <div className="top-right-controls">
+            <span className="room-id">Комната AD12F </span>
+                <button className="chat-button" onClick={handleChatToggle}>
+                    <img src={chatIcon} alt="Chat" className="chat-icon" />
+                </button>
+            </div>
+        </div>
+        </div>
     </div>)
 }
 

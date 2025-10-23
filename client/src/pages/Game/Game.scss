@@ -8,14 +8,14 @@
   background-color: #000000;
   font-family: 'Handjet', monospace;
 
-  // .game-canvas {
-  //   position: absolute;
-  //   top: 0;
-  //   left: 0;
-  //   width: 100%;
-  //   height: 100%;
-  //   z-index: 1;
-  // }
+
+  .room-id{
+    text-align: center;
+    font-size: 24px;
+    font-weight: 400;
+    color: #8F8F8F;
+    margin: 0px 0 18px;
+  }
 
   .game-controls {
     position: fixed;
@@ -110,13 +110,10 @@
   .top-right-controls {
     position: fixed;
     top: 20px;
-    right: 20px;
+    right: 20px; 
     display: flex;
-    gap: 15px;
-    z-index: 10;
   }
-  .chat-button,
-  .layout-toggle-button {
+  .chat-button {
     background-color: rgba(32, 32, 32, 0.9);
     color: #ffffff;
     border: 1px solid rgba(255, 255, 255, 0.5);
@@ -158,36 +155,36 @@
 
     
   }
+  $arrow-url: "/assets/img/icons/back-arrow.png";
 
   .back-to-lobby-button {
     position: fixed;
-    top: 20px;
-    left: 20px;
-    background-color: rgba(32, 32, 32, 0.9);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    top: 10px;
+    left: 10px;
+    width: 38px;
+    height: 38px;
+    background-color: rgba(32,32,32,0.9);
+    border: 1px solid rgba(255,255,255,0.5);
     border-radius: 8px;
-    padding: 15px 30px;
-    font-family: 'Handjet', monospace;
-    font-size: 20px;
-    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all .3s ease;
     z-index: 10;
     backdrop-filter: blur(10px);
-    min-width: 160px;
-    text-align: center;
-
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-      border-color: #ffffff;
-      transform: translateX(-2px);
+  
+    &::before {
+      content: "";
+      width: 65px;
+      background: url($arrow-url) no-repeat center / contain;
+      position: absolute;
+      inset: 0;
+      margin: auto;
     }
-
-    &:active {
-      transform: translateX(0);
-    }
+  
+    &:hover { background-color: rgba(255,255,255,0.1); border-color: #fff; transform: translateX(-2px); }
+    &:active { transform: translateX(0); }
   }
+  
+  
 }
 
 // Адаптивность для мобильных устройств
@@ -216,22 +213,13 @@
       }
     }
 
-    .back-to-lobby-button {
-      top: 15px;
-      left: 15px;
-      padding: 12px 25px;
-      font-size: 18px;
-      min-width: 140px;
-    }
-
     .top-right-controls {
       top: 15px;
       right: 15px;
       gap: 8px;
     }
 
-    .chat-button,
-    .layout-toggle-button {
+    .chat-button {
       width: 45px;
       height: 45px;
       font-size: 20px;
@@ -272,8 +260,7 @@
       gap: 6px;
     }
 
-    .chat-button,
-    .layout-toggle-button {
+    .chat-button {
       width: 40px;
       height: 40px;
       font-size: 18px;
@@ -304,4 +291,92 @@
 
 .back-to-lobby-button {
   animation: fadeIn 0.3s ease-out;
+}
+
+.players .player-slot, .diller-slot {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  align-items: center;
+  background: #202020;
+  padding: 4px 10px;
+  border-radius: 16px;
+  border: 1px solid #353535;
+  font-size: 16px;
+  font-weight: 400;
+  pointer-events: none;
+}
+
+.players .left-top     { top: 50%; left: 17%; }
+.players .left-middle  { top: 61%; left: 22%; }
+.players .left-bottom  { top: 72%; left: 32%; }
+
+.players .right-top    { top: 50%; right: 15%; }
+.players .right-middle { top: 61%; right: 22%; }
+.players .right-bottom { top: 72%; right: 31%; }
+.players .balance { color: #FFC300; padding-left: 30px; padding-right: 30px;}
+
+.left-span {
+  position: absolute;
+  display: flex;
+  top: 33%;
+  left: 3%;
+  font-size: 24px;
+}
+
+.diller-slot  { top: 1%; left: 47%; }
+.diller-name  { padding-right: 20px;}
+
+/* ЛОГОТИП */
+.game-brand-logo{
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 90%; 
+  transform: translateX(-50%);
+
+  font-family: "Jersey 10", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-weight: 400;
+  font-size: 28 px;
+  pointer-events: none;
+}
+
+.game-brand-logo .brand-white{ color: #ffffff; }
+.game-brand-logo .brand-yellow{ color: #FFC107; }
+
+.your-cards-label {
+  position: absolute;
+  display: flex;
+  top: 68%;
+  right: 2%;
+  font-size: 20px;
+}
+
+.my-cards {
+  position: absolute;
+  right: -3%;
+  bottom: 5%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+  z-index: 8;
+
+  .card {
+    width: 120  px;
+    height: 164px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+
+    img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+  }
+  .card:nth-child(2) { transform: translateX(-70px); }
 }
