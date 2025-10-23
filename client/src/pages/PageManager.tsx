@@ -46,7 +46,6 @@ const PageManager: React.FC = () => {
             {page === PAGES.CHAT && <Chat setPage={setPage} />}
             {page === PAGES.LOBBY && <Lobby setPage={setPage} />}
             {page === PAGES.GAME && <GamePage setPage={setPage} />}
-            {page === PAGES.BLACKJACK && <BlackjackPage setPage={setPage} />}
             {page === PAGES.RULES && <Rules setPage={setPage} />}
             {page === PAGES.NOT_FOUND && <NotFound setPage={setPage} />}
         </>
