@@ -1,4 +1,4 @@
-import './Login.css';
+import './Login.scss';
 import { ServerContext } from '../../App';
 import React, { useState, useRef, useContext } from 'react';
 import { IBasePage, PAGES } from '../PageManager';

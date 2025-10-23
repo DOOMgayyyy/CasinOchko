@@ -156,7 +156,7 @@ class Canvas {
     }
 
     clear(): void {
-        this.contextV.fillStyle = '#305160';
+        this.contextV.fillStyle = '#181818';
         this.contextV.fillRect(0, 0, this.WIDTH, this.HEIGHT);
     }
 
@@ -194,6 +194,51 @@ class Canvas {
     spriteFull(image: HTMLImageElement, dx: number, dy: number, sx: number, sy: number, size: number): void {
         this.contextV.drawImage(image, sx, sy, size, size, this.xs(dx), this.ys(dy), size, size);
     }
+
+    // отрисовать картинку где угодно как угодно
+    drawImageFit(
+        image: HTMLImageElement,
+        opts: {
+        mode?: 'contain' | 'cover',   // как object-fit
+        alignX?: 'left' | 'center' | 'right',
+        alignY?: 'top'  | 'center' | 'bottom',
+        zoom?: number,                // доп. масштаб (1 = как рассчитано)
+        offsetX?: number,             // сдвиг в пикселях
+        offsetY?: number,
+        } = {}
+    ) {
+        const {
+        mode = 'contain',
+        alignX = 'center',
+        alignY = 'center',
+        zoom = 1,
+        offsetX = 0,
+        offsetY = 0,
+        } = opts;
+    
+        const iw = image.naturalWidth || image.width;
+        const ih = image.naturalHeight || image.height;
+        const cw = this.WIDTH;
+        const ch = this.HEIGHT;
+    
+        // масштаб по режиму
+        const scale = (mode === 'cover')
+        ? Math.max(cw / iw, ch / ih)
+        : Math.min(cw / iw, ch / ih);
+    
+        const w = iw * scale * zoom;
+        const h = ih * scale * zoom;
+    
+        // выравнивание
+        const ax = alignX === 'left' ? 0 : alignX === 'right' ? (cw - w) : (cw - w) / 2;
+        const ay = alignY === 'top'  ? 0 : alignY === 'bottom'? (ch - h) : (ch - h) / 2;
+    
+        const dx = Math.round(ax + offsetX);
+        const dy = Math.round(ay + offsetY);
+    
+        this.contextV.drawImage(image, dx, dy, Math.round(w), Math.round(h));
+    }
+    
 
     // копируем изображение с виртуального канваса на основной
     render(): void {

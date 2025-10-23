@@ -4,7 +4,7 @@ import Preloader from './Preloader/Preloader';
 import Login from './Login/Login';
 import Chat from './Chat/Chat';
 import GamePage from './Game/Game';
-import BlackjackPage from './GamePage/GamePage';
+// import BlackjackPage from './GamePage/GamePage';
 import NotFound from './NotFound/NotFound';
 import Register from './Register/Register';
 import Lobby from './Lobby/Lobby';
@@ -14,7 +14,6 @@ export enum PAGES {
     LOGIN,
     CHAT,
     GAME,
-    BLACKJACK,
     NOT_FOUND,
     REGISTER,
     LOBBY,
