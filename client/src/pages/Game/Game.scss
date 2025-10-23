@@ -1,20 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Handjet:wght@100..900&display=swap');
 
 .game-page {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background-color: #000000;
   font-family: 'Handjet', monospace;
 
 
   .room-id{
     text-align: center;
-    font-size: 24px;
-    font-weight: 400;
+    font-size: 32px;
+    font-weight: 600;
     color: #8F8F8F;
     margin: 0px 0 18px;
+    padding-right: 30px;
   }
 
   .game-controls {
@@ -24,13 +20,6 @@
     z-index: 10;
     padding: 0 20px;
     transition: all 0.5s ease;
-
-    &.horizontal {
-      bottom: 30px;
-      left: 50%;
-      transform: translateX(-50%);
-      flex-direction: row;
-    }
 
     &.vertical {
       bottom: 30px;
@@ -94,14 +83,6 @@
           background-color: #17a2b8;
           border-color: #17a2b8;
           color: #ffffff;
-        }
-      }
-
-      &.double-button {
-        &:hover {
-          background-color: #ffc107;
-          border-color: #ffc107;
-          color: #000000;
         }
       }
     }
@@ -188,90 +169,90 @@
 }
 
 // Адаптивность для мобильных устройств
-@media (max-width: 768px) {
-  .game-page {
-    .game-controls {
-      gap: 15px;
+// @media (max-width: 768px) {
+//   .game-page {
+//     .game-controls {
+//       gap: 15px;
       
-      &.horizontal {
-        bottom: 20px;
-        padding: 0 10px;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
+//       &.horizontal {
+//         bottom: 20px;
+//         padding: 0 10px;
+//         flex-wrap: wrap;
+//         justify-content: center;
+//       }
 
-      &.vertical {
-        bottom: 20px;
-        left: 20px;
-        padding: 15px 0;
-      }
+//       &.vertical {
+//         bottom: 20px;
+//         left: 20px;
+//         padding: 15px 0;
+//       }
 
-      .game-button {
-        padding: 18px 35px;
-        font-size: 20px;
-        min-width: 150px;
-      }
-    }
+//       .game-button {
+//         padding: 18px 35px;
+//         font-size: 20px;
+//         min-width: 150px;
+//       }
+//     }
 
-    .top-right-controls {
-      top: 15px;
-      right: 15px;
-      gap: 8px;
-    }
+//     .top-right-controls {
+//       top: 15px;
+//       right: 15px;
+//       gap: 8px;
+//     }
 
-    .chat-button {
-      width: 45px;
-      height: 45px;
-      font-size: 20px;
-    }
+//     .chat-button {
+//       width: 45px;
+//       height: 45px;
+//       font-size: 20px;
+//     }
 
-    .chat-button .chat-icon {
-      width: 26px;
-      height: 26px;
-    }
-  }
-}
+//     .chat-button .chat-icon {
+//       width: 26px;
+//       height: 26px;
+//     }
+//   }
+// }
 
-@media (max-width: 480px) {
-  .game-page {
-    .game-controls {
-      gap: 10px;
+// @media (max-width: 480px) {
+//   .game-page {
+//     .game-controls {
+//       gap: 10px;
 
-      &.horizontal {
-        bottom: 15px;
-      }
+//       &.horizontal {
+//         bottom: 15px;
+//       }
 
-      &.vertical {
-        bottom: 15px;
-        left: 15px;
-        padding: 10px 0;
-      }
+//       &.vertical {
+//         bottom: 15px;
+//         left: 15px;
+//         padding: 10px 0;
+//       }
 
-      .game-button {
-        padding: 15px 25px;
-        font-size: 18px;
-        min-width: 120px;
-      }
-    }
+//       .game-button {
+//         padding: 15px 25px;
+//         font-size: 18px;
+//         min-width: 120px;
+//       }
+//     }
 
-    .top-right-controls {
-      top: 10px;
-      right: 10px;
-      gap: 6px;
-    }
+//     .top-right-controls {
+//       top: 10px;
+//       right: 10px;
+//       gap: 6px;
+//     }
 
-    .chat-button {
-      width: 40px;
-      height: 40px;
-      font-size: 18px;
-    }
+//     .chat-button {
+//       width: 40px;
+//       height: 40px;
+//       font-size: 18px;
+//     }
 
-    .chat-button .chat-icon {
-      width: 22px;
-      height: 22px;
-    }
-  }
-}
+//     .chat-button .chat-icon {
+//       width: 22px;
+//       height: 22px;
+//     }
+//   }
+// }
 
 // Анимации появления
 @keyframes fadeIn {
@@ -303,8 +284,8 @@
   padding: 4px 10px;
   border-radius: 16px;
   border: 1px solid #353535;
-  font-size: 16px;
-  font-weight: 400;
+  font-size: 20px;
+  font-weight: 500;
   pointer-events: none;
 }
 
@@ -325,7 +306,7 @@
   font-size: 24px;
 }
 
-.diller-slot  { top: 1%; left: 47%; }
+.diller-slot  { top: 1.5%; left: 47%; }
 .diller-name  { padding-right: 20px;}
 
 /* ЛОГОТИП */
@@ -338,7 +319,7 @@
 
   font-family: "Jersey 10", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   font-weight: 400;
-  font-size: 28 px;
+  font-size: 34px;
   pointer-events: none;
 }
 
@@ -350,13 +331,13 @@
   display: flex;
   top: 68%;
   right: 2%;
-  font-size: 20px;
+  font-size: 24px;
 }
 
 .my-cards {
   position: absolute;
-  right: -3%;
-  bottom: 5%;
+  right: -2.5%;
+  bottom: 6%;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -364,8 +345,8 @@
   z-index: 8;
 
   .card {
-    width: 120  px;
-    height: 164px;
+    width: 152px;
+    height: 214px;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
@@ -378,5 +359,18 @@
       object-fit: cover;
     }
   }
-  .card:nth-child(2) { transform: translateX(-70px); }
+  .card:nth-child(2) { transform: translateX(-87px); }
+}
+
+#game-field{
+  position: fixed; 
+  inset: 0;        
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+#game-field canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }

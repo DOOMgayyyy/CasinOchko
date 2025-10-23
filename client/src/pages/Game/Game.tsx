@@ -140,8 +140,20 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
 
     return (<div className='game-page'>
         <div className="game-scale-wrapper">
-            {/* дилер */}
-            <div className='diller-slot'>
+           
+        {/* надписи с инфой игроков за столом */}
+        <div id={GAME_FIELD} className={GAME_FIELD}>
+            <div className="players">
+                {players.map(player => (
+                    <div className={`player-slot ${player.position}`} key={player.id}>
+                    <span className="name">{player.name}</span>
+                    <span className="balance">${player.balance}</span>
+                    <span className="score">{player.score}</span>
+                    </div>
+                ))}
+            </div>
+             {/* дилер */}
+             <div className='diller-slot'>
                 <span className="diller-name">Дилер: </span>
                 <span className="diller-score">21</span>
             </div>
@@ -162,17 +174,6 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                 <div className="card">
                     <img src={cardKH}/>
                 </div>
-            </div>
-        {/* надписи с инфой игроков за столом */}
-        <div id={GAME_FIELD} className={GAME_FIELD}>
-            <div className="players">
-                {players.map(player => (
-                    <div className={`player-slot ${player.position}`} key={player.id}>
-                    <span className="name">{player.name}</span>
-                    <span className="balance">${player.balance}</span>
-                    <span className="score">{player.score}</span>
-                    </div>
-                ))}
             </div>
 
         <span className='left-span'>ставок пока нет</span>
