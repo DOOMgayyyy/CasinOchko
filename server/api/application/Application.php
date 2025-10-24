@@ -152,13 +152,11 @@ class Application
         return ['error' => 242];
     }
 
-    // В классе Application
     public function getRatingTable($params)
     {
         if ($params['token']) {
             $user = $this->user->getUser($params['token']);
             if ($user) {
-                // Просто получаем рейтинг, не передаем user.id
                 return ['rating' => $this->lobby->getRatingTable()];
             }
             return ['error' => 705];
