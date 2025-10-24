@@ -13,13 +13,16 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     const server = useContext(ServerContext);
     
     // 3. Получаем актуальные данные пользователя из store
-    //const player = store.getUser();
-    //=================DEV ЗАГЛУШКА=============================
-    const [player] = useState({    
-    name: 'dev',
-    balance: 99999,
+    const [player, setPlayer] = useState(() => {
+        const user = store.getUser();
+        return user ? {
+            name: user.name,
+            balance: user.balance
+        } : {
+            name: 'dev',
+            balance: 99999
+        };
     });
-    //==========================================================
 
     const [showSideMenu, setShowSideMenu] = useState(false);
     const [showPrivateRoomPage, setShowPrivateRoomPage] = useState(false);
@@ -111,7 +114,17 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     player={player}
                     stats={playerStats}
                     onClose={() => setShowSideMenu(false)}
-                    onEditName={() => console.log('Edit name clicked')}
+                    onEditName={() => {
+                        // Получить обновленные данные пользователя из Store
+                        const updatedUser = store.getUser();
+                        if (updatedUser) {
+                            // Обновить локальное состояние player
+                            setPlayer({
+                                name: updatedUser.name,
+                                balance: updatedUser.balance
+                            });
+                        }
+                    }}
                     onShowRules={() => setPage(PAGES.RULES)}
                     onShowAuthors={() => setPage(PAGES.AUTHORS)}
                     onLogout={handleLogout}
