@@ -12,10 +12,6 @@ class User
         return $this->db->getUserByToken($token);
     }
 
-    public function getRatingTable($currentUserId = null)
-    {
-        return $this->db->getAllUsersByBalance();
-    }
 
     public function login($email, $hash, $rnd)
     {

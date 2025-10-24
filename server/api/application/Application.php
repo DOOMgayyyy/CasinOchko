@@ -10,7 +10,8 @@ class Application
     private $chat;
     private $lobby;
 
-    function __construct() {
+    function __construct()
+    {
         $db = new DB();
         $this->user = new User($db);
         $this->chat = new Chat($db);
@@ -53,7 +54,8 @@ class Application
     }
 
     // Обновление имени
-    public function updateUserName($params) {
+    public function updateUserName($params)
+    {
         if ($params['token'] && $params['newName']) {
             $user = $this->user->getUser($params['token']);
             if ($user) {
@@ -89,10 +91,11 @@ class Application
     }
 
     // menu
-    public function getUserStat($params) {
+    public function getUserStat($params)
+    {
         if ($params['token']) {
             $user = $this->user->getUserStat($params['token']);
-            if ($user){
+            if ($user) {
                 return ['stats' => $this->user->getUserStat($user->id)];
             }
             return ['error' => 705];
@@ -100,22 +103,24 @@ class Application
         return ['error' => 242];
     }
 
-    public function getUserBalance($params) {
-        if ($params['token']){
+    public function getUserBalance($params)
+    {
+        if ($params['token']) {
             $user = $this->user->getUser($params['token']);
-            if ($user){
-               return ['balance' => $this->user->getUserBalance($user->id)];
+            if ($user) {
+                return ['balance' => $this->user->getUserBalance($user->id)];
             }
             return ['error' => 705];
         }
-        return ['error' => 242]; 
+        return ['error' => 242];
     }
 
     // lobby
-    public function quickStart($params) {
-        if($params['token']){
+    public function quickStart($params)
+    {
+        if ($params['token']) {
             $user = $this->user->getUser($params['token']);
-            if ($user){
+            if ($user) {
                 return $this->lobby->quickStart($user->id);
             }
             return ['error' => 705];
@@ -123,10 +128,11 @@ class Application
         return ['error' => 242];
     }
 
-    public function createPrivateRoom($params) {
-        if($params['token']){
+    public function createPrivateRoom($params)
+    {
+        if ($params['token']) {
             $user = $this->user->getUser($params['token']);
-            if ($user){
+            if ($user) {
                 return ['private' => $this->lobby->createPrivateRoom($user->id)];
             }
             return ['error' => 705];
@@ -134,7 +140,8 @@ class Application
         return ['error' => 242];
     }
 
-    public function joinPrivateRoom($params) {
+    public function joinPrivateRoom($params)
+    {
         if ($params['token'] && $params['code']) {
             $user = $this->user->getUser($params['token']);
             if ($user) {
@@ -144,12 +151,15 @@ class Application
         }
         return ['error' => 242];
     }
-    
-    public function getRatingTable($params) {
-        if($params['token']){
+
+    // В классе Application
+    public function getRatingTable($params)
+    {
+        if ($params['token']) {
             $user = $this->user->getUser($params['token']);
-            if ($user){
-                return ['rating' => $this->user->getRatingTable($user->id)];
+            if ($user) {
+                // Просто получаем рейтинг, не передаем user.id
+                return ['rating' => $this->lobby->getRatingTable()];
             }
             return ['error' => 705];
         }

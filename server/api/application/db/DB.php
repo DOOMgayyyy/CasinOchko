@@ -148,7 +148,7 @@ class DB
         );
     }
 
-    public function getAllUsersByBalance()
+    public function getUsersByBalance()
     {
         return $this->queryAll("SELECT 
                 id,
