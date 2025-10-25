@@ -94,6 +94,9 @@ sendMessage
 getMessages
 Получить сообщения в чате
 
+getUserStat
+Получить статистики пользователя
+
 
 3.1. Общие ошибки
 
@@ -223,9 +226,21 @@ System: 242 - Params not set fully
 242 - Params not set fully
 705 - User is not found
 
-
 4.7. getBalance
 Получение баланса пользователя
+
+4.8 getUserStat Получение статистики пользователя
+
+Параметры: {token: string - токен авторизации}
+
+Успешный ответ Answer <{
+    stats: UserStats;
+}>
+
+Ошибки
+
+242 - Params not set fully
+705 - User is not found
 
 Параметры
 
