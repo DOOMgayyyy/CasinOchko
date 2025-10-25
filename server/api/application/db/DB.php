@@ -6,9 +6,9 @@ class DB {
     function __construct()
     {
         $host = '127.0.0.1';// ip для подключения к бд
-        $port = '8889';// порт 
+        $port = '3306';// порт 
         $user = 'root';// логин для входа в бд
-        $pass = 'root'; // пароль для бд
+        $pass = ''; // пароль для бд
         $db = 'casinochko';// название базы данных 
         $connect = "mysql:host=$host;port=$port;dbname=$db;charset=utf8";// формирование команды для подключения к базе данных
         // cоздаем объект PDO для работы с БД
@@ -61,15 +61,13 @@ class DB {
     public function updateToken($userId, $token) {
         $this->execute("UPDATE users SET token=? WHERE id=?", [$token, $userId]);
     }
-
-    public function updateUserName($userId, $newName) {
-        $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
-    }
-
     public function getUserStat($userId) {
         return $this->query("SELECT total_played, total_win, total_balance FROM users WHERE id=?", [$userId]);
     }
 
+    public function updateUserName($userId, $newName) {
+        return $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
+    }
     public function isNameUnique($name, $excludingUserId = null) {
         $sql = "SELECT COUNT(*) FROM users WHERE name = ?";
         $params = [$name];
@@ -88,7 +86,7 @@ class DB {
     public function registration($email, $password, $name) {
         // Добавляем баланс 5000 для нового пользователя
         $this->execute(
-            "INSERT INTO users (email, password, name, balance) VALUES (?, ?, ?, 5000)",
+            "INSERT INTO users (email, password, name) VALUES (?, ?, ?)",
             [$email, $password, $name]
         );
     }
