@@ -79,4 +79,48 @@ class Lobby {
         // создать новую комнату
         //...
     }
+
+    /**
+     * Создание приватной комнаты
+     * 
+     * Генерирует уникальный 4-значный код (1000-9999)
+     * Создает комнату с type='private', status='closed'
+     * Добавляет создателя в room_members с bet=0
+     * 
+     * @param int $userId ID пользователя-создателя
+     * @return array Массив с кодом комнаты или ошибкой
+     */
+    public function createPrivateRoom($userId) {
+        // Генерация уникального 4-значного кода (1000-9999)
+        $privateCode = null;
+        $attempts = 0;
+        $maxAttempts = 100;
+        
+        while ($attempts < $maxAttempts) {
+            $privateCode = rand(1000, 9999);
+            if ($this->db->isPrivateCodeUnique($privateCode)) {
+                break;
+            }
+            $attempts++;
+        }
+        
+        if ($attempts >= $maxAttempts) {
+            return ['error' => 801]; // Не удалось сгенерировать уникальный код
+        }
+        
+        // Генерация хэша комнаты
+        $hash = md5(rand());
+        
+        // Создание комнаты
+        $roomId = $this->db->createRoom('private', 'closed', $privateCode, $hash);
+        
+        // Добавление создателя в комнату с bet=0
+        $this->db->addRoomMember($roomId, $userId, 0);
+        
+        // Возврат кода комнаты
+        return [
+            'code' => $privateCode,
+            'room_id' => $roomId
+        ];
+    }
 }
