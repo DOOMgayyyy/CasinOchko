@@ -97,6 +97,12 @@ getMessages
 getUserStat
 Получить статистики пользователя
 
+getUserStat
+Получить статистики пользователя
+
+getRatingTable
+
+Получить таблицу рейтинга 
 
 3.1. Общие ошибки
 
@@ -258,3 +264,72 @@ Answer<{
 
 705 - User is not found
 
+
+4.7. getBalance
+Получение баланса пользователя
+
+4.8 getUserStat Получение статистики пользователя
+
+Параметры: {token: string - токен авторизации}
+
+Успешный ответ Answer <{
+    stats: UserStats;
+}>
+
+Ошибки
+
+242 - Params not set fully
+705 - User is not found
+
+Параметры
+
+{
+    "token": string; - токен авторизации
+}
+Успешный ответ
+
+Answer<{
+    "balance": number;
+}>
+Ошибки
+
+242 - Params not set fully
+
+705 - User is not found
+
+
+4.7 getRatingTable 
+Получение топ-100 игроков по балансу
+
+Параметры
+{
+    "token": "string"  // токен авторизации пользователя
+}
+
+Успешный ответ
+
+Если токен валидный и пользователь найден:
+
+{
+    "rating": [
+        {
+            "id": 3,
+            "name": "Артём",
+            "balance": 1500
+        },
+        {
+            "id": 1,
+            "name": "Егор",
+            "balance": 1200
+        },
+        {
+            "id": 2,
+            "name": "Катя",
+            "balance": 950
+        }
+    ]
+}
+
+Ошибки
+242	Params not set fully (не передан токен)
+705	User is not found (токен невалидный, пользователь не найден)

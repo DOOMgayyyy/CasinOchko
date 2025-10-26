@@ -79,4 +79,9 @@ class Lobby {
         // создать новую комнату
         //...
     }
+    public function getRatingTable($currentUserId = null)
+    {
+        return $this->db->getUsersByBalance();
+    }
+
 }
