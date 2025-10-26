@@ -147,6 +147,31 @@ class DB
         );
     }
 
+    public function isPrivateCodeUnique($code) {
+        $sql = "SELECT COUNT(*) FROM rooms WHERE private_code = ?";
+        $count = $this->query($sql, [$code])->{'COUNT(*)'};
+        return $count == 0;
+    }
+
+    public function createRoom($type, $status, $privateCode, $hash) {
+        $this->execute(
+            "INSERT INTO rooms (type, status, private_code, hash) VALUES (?, ?, ?, ?)",
+            [$type, $status, $privateCode, $hash]
+        );
+        // Возвращаем ID созданной комнаты
+        return $this->pdo->lastInsertId();
+    }
+
+    public function addRoomMember($roomId, $userId, $bet = 0) {
+        $this->execute(
+            "INSERT INTO room_members (room_id, user_id, bet) VALUES (?, ?, ?)",
+            [$roomId, $userId, $bet]
+        );
+    }
+
+    public function getRoomByPrivateCode($code) {
+        return $this->query("SELECT * FROM rooms WHERE private_code=?", [$code]);
+    }
     public function getUsersByBalance()
     {
         return $this->queryAll("SELECT 

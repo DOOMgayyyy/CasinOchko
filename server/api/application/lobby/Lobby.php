@@ -84,4 +84,39 @@ class Lobby {
         return $this->db->getUsersByBalance();
     }
 
+
+    # Создание приватной комнаты
+    public function createPrivateRoom($userId) {
+        // Генерация уникального 4-буквенного кода (AAAA-ZZZZ)
+        $maxAttempts = 100;
+        
+        for ($attempts = 0; $attempts < $maxAttempts; $attempts++) {
+            // Генерируем 4 случайные буквы A-Z
+            $privateCode = '';
+            for ($i = 0; $i < 4; $i++) {
+                $privateCode .= chr(rand(65, 90)); // 65='A', 90='Z'
+            }
+            
+            // Проверяем уникальность кода в БД
+            if ($this->db->isPrivateCodeUnique($privateCode)) {
+                // Генерация хэша комнаты
+                $hash = md5(rand());
+                
+                // Создание комнаты
+                $roomId = $this->db->createRoom('private', 'closed', $privateCode, $hash);
+                
+                // Добавление создателя в комнату с bet=0
+                $this->db->addRoomMember($roomId, $userId, 0);
+                
+                // Возврат кода комнаты
+                return [
+                    'code' => $privateCode,
+                    'room_id' => $roomId
+                ];
+            }
+        }
+        
+        // Не удалось сгенерировать уникальный код за maxAttempts попыток
+        return ['error' => 801];
+    }
 }
