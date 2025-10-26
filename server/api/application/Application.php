@@ -164,4 +164,32 @@ class Application
         }
         return ['error' => 242];
     }
+
+    public function addBalance($params){
+        if ($params['token'] && $params['amount']) { 
+            
+            $user = $this->user->getUser($params['token']);
+            
+            if ($user) {
+                
+                return $this->user->addBalance($user->id, $params['amount']);
+            }
+            return ['error' => 705]; 
+        }
+        return ['error' => 242];
+    }
+
+    public function subtractBalance($params){
+        if ($params['token'] && $params['amount']) { 
+            
+            $user = $this->user->getUser($params['token']);
+            
+            if ($user) {
+                
+                return $this->user->subtractBalance($user->id, $params['amount']);
+            }
+            return ['error' => 705]; 
+        }
+        return ['error' => 242];
+    }
 }

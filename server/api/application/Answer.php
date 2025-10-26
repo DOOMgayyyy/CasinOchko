@@ -26,6 +26,7 @@ class Answer
 
         '800' => 'Невозможно войти в комнату. Игрок уже играет',
         '801' => 'Failed to generate unique room code',
+        '802' => 'у тебя нет денег',
 
         '9000' => 'unknown error'
     );

@@ -252,6 +252,7 @@ System: 242 - Params not set fully
     stats: UserStats;
 }>
 
+
 Ошибки
 
 242 - Params not set fully
@@ -297,7 +298,7 @@ Answer<{
 705 - User is not found
 801 - Failed to generate unique room code
 
-4.9. createPrivateRoom
+4.10. createPrivateRoom
 Создание приватной комнаты с уникальным 4-буквенным кодом (AAAA-ZZZZ)
 
 Параметры
@@ -322,10 +323,10 @@ Answer<{
 801 - Failed to generate unique room code
 
 
-4.7. getBalance
+4.11. getBalance
 Получение баланса пользователя
 
-4.8 getUserStat Получение статистики пользователя
+4.12 getUserStat Получение статистики пользователя
 
 Параметры: {token: string - токен авторизации}
 
@@ -355,7 +356,7 @@ Answer<{
 705 - User is not found
 
 
-4.7 getRatingTable 
+4.13 getRatingTable 
 Получение топ-100 игроков по балансу
 
 Параметры
@@ -390,3 +391,40 @@ Answer<{
 Ошибки
 242	Params not set fully (не передан токен)
 705	User is not found (токен невалидный, пользователь не найден)
+
+4.14. addBalance
+Метод для прибавления указанной суммы к балансу пользователя.
+
+Параметры
+{
+    "token": string; - токен авторизации
+    "amount": number; - СУММА
+}
+
+Успешный ответ
+    Answer<{
+        "balance": number; - Обновленный баланс
+    }>
+
+Ошибки
+242 - Params not set fully
+705 - User is not found 
+
+4.15 subtractBalance
+Метод для убавления указанной суммы с баланса пользователя с обязательной проверкой достаточности средств.
+
+Параметры
+{
+    "token": string; - токен авторизации
+    "amount": number; - Сумма для списания (должна быть > 0).
+}
+
+Успешный ответ
+Answer<{
+    "balance": number; // Обновленный баланс пользователя
+}>
+
+Ошибки
+242 - Params not set fully
+705 - User is not found
+802 - у тебя нет денег
