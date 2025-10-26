@@ -80,47 +80,38 @@ class Lobby {
         //...
     }
 
-    /**
-     * Создание приватной комнаты
-     * 
-     * Генерирует уникальный 4-значный код (1000-9999)
-     * Создает комнату с type='private', status='closed'
-     * Добавляет создателя в room_members с bet=0
-     * 
-     * @param int $userId ID пользователя-создателя
-     * @return array Массив с кодом комнаты или ошибкой
-     */
+    # Создание приватной комнаты
     public function createPrivateRoom($userId) {
-        // Генерация уникального 4-значного кода (1000-9999)
-        $privateCode = null;
-        $attempts = 0;
+        // Генерация уникального 4-буквенного кода (AAAA-ZZZZ)
         $maxAttempts = 100;
         
-        while ($attempts < $maxAttempts) {
-            $privateCode = rand(1000, 9999);
-            if ($this->db->isPrivateCodeUnique($privateCode)) {
-                break;
+        for ($attempts = 0; $attempts < $maxAttempts; $attempts++) {
+            // Генерируем 4 случайные буквы A-Z
+            $privateCode = '';
+            for ($i = 0; $i < 4; $i++) {
+                $privateCode .= chr(rand(65, 90)); // 65='A', 90='Z'
             }
-            $attempts++;
+            
+            // Проверяем уникальность кода в БД
+            if ($this->db->isPrivateCodeUnique($privateCode)) {
+                // Генерация хэша комнаты
+                $hash = md5(rand());
+                
+                // Создание комнаты
+                $roomId = $this->db->createRoom('private', 'closed', $privateCode, $hash);
+                
+                // Добавление создателя в комнату с bet=0
+                $this->db->addRoomMember($roomId, $userId, 0);
+                
+                // Возврат кода комнаты
+                return [
+                    'code' => $privateCode,
+                    'room_id' => $roomId
+                ];
+            }
         }
         
-        if ($attempts >= $maxAttempts) {
-            return ['error' => 801]; // Не удалось сгенерировать уникальный код
-        }
-        
-        // Генерация хэша комнаты
-        $hash = md5(rand());
-        
-        // Создание комнаты
-        $roomId = $this->db->createRoom('private', 'closed', $privateCode, $hash);
-        
-        // Добавление создателя в комнату с bet=0
-        $this->db->addRoomMember($roomId, $userId, 0);
-        
-        // Возврат кода комнаты
-        return [
-            'code' => $privateCode,
-            'room_id' => $roomId
-        ];
+        // Не удалось сгенерировать уникальный код за maxAttempts попыток
+        return ['error' => 801];
     }
 }

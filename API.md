@@ -98,12 +98,17 @@ getUserStat
 Получить статистики пользователя
 
 
+createPrivateRoom
+Создать приватную комнату
+
+
 3.1. Общие ошибки
 
 101 - Param method not setted
 102 - Method not found
 242 - Params not set fully
 705 - User is not found
+801 - Failed to generate unique room code
 9000 - unknown error
 
 4. Подробно
@@ -257,4 +262,28 @@ Answer<{
 242 - Params not set fully
 
 705 - User is not found
+
+4.9. createPrivateRoom
+Создание приватной комнаты с уникальным 4-буквенным кодом (AAAA-ZZZZ)
+
+Параметры
+{
+    token: string; - токен авторизации
+}
+
+Успешный ответ
+    Answer<{
+        private: {
+            code: string; - 4-буквенный код комнаты (например: "ABCD")
+            room_id: number; - ID созданной комнаты
+        }
+    }>
+
+Создает комнату: type='private', status='closed', добавляет создателя в room_members (bet=0).
+
+Ошибки
+
+242 - Params not set fully
+705 - User is not found
+801 - Failed to generate unique room code
 
