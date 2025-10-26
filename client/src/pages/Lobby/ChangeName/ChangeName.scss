@@ -1,0 +1,202 @@
+@import '../../../scss/variables.scss';
+
+.change-name {
+  position: relative;
+  width: 100%;
+  background: transparent;
+  padding: 20px 5px 15px 5px;
+  min-height: 73px;
+
+  @media screen and (max-width: 768px) {
+    padding: 15px 5px 10px 5px;
+    min-height: 60px;
+  }
+
+  @media screen and (max-width: 480px) {
+    padding: 10px 5px 8px 5px;
+    min-height: 50px;
+  }
+
+  .change-name-card {
+    width: 100%;
+    background: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    .change-name-title {
+      color: #ffffff;
+      font-family: 'Handjet', monospace;
+      font-size: 40px;
+      margin-bottom: 16px;
+
+      @media screen and (max-width: 768px) {
+        font-size: 32px;
+        margin-bottom: 12px;
+      }
+
+      @media screen and (max-width: 480px) {
+        font-size: 28px;
+        margin-bottom: 10px;
+      }
+    }
+
+    .field {
+      margin-bottom: 8px;
+
+      .label {
+        display: block;
+        color: #ffffff;
+        font-family: 'Handjet', monospace;
+        font-size: 35px;
+        margin-bottom: 8px;
+
+        @media screen and (max-width: 768px) {
+          font-size: 28px;
+          margin-bottom: 6px;
+        }
+
+        @media screen and (max-width: 480px) {
+          font-size: 24px;
+          margin-bottom: 4px;
+        }
+      }
+
+      .input {
+        width: 100%;
+        padding: 12px;
+        background: #2A2A2A;
+        border: 1px solid #333;
+        border-radius: 8px;
+        color: #ffffff;
+        font-family: 'Handjet', monospace;
+        font-size: 20px;
+
+        @media screen and (max-width: 768px) {
+          padding: 10px;
+          font-size: 18px;
+        }
+
+        @media screen and (max-width: 480px) {
+          padding: 8px;
+          font-size: 16px;
+        }
+
+        &:focus {
+          outline: none;
+          border-color: #262626;
+        }
+
+        &::placeholder {
+          color: #666;
+        }
+      }
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 8px;
+      padding: 0 16px;
+
+      @media screen and (max-width: 768px) {
+        gap: 15px;
+        margin-top: 6px;
+        padding: 0 12px;
+      }
+
+      @media screen and (max-width: 480px) {
+        gap: 10px;
+        margin-top: 4px;
+        padding: 0 8px;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn-link {
+        background: none;
+        border: none;
+        color: #ffffff;
+        font-family: 'Handjet', monospace;
+        font-size: 30px;
+        cursor: pointer;
+        padding: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        height: 36px;
+
+        @media screen and (max-width: 768px) {
+          font-size: 26px;
+          height: 32px;
+        }
+
+        @media screen and (max-width: 480px) {
+          font-size: 22px;
+          height: 40px;
+          justify-content: flex-start;
+        }
+
+        &:hover {
+          color: #262626;
+        }
+
+        .arrow {
+          margin: 0 8px;
+          line-height: 1;
+        }
+      }
+
+      .btn-submit {
+        background: #202020;
+        border: none;
+        border-radius: 8px;
+        color: #ffffff;
+        font-family: 'Handjet', monospace;
+        font-size: 30px;
+        padding: 0 24px;
+        min-width: 140px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 36px;
+        line-height: 1;
+
+        @media screen and (max-width: 768px) {
+          font-size: 26px;
+          height: 32px;
+          min-width: 120px;
+          padding: 0 20px;
+        }
+
+        @media screen and (max-width: 480px) {
+          font-size: 22px;
+          height: 40px;
+          min-width: 100%;
+          padding: 0 16px;
+        }
+
+        span {
+          display: inline-flex;
+          align-items: center;
+        }
+
+        &:hover {
+          background: #262626;
+        }
+
+        &:disabled {
+          background: #666;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}

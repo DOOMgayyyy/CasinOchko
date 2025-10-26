@@ -1,20 +1,178 @@
-.login {
+@import url('https://fonts.googleapis.com/css2?family=Handjet:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Handjet:wght@100..900&family=Jersey+10&display=swap');
 
-    &-inputs {
-        display: flex;
-        flex-direction: column;
-
-        input {
-            margin: 10px;
-            padding: 0 10px 5px 10px;
-            background-color: aquamarine;
-            width: 300px;
-        }
-    }
-
-    &-buttons {
-        display: flex;
-        justify-content: space-between;
-        max-width: 500px;
-    }
+:root{
+  --bg: #181818;     /* Задний фон */
+  --card: #202020;   /* Панель */
+  --text: #ffffff;   /* Заголовок и впервые здесь */
+  --muted: #5b5b5b;  /* Подписи email */
+  --field: #181818;  /* Инпуты фон */
+  --stroke: #2a2d33; /* Обводка инпутов */
+  --accent: #8f8f8f; /* Кнопки */
+  --accent-hover: #bfbfbf; /* Ховер для ссылок/кнопок */
+  --shadow: 0 10px 30px rgba(0,0,0,.45);
+  --radius: 12px;
 }
+
+* { box-sizing: border-box; }
+
+/* ЛОГОТИП */
+.brand-logo{
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(50vh - 300px); /* выше центра экрана на 300px */
+  transform: translateX(-50%);
+
+  font-family: "Jersey 10", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-weight: 400;
+  font-size: 72px;
+  pointer-events: none;
+}
+
+.brand-logo .brand-white{ color: #ffffff; }
+.brand-logo .brand-yellow{ color: #FFC107; }
+
+html, body, #root{
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  font-family: 'Handjet', cursive;
+  color: var(--text);
+
+  /* Глобально отключаем прокрутку страницы */
+  overflow: hidden;
+}
+
+.main-login{
+  min-height: 100vh;          /* не 100%, чтобы padding не вытаскивал ниже окна */
+  box-sizing: border-box;     /* padding не растягивает высоту */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Умный паддинг: на маленьких экранах ужмётся, скролла не будет */
+  padding: clamp(40px, 10vh, 120px) 20px;
+
+  overflow: hidden;           /* перестраховка: внутри логина тоже без прокрутки */
+}
+@supports (min-height: 100dvh) {
+  .main-login{ min-height: 100dvh; }
+}
+
+.sign-wrap{ 
+  width: 100%; 
+  max-width: 444px;
+}
+
+.sign-title{
+  text-align: center;
+  font-size: 36px;
+  font-weight: 400;
+  margin: 0px 0 18px;
+}
+
+.sign-card{
+  background: var(--card);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  /* box-shadow: var(--shadow); */
+  padding: 15px 12px 10px;
+}
+
+.label{
+  display: block;
+  font-size: 24px;
+  color: var(--muted);
+  margin-bottom: 0px;
+}
+
+.input{
+  width: 100%;
+  font-size: 24px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid var(--stroke);
+  background: var(--field);
+  color: var(--text);
+  padding: 10px 14px;
+  outline: none;
+  /* transition: border-color .15s ease, box-shadow .15s ease; */
+  font-family: inherit;
+}
+.input::placeholder{ color: #7f848c; }
+.input:focus{
+  border-color: #3a3f47;
+  /* box-shadow: 0 0 0 3px rgba(80,115,255,.12); */
+}
+
+.actions{
+  height: 24px;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 7px;
+}
+
+.btn-link{
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 6px 0;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  transition: color .15s ease, transform .05s ease;
+  font-family: inherit;
+  text-decoration: none; /* на случай, если это <a> */
+  /* font-weight: 400px; */
+}
+.btn-link:hover{ color: var(--accent-hover); }
+.btn-link:active{ transform: translateY(1px); }
+.arrow{ font-weight: 700; }
+
+.foot{
+  margin-top: 18px;
+  font-weight: 400;
+  text-align: center;
+  color: var(--muted);
+  font-size: 24px;
+  color: #ffffff;
+}
+
+.foot-link{
+  color: var(--accent);
+  text-decoration: none;
+  margin-left: 14px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  transition: color .15s ease;
+  font-family: inherit;
+}
+.foot-link:hover{ color: var(--accent-hover); }
+
+@media (max-width: 480px){
+  .sign-title{ font-size: 24px; }
+  .sign-card{ padding: 22px 18px 16px; }
+}
+
+/* «Глазик» у полей пароля */
+.password-wrap { position: relative; }
+.password-wrap .input { padding-right: 44px; }
+
+.toggle-visibility{
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 0; background: transparent; cursor: pointer; padding: 0;
+  color: var(--muted);
+}
+.toggle-visibility:hover{ color: var(--accent); }
+.toggle-visibility:active{ transform: translateY(calc(-50% + 1px)); }
+.toggle-visibility svg{ display:block; }

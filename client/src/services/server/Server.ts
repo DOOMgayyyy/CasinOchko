@@ -8,7 +8,7 @@ const { CHAT_TIMESTAMP, HOST } = CONFIG;
 class Server {
     HOST = HOST;
     store: Store;
-    chatInterval: NodeJS.Timer | null = null;
+    chatInterval: NodeJS.Timeout | null = null;
     showErrorCb: (error: TError) => void = () => {};
 
     constructor(store: Store) {
@@ -48,10 +48,10 @@ class Server {
         this.showErrorCb = cb;
     }
 
-    async login(login: string, password: string): Promise<boolean> {
-        const rnd = Math.round(Math.random() * 100000);
-        const hash = md5(`${md5(`${login}${password}`)}${rnd}`);
-        const user = await this.request<TUser>('login', { login, hash, rnd: `${rnd}` });
+    async login(email: string, password: string): Promise<boolean> {
+        // Убираем всю логику с rnd и md5
+        // Просто отправляем email и password
+        const user = await this.request<TUser>('login', { email, password });
         if (user) {
             this.store.setUser(user);
             return true;
@@ -65,10 +65,36 @@ class Server {
             this.store.clearUser();
         }
     }
+    // async logout(): Promise<void> {
+    //     const result = await this.request<boolean>('logout');
+    //     if (result) {
+    //         this.store.clearUser();
+    //     }
+    // }
+    async updateUserName(newName: string): Promise<boolean> {
+        // Вызываем серверный метод updateUserName, передавая новое имя
+        const result = await this.request<boolean>('updateUserName', { newName });
+        
+        if (result) {
+            // Если сервер вернул 'ok', обновляем имя локально в Store
+            this.store.setUserName(newName); 
+            return true;
+        }
+        return false;
+    }
 
-    registration(login: string, password: string, name: string): Promise<boolean | null> {
-        const hash = md5(`${login}${password}`);
-        return this.request<boolean>('registration', { login, hash, name });
+
+    async registration(email: string, password: string, name: string): Promise<boolean> {
+        // Убираем passHash = md5(password)
+        // Отправляем сырой password
+        const user = await this.request<TUser>('registration', { email, password, name });
+
+        if (user) {
+            this.store.setUser(user);
+            return true;
+        }
+        
+        return false;
     }
 
     sendMessage(message: string): void {

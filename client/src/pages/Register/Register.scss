@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Handjet:wght@100..900&family=Jersey+10&display=swap');
+
+.main-register{
+  min-height: 100vh;           /* высота экрана */
+  box-sizing: border-box;       /* паддинги внутрь высоты */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: clamp(40px, 10vh, 120px) 20px;
+
+  overflow: hidden;            
+}
+@supports (min-height: 100dvh) {
+  .main-register,
+  .main-register-page{ min-height: 100dvh; }
+}
+
+/* Нижняя полоса действий внутри карточки: слева «< авторизация», справа «> создать аккаунт» */
+.actions-split{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 10px 2px 5px;
+}
+
+/* псевдокнопка-ссылка без подчёркивания */
+.btn-link,
+.btn-link:link,
+.btn-link:visited,
+.btn-link:hover,
+.btn-link:active{
+  text-decoration: none;
+}

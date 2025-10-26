@@ -10,8 +10,12 @@ export type TAnswer<T> = {
 }
 
 export type TUser = {
-    token: string;
+    id: number;
+    email: string;
     name: string;
+    balance: number;
+    token: string;
+
 }
 
 export type TMessage = {

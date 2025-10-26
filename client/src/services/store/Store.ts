@@ -54,6 +54,12 @@ class Store {
     setChatHash(hash: string): void {
         this.chatHash = hash;
     }
+    setUserName(newName: string): void {
+        // Обновляем свойство name в текущем объекте пользователя
+        if (this.user) {
+            this.user.name = newName;
+        }
+    }
 }
 
 export default Store;

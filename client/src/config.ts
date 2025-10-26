@@ -18,7 +18,12 @@ export type TWINDOW = {
 }
 
 const CONFIG = {
-    HOST: 'http://nopainnogame.local/api',
+    // Для openserver 6.4.0
+    //HOST: 'http://casinochko.local/api', 
+    // Для open server 
+    HOST: 'http://casinochko/api',
+    // Для MAMP 
+    // HOST: 'http://localhost:8888/server/api'
 
     CHAT_TIMESTAMP: 200, //ms
 
@@ -31,7 +36,7 @@ const CONFIG = {
         LEFT: 0,
         TOP: 0,
         HEIGHT: 12,
-        WIDTH: 20,
+        WIDTH: 22.5,
     },
 };
 
