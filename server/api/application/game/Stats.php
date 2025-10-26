@@ -1,50 +1,58 @@
 <?php
-class Stats {
+class Stats
+{
     private $filePath;
+    private $playerId;
+    private $stats;
 
-    public function __construct($filePath = __DIR__ . '/../../data/stats.json') {
-        $this->filePath = $filePath;
-        $dir = dirname($this->filePath);
-        if (!is_dir($dir)) mkdir($dir, 0755, true);
-        if (!file_exists($this->filePath)) file_put_contents($this->filePath, json_encode(new stdClass()));
-    }
-
-    private function loadAll() {
-        $raw = @file_get_contents($this->filePath);
-        $data = json_decode($raw, true);
-        if (!is_array($data)) $data = [];
-        return $data;
-    }
-
-    private function saveAll(array $data) {
-        file_put_contents($this->filePath, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-    }
-
-    public function getStats($playerId) {
-        $data = $this->loadAll();
-        if (!isset($data[$playerId])) {
-            $data[$playerId] = ['wins'=>0,'losses'=>0,'balance'=>1000];
-            $this->saveAll($data);
+    public function __construct($playerId)
+    {
+        $this->playerId = $playerId;
+        // путь к файлу с данными
+        $this->filePath = __DIR__ . '/../../data/stats.json';
+        if (!file_exists($this->filePath)) {
+            file_put_contents($this->filePath, json_encode([]));
         }
-        return $data[$playerId];
+
+        $this->loadStats();
     }
 
-    public function updateStats($playerId, array $patch) {
-        $data = $this->loadAll();
-        if (!isset($data[$playerId])) {
-            $data[$playerId] = ['wins'=>0,'losses'=>0,'balance'=>1000];
+    private function loadStats()
+    {
+        $data = json_decode(file_get_contents($this->filePath), true) ?? [];
+        // если у игрока нет статистики — создаём
+        if (!isset($data[$this->playerId])) {
+            $data[$this->playerId] = [
+                'wins' => 0,
+                'losses' => 0,
+                'balance' => 1000
+            ];
+            file_put_contents($this->filePath, json_encode($data, JSON_PRETTY_PRINT));
         }
-        foreach ($patch as $k => $v) $data[$playerId][$k] = $v;
-        $this->saveAll($data);
-        return $data[$playerId];
+        $this->stats = $data[$this->playerId];
     }
 
-    public function increment($playerId, $key, $by = 1) {
-        $stats = $this->getStats($playerId);
-        if (!isset($stats[$key])) $stats[$key] = 0;
-        $stats[$key] += $by;
-        $this->updateStats($playerId, $stats);
-        return $stats;
+    private function saveStats()
+    {
+        $data = json_decode(file_get_contents($this->filePath), true) ?? [];
+        $data[$this->playerId] = $this->stats;
+        file_put_contents($this->filePath, json_encode($data, JSON_PRETTY_PRINT));
+    }
+
+    public function recordGame($isWin, $amount)
+    {
+        if ($isWin) {
+            $this->stats['wins']++;
+            $this->stats['balance'] += $amount;
+        } else {
+            $this->stats['losses']++;
+            $this->stats['balance'] -= $amount;
+        }
+        $this->saveStats();
+    }
+
+    public function getStats()
+    {
+        return $this->stats;
     }
 }
-?>

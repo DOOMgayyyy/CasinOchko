@@ -3,27 +3,27 @@ require_once('Card.php');
 require_once('gameLogic.php');
 require_once(__DIR__ . '/Stats.php');
 
-
 class Player
 {
     public $id;
     public $cards = [];
     public $balance;
     public $currentBet = 0;
-    public $splitHands = []; //для сплита рука
-    public $activeHandIndex = 0; //индекс активной руки
-    
+    public $splitHands = []; 
+    public $activeHandIndex = 0; 
+    public $stats;
 
-    public function __construct($id, $balance = 1000) //заглушка 1000 баланс 
+    public function __construct($id, $balance = 1000)
     {
         $this->id = $id;
-        $this->balance = $balance;
+        $savedStats = $this->stats->getStats();
+        $this->balance = $savedStats['balance'];
         $this->cards = [];
         $this->splitHands = [];
         $this->activeHandIndex = 0;
+        $this->stats = new Stats($id);
     }
 
-    //получение текущую активную руку
     private function getCurrentHand()
     {
         if (!empty($this->splitHands)) {
@@ -32,7 +32,6 @@ class Player
         return $this->cards;
     }
 
-    //получение ссылки текущей игры для изменений
     private function &getCurrentHandRef()
     {
         if (!empty($this->splitHands)) {
@@ -41,12 +40,10 @@ class Player
         return $this->cards;
     }
 
-    //добавление карты в текущую активную руку
     public function addCard(Card $card)
     {
         $currentHand = &$this->getCurrentHandRef();
 
-        //5карт
         if (count($currentHand) >= 5) {
             return $this;
         }
@@ -55,14 +52,12 @@ class Player
         return $this;
     }
 
-    //расчет очков текущей активной руки
     public function getScore()
     {
         $currentHand = $this->getCurrentHand();
         return gameLogic::calculateHandScore($currentHand);
     }
 
-    //получение счета конкрутной руки
     public function getHandScore($handIndex = null)
     {
         if ($handIndex !== null && isset($this->splitHands[$handIndex])) {
@@ -71,10 +66,8 @@ class Player
         return $this->getScore();
     }
 
-    //делаем ставку если хватает денег. amount - сумма ставки 
     public function makeBet($amount)
     {
-        //минимальная ставка 100
         if ($amount < 100) {
             return 0;
         }
@@ -88,40 +81,32 @@ class Player
         return 0;
     }
 
-    //сплит
     public function split($deck)
     {
-        //проверка возможен ли сплит
         if (count($this->cards) != 2 || $this->cards[0]->rank !== $this->cards[1]->rank) {
             return false;
         }
 
-        //проверка хватит ли на ставку 
         if ($this->balance < $this->currentBet) {
             return false;
         }
 
-        $this->balance -= $this->currentBet; //снятие ставки за 2 руку
+        $this->balance -= $this->currentBet;
 
-        //создание двух рук из 2 карт
         $hand1 = [$this->cards[0]];
         $hand2 = [$this->cards[1]];
 
-        //добавляем по одной карте в каждую руку
         $hand1[] = $deck->draw();
         $hand2[] = $deck->draw();
 
-        //сохраняем руки в splitHands
         $this->splitHands = [$hand1, $hand2];
         $this->activeHandIndex = 0;
 
-        //очищаем основную руку
         $this->cards = [];
 
         return true;
     }
 
-    //смена руки
     public function nextHand()
     {
         if (!empty($this->splitHands) && $this->activeHandIndex < count($this->splitHands) - 1) {
@@ -131,13 +116,11 @@ class Player
         return false;
     }
 
-    //проверка на еще 1 руку для игры
     public function hasMoreHands()
     {
         return !empty($this->splitHands) && $this->activeHandIndex < count($this->splitHands) - 1;
     }
 
-    //получение количесвто рук
     public function getHandCount()
     {
         if (!empty($this->splitHands)) {
@@ -146,7 +129,6 @@ class Player
         return 1;
     }
 
-    //получение руки по индексу
     public function getHand($index = null)
     {
         if ($index === null) {
@@ -159,9 +141,30 @@ class Player
 
         return $this->cards;
     }
+
+
+    //с татистика побед и поражений + баланс
+    public function recordWin()
+    {
+        $amount = $this->currentBet;
+        $this->balance += $amount; // Netto win
+        $this->stats->recordGame(true, $amount);
+    }
+
+    public function recordLoss()
+    {
+        $amount = $this->currentBet;
+        // Balance already decreased in makeBet()
+        $this->stats->recordGame(false, $amount);
+    }
+
+    public function getStats()
+    {
+        return $this->stats->getStats();
+    }
 }
 
-//проверка на перебор руки
+
 function isBust($hand)
 {
     if ($hand instanceof Player) {
