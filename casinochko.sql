@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Окт 15 2025 г., 23:34
+-- Время создания: Окт 26 2025 г., 15:15
 -- Версия сервера: 8.0.30
 -- Версия PHP: 7.2.34
 
@@ -58,7 +58,7 @@ CREATE TABLE `rooms` (
   `type` enum('open','private') NOT NULL,
   `status` enum('playing','closed') NOT NULL,
   `current_member_id` bigint UNSIGNED DEFAULT NULL,
-  `private_code` int DEFAULT NULL,
+  `private_code` varchar(4) DEFAULT NULL,
   `hash` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица комнат';
 
@@ -93,6 +93,13 @@ CREATE TABLE `users` (
   `total_win` int DEFAULT '0',
   `total_balance` int DEFAULT '5000'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Дамп данных таблицы `users`
+--
+
+INSERT INTO `users` (`id`, `email`, `password`, `name`, `balance`, `token`, `total_played`, `total_win`, `total_balance`) VALUES
+(1, 'dev@hot.ru', '25d55ad283aa400af464c76d713c07ad', 'TYUP', 5000, '171101e64a944de2be41550219ad8337', 0, 0, 5000);
 
 --
 -- Индексы сохранённых таблиц
@@ -166,7 +173,7 @@ ALTER TABLE `room_members`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
