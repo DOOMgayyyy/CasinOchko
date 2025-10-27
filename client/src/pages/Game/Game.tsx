@@ -24,6 +24,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const Canvas = useCanvas(render);
     let interval: NodeJS.Timeout | null = null;
 
+    const currentPlayerId = 1;
     // инициализация стола
     const [tableImage, setTableImage] = useState<HTMLImageElement | null>(null);
 
@@ -91,8 +92,8 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         // Логика для сплита
       };
     
-      const handleDouble = () => {
-        console.log('Double button clicked');
+      const handleBet = () => {
+        console.log('Bet button clicked');
         // Логика для удвоения ставки
       };
     
@@ -145,7 +146,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         <div id={GAME_FIELD} className={GAME_FIELD}>
             <div className="players">
                 {players.map(player => (
-                    <div className={`player-slot ${player.position}`} key={player.id}>
+                    <div className={`player-slot ${player.position} ${player.id === currentPlayerId ? 'active-player' : ''}`} key={player.id}>
                     <span className="name">{player.name}</span>
                     <span className="balance">${player.balance}</span>
                     <span className="score">{player.score}</span>
@@ -176,20 +177,30 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                 </div>
             </div>
 
-        <span className='left-span'>ставок пока нет</span>
+        <div className='timer-div'>
+            <span className='timer-span'>Таймер хода:</span>
+            <span className='timer-count'>⏱ 15</span>
+        </div>
 
         <div className='game-controls vertical'>
-            
+
+            <button className="game-button split-button" onClick={handleSplit}>
+                Сплит
+            </button>
             <button className="game-button hit-button" onClick={handleHit}>
-            Взять ещё
+                Взять карту
             </button>
             <button className="game-button stand-button" onClick={handleStand}>
-            Стоп
+                Отказаться
             </button>
-            <button className="game-button split-button" onClick={handleSplit}>
-            Сплит
-            </button>
+        </div>
+        <button className="game-button bet-button" onClick={handleBet}>
+            Ставка
+        </button>
 
+        <div className='count-div'>
+            <span className='count-span'>Ваши очки:</span>
+            <span className='count-number'>17</span>
         </div>
 
         <button className="back-to-lobby-button" onClick={handleBackToLobby} />
