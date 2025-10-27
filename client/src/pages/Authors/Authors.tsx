@@ -2,9 +2,9 @@ import React, { useContext, useState } from 'react';
 import { IBasePage, PAGES } from '../PageManager';
 import { StoreContext, ServerContext } from '../../App';
 import './Authors.scss';
-import MenuIcon from '../../assets/img/authors';
-import PlusIcon from '../../assets/img/toppanel/topupthebalance.png';
 import CasinochkoLogo from '../../assets/img/authors/CASINOCHKO.png';
+
+
 const Authors: React.FC<IBasePage> = ({ setPage }) => {
     const store = useContext(StoreContext);
     const user = store.getUser();
@@ -22,14 +22,12 @@ const Authors: React.FC<IBasePage> = ({ setPage }) => {
          <div className="authors-container">
       <header className="authors-header">
          <div className="authors-header-left">
-            <button className="authors-menu-btn"><img src={MenuIcon}/></button>
            <span className="authors-player-name">{player.name}</span>
         </div>
 
         <div className="authors-header-right">
                     <span className="authors-balance-text">Ваш баланс:</span>
                     <span className="authors-balance-amount">${player.balance}</span>
-                    <button className="authors-add-money-btn"><img src={PlusIcon}  /></button>
                 </div>
       </header> 
        {/* Основной контент */}
