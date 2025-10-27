@@ -26,6 +26,8 @@ class Answer
 
         '800' => 'Невозможно войти в комнату. Игрок уже играет',
         '801' => 'Failed to generate unique room code',
+        '802' => 'Private room not found or invalid code',
+        '803' => 'Room is full (maximum 6 players)',
 
         '9000' => 'unknown error'
     );

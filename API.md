@@ -24,6 +24,8 @@
 4.4. updateUserName
 4.5. sendMessage
 4.6. getMessages
+4.9. createPrivateRoom
+4.10. joinPrivateRoom
 
 
 
@@ -105,6 +107,9 @@ createPrivateRoom
 createPrivateRoom
 Создать приватную комнату
 
+joinPrivateRoom
+Подключение к приватной комнате по коду
+
 getUserStat
 Получить статистики пользователя
 
@@ -118,7 +123,10 @@ getRatingTable
 102 - Method not found
 242 - Params not set fully
 705 - User is not found
+800 - User is already playing in another room
 801 - Failed to generate unique room code
+802 - Private room not found or invalid code
+803 - Room is full (maximum 6 players)
 9000 - unknown error
 
 4. Подробно
@@ -297,30 +305,6 @@ Answer<{
 705 - User is not found
 801 - Failed to generate unique room code
 
-4.9. createPrivateRoom
-Создание приватной комнаты с уникальным 4-буквенным кодом (AAAA-ZZZZ)
-
-Параметры
-{
-    token: string; - токен авторизации
-}
-
-Успешный ответ
-    Answer<{
-        private: {
-            code: string; - 4-буквенный код комнаты (например: "ABCD")
-            room_id: number; - ID созданной комнаты
-        }
-    }>
-
-Создает комнату: type='private', status='closed', добавляет создателя в room_members (bet=0).
-
-Ошибки
-
-242 - Params not set fully
-705 - User is not found
-801 - Failed to generate unique room code
-
 
 4.7. getBalance
 Получение баланса пользователя
@@ -390,3 +374,34 @@ Answer<{
 Ошибки
 242	Params not set fully (не передан токен)
 705	User is not found (токен невалидный, пользователь не найден)
+
+4.10 joinPrivateRoom
+Подключение к приватной комнате по 4-х значному коду
+
+Параметры
+{
+    token: string - токен авторизации
+    code: string - 4-буквенный код комнаты (К примеру: ABCD)
+}
+
+Успешный ответ
+    Answer<{
+        room: {
+            room_id: number; - ID комнаты
+            code: string; - код комнаты
+        }
+    }>
+
+Функция выполняет следующие проверки:
+1) Игрок не должен уже находиться в активной игровой сессии
+2) Комната с указанным кодом должна существовать и быть приватной
+3) В комнате должно быть свободное место (максимум 6 игроков)
+
+После успешной проверки пользователь добавляется в room_members с bet=0
+
+Ошибки
+242 - Params not set fully
+705 - User is not found
+800 - User is already playing in another room
+802 - Private room not found or invalid code
+803 - Room is full (maximum 6 players)
