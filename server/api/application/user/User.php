@@ -125,7 +125,7 @@ class User
         }
 
         if ($user->balance < $amount) {
-            return ['error' => 802];  //денег нет
+            return ['error' => 804];  //денег нет
         }
     
         $success = $this->db->updateBalance($userId, -(int)$amount); // Здесь $amount отрицательный
