@@ -91,12 +91,15 @@ UserRating: {
 
 3.1. Общие ошибки
 
-* 101 - Param method not setted
-* 102 - Method not found
-* 242 - Params not set fully
-* 705 - User is not found
-* 801 - Failed to generate unique room code
-* 9000 - unknown error
+101 - Param method not setted
+102 - Method not found
+242 - Params not set fully
+705 - User is not found
+800 - User is already playing in another room
+801 - Failed to generate unique room code
+802 - Private room not found or invalid code
+803 - Room is full (maximum 6 players)
+9000 - unknown error
 
 4. Подробно
 4.1. login
@@ -322,5 +325,36 @@ UserRating: {
 }
 
 Ошибки
-* 242 - Params not set fully (не передан токен)
-* 705 - User is not found (токен невалидный, пользователь не найден)
+242	Params not set fully (не передан токен)
+705	User is not found (токен невалидный, пользователь не найден)
+
+4.10 joinPrivateRoom
+Подключение к приватной комнате по 4-х значному коду
+
+Параметры
+{
+    token: string - токен авторизации
+    code: string - 4-буквенный код комнаты (К примеру: ABCD)
+}
+
+Успешный ответ
+    Answer<{
+        room: {
+            room_id: number; - ID комнаты
+            code: string; - код комнаты
+        }
+    }>
+
+Функция выполняет следующие проверки:
+1) Игрок не должен уже находиться в активной игровой сессии
+2) Комната с указанным кодом должна существовать и быть приватной
+3) В комнате должно быть свободное место (максимум 6 игроков)
+
+После успешной проверки пользователь добавляется в room_members с bet=0
+
+Ошибки
+242 - Params not set fully
+705 - User is not found
+800 - User is already playing in another room
+802 - Private room not found or invalid code
+803 - Room is full (maximum 6 players)

@@ -87,20 +87,22 @@ class Lobby {
 
     # Создание приватной комнаты
     public function createPrivateRoom($userId) {
-        // Генерация уникального 4-буквенного кода (AAAA-ZZZZ)
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charsLength = strlen($chars);
+        $codeLength = 4;
         $maxAttempts = 100;
         
-        for ($attempts = 0; $attempts < $maxAttempts; $attempts++) {
-            // Генерируем 4 случайные буквы A-Z
+        // Генерация уникального кода
+        for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
             $privateCode = '';
-            for ($i = 0; $i < 4; $i++) {
-                $privateCode .= chr(rand(65, 90)); // 65='A', 90='Z'
+            for ($i = 0; $i < $codeLength; $i++) {
+                $privateCode .= $chars[random_int(0, $charsLength - 1)];
             }
             
-            // Проверяем уникальность кода в БД
+            // Проверка уникальности кода в БД
             if ($this->db->isPrivateCodeUnique($privateCode)) {
                 // Генерация хэша комнаты
-                $hash = md5(rand());
+                $hash = md5(random_int(0, PHP_INT_MAX));
                 
                 // Создание комнаты
                 $roomId = $this->db->createRoom('private', 'closed', $privateCode, $hash);
@@ -118,5 +120,33 @@ class Lobby {
         
         // Не удалось сгенерировать уникальный код за maxAttempts попыток
         return ['error' => 801];
+    }
+    
+    # Подключение к приватной комнате по 4-значному коду
+    public function joinPrivateRoom($userId, $code) {
+        if ($this->isUserPlaying($userId)) {
+            return ['error' => 800];
+        }
+
+        $code = strtoupper($code); # Верхний регистр
+
+        $room = $this->db->getRoomByPrivateCode($code);
+
+        if (!$room || $room->type !== 'private') {
+            return ['error' => 802];
+        }
+
+        $membersCount = $this->db->getMembersCount($room->id)->count;
+
+        if ($membersCount >= 6) {
+            return ['error' => 803];
+        }
+
+        $this->db->addRoomMember($room->id, $userId, 0); # Добавление игрока со ставкой 0 в комнату
+
+        return [
+            'room_id' => $room->id,
+            'code' => $room->private_code
+        ];
     }
 }
