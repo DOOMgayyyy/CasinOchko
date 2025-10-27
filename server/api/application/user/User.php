@@ -101,7 +101,11 @@ class User
         if (!is_numeric($amount) || $amount <= 0) {
             return ['error' => 242];
         }
+<<<<<<< Updated upstream
         $success = $this->db->updateBalance($userId, (int)$amount);
+=======
+        $success = $this->db->updateBalance($userId, (int)$amount); // $amount положительный
+>>>>>>> Stashed changes
         if ($success){
             $user = $this->db->getUserById($userId);
             return ['balance' => $user->balance];
@@ -124,7 +128,11 @@ class User
             return ['error' => 802];  //денег нет
         }
     
+<<<<<<< Updated upstream
         $success = $this->db->updateBalance($userId, -(int)$amount);
+=======
+        $success = $this->db->updateBalance($userId, -(int)$amount); // -(int)$amount отрицательный
+>>>>>>> Stashed changes
         
         if ($success) {
 

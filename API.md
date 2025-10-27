@@ -24,8 +24,19 @@
 4.4. updateUserName
 4.5. sendMessage
 4.6. getMessages
+<<<<<<< Updated upstream
 
 
+=======
+4.7. getUserBalance
+4.8. getUserStat
+4.9. quickStart
+4.10. createPrivateRoom
+4.11. joinPrivateRoom
+4.12. getRatingTable
+4.13. addBalance
+4.14. subtractBalance
+>>>>>>> Stashed changes
 
 1. Общее
 1.1. Адрес сервера
@@ -389,6 +400,7 @@ Answer<{
 }
 
 Ошибки
+<<<<<<< Updated upstream
 242	Params not set fully (не передан токен)
 705	User is not found (токен невалидный, пользователь не найден)
 
@@ -417,10 +429,43 @@ Answer<{
 {
     "token": string; - токен авторизации
     "amount": number; - Сумма для списания (должна быть > 0).
+=======
+* 242 - Params not set fully (не передан токен)
+* 705 - User is not found (токен невалидный, пользователь не найден)
+
+4.13. addBalance
+Пополнение баланса пользователя.
+
+Параметры
+{
+    "token": "string",  // токен авторизации
+    "amount": "number"  // сумма пополнения 
+}
+
+Answer<{
+        "balance": number; // новый баланс
+    }>
+
+Примечание: Total balance также увеличивается на эту сумму.
+
+Ошибки
+
+242 - Params not set fully, или amount невалидный (не число, или ≤0)
+705 - User is not found
+
+4.14. subtractBalance
+Снятие средств с баланса пользователя.
+
+Параметры
+{
+    "token": "string",  // токен авторизации
+    "amount": "number"  // сумма снятия (должна быть > 0)
+>>>>>>> Stashed changes
 }
 
 Успешный ответ
 Answer<{
+<<<<<<< Updated upstream
     "balance": number; // Обновленный баланс пользователя
 }>
 
@@ -428,3 +473,15 @@ Answer<{
 242 - Params not set fully
 705 - User is not found
 802 - у тебя нет денег
+=======
+        "balance": number; // новый баланс
+}>
+
+Примечание: Total balance не меняется.
+
+Ошибки
+
+242 - Params not set fully, или amount невалидный (не число, или ≤0)
+705 - User is not found
+802 - у тебя нет денег (недостаточно средств на балансе)
+>>>>>>> Stashed changes
