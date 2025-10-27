@@ -15,13 +15,6 @@ const ChangeName: React.FC<ChangeNameProps> = ({ currentName, onClose, onSuccess
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const showCustomError = (message: string, code: number) => {
-      server.showErrorCb({
-        code,
-        text: message
-      });
-    };
-
     const ERROR_CODES = {
       EMPTY_NAME: 1001,
       SAME_NAME: 1002,
@@ -32,22 +25,30 @@ const ChangeName: React.FC<ChangeNameProps> = ({ currentName, onClose, onSuccess
       const newName = newNameRef.current.value;
       
       if (!newName.trim()) {
-        showCustomError("Введите новое имя", ERROR_CODES.EMPTY_NAME);;
+        server.showErrorCb({
+          code: ERROR_CODES.EMPTY_NAME,
+          text: "Введите новое имя"
+        });
         return;
       }
       
       if (newName.trim() === currentName) {
-        showCustomError("Новое имя должно отличаться от текущего", ERROR_CODES.SAME_NAME);
+        server.showErrorCb({
+          code: ERROR_CODES.SAME_NAME,
+          text: "Новое имя должно отличаться от текущего"
+        });
         return;
       }
       
       const success = await server.updateUserName(newName.trim());
       if (success) {
-        console.log("Имя успешно обновлено");
         onSuccess(); 
         onClose();  
       } else {
-        showCustomError("Ошибка обновления имени", ERROR_CODES.UPDATE_FAILED);
+        server.showErrorCb({
+          code: ERROR_CODES.UPDATE_FAILED,
+          text: "Ошибка обновления имени"
+        });
       }
     }
   };
