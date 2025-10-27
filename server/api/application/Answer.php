@@ -28,7 +28,7 @@ class Answer
         '801' => 'Failed to generate unique room code',
         '802' => 'Private room not found or invalid code',
         '803' => 'Room is full (maximum 6 players)',
-        '802' => 'у тебя нет денег',
+        '804' => 'у тебя нет денег',
 
         '9000' => 'unknown error'
     );

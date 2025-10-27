@@ -100,6 +100,7 @@ class User
         }
         return ['error' => 705];
     }
+
     public function addBalance($userId, $amount){
         if (!is_numeric($amount) || $amount <= 0) {
             return ['error' => 242];

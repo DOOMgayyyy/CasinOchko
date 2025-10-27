@@ -22,12 +22,19 @@
 4.4. updateUserName
 4.5. sendMessage
 4.6. getMessages
+<<<<<<< Updated upstream
+
+
+=======
 4.7. getUserBalance
 4.8. getUserStat
 4.9. quickStart
 4.10. createPrivateRoom
 4.11. joinPrivateRoom
 4.12. getRatingTable
+4.13. addBalance
+4.14. subtractBalance
+>>>>>>> Stashed changes
 
 1. Общее
 1.1. Адрес сервера
@@ -218,6 +225,21 @@ UserRating: {
 
 4.7. getUserBalance
 Получение баланса пользователя
+
+4.8 getUserStat Получение статистики пользователя
+
+Параметры: {token: string - токен авторизации}
+
+Успешный ответ Answer <{
+    stats: UserStats;
+}>
+
+
+Ошибки
+
+242 - Params not set fully
+705 - User is not found
+
 Параметры
 {
     "token": string; - токен авторизации
@@ -281,8 +303,22 @@ UserRating: {
 * 705 - User is not found
 * 801 - Failed to generate unique room code
 
-4.11. joinPrivateRoom
-Подключение к приватной комнате по коду.
+4.11. getBalance
+Получение баланса пользователя
+
+4.12 getUserStat Получение статистики пользователя
+
+Параметры: {token: string - токен авторизации}
+
+Успешный ответ Answer <{
+    stats: UserStats;
+}>
+
+Ошибки
+
+242 - Params not set fully
+705 - User is not found
+
 Параметры
 {
     "token": string; - токен авторизации
@@ -297,7 +333,7 @@ UserRating: {
 * 705 - User is not found
 * (Другие ошибки, связанные с подключением к комнате, не реализованы в Lobby.php)
 
-4.12. getRatingTable 
+4.13 getRatingTable 
 Получение топ-100 игроков по балансу
 Параметры
 {
@@ -325,36 +361,88 @@ UserRating: {
 }
 
 Ошибки
+<<<<<<< Updated upstream
 242	Params not set fully (не передан токен)
 705	User is not found (токен невалидный, пользователь не найден)
 
-4.10 joinPrivateRoom
-Подключение к приватной комнате по 4-х значному коду
+4.14. addBalance
+Метод для прибавления указанной суммы к балансу пользователя.
 
 Параметры
 {
-    token: string - токен авторизации
-    code: string - 4-буквенный код комнаты (К примеру: ABCD)
+    "token": string; - токен авторизации
+    "amount": number; - СУММА
 }
 
 Успешный ответ
     Answer<{
-        room: {
-            room_id: number; - ID комнаты
-            code: string; - код комнаты
-        }
+        "balance": number; - Обновленный баланс
     }>
 
-Функция выполняет следующие проверки:
-1) Игрок не должен уже находиться в активной игровой сессии
-2) Комната с указанным кодом должна существовать и быть приватной
-3) В комнате должно быть свободное место (максимум 6 игроков)
+Ошибки
+242 - Params not set fully
+705 - User is not found 
 
-После успешной проверки пользователь добавляется в room_members с bet=0
+4.15 subtractBalance
+Метод для убавления указанной суммы с баланса пользователя с обязательной проверкой достаточности средств.
+
+Параметры
+{
+    "token": string; - токен авторизации
+    "amount": number; - Сумма для списания (должна быть > 0).
+=======
+* 242 - Params not set fully (не передан токен)
+* 705 - User is not found (токен невалидный, пользователь не найден)
+
+4.13. addBalance
+Пополнение баланса пользователя.
+
+Параметры
+{
+    "token": "string",  // токен авторизации
+    "amount": "number"  // сумма пополнения 
+}
+
+Answer<{
+        "balance": number; // новый баланс
+    }>
+
+Примечание: Total balance также увеличивается на эту сумму.
+
+Ошибки
+
+242 - Params not set fully, или amount невалидный (не число, или ≤0)
+705 - User is not found
+
+4.14. subtractBalance
+Снятие средств с баланса пользователя.
+
+Параметры
+{
+    "token": "string",  // токен авторизации
+    "amount": "number"  // сумма снятия (должна быть > 0)
+>>>>>>> Stashed changes
+}
+
+Успешный ответ
+Answer<{
+<<<<<<< Updated upstream
+    "balance": number; // Обновленный баланс пользователя
+}>
 
 Ошибки
 242 - Params not set fully
 705 - User is not found
-800 - User is already playing in another room
-802 - Private room not found or invalid code
-803 - Room is full (maximum 6 players)
+802 - у тебя нет денег
+=======
+        "balance": number; // новый баланс
+}>
+
+Примечание: Total balance не меняется.
+
+Ошибки
+
+242 - Params not set fully, или amount невалидный (не число, или ≤0)
+705 - User is not found
+802 - у тебя нет денег (недостаточно средств на балансе)
+>>>>>>> Stashed changes

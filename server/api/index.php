@@ -29,12 +29,17 @@ function result($params) {
             // menu
             case 'getUserStat': return $app->getUserStat($params);
             case 'getUserBalance': return $app->getUserBalance($params);
+
+            // balance 
+            case 'addBalance': return $app->addBalance($params);
+            case 'subtractBalance': return $app->subtractBalance($params);
+
             // lobby
             case 'quickStart': return $app->quickStart($params);
             case 'createPrivateRoom': return $app->createPrivateRoom($params);
             case 'joinPrivateRoom': return $app->joinPrivateRoom($params);
             case 'getRatingTable': return $app->getRatingTable($params);
-
+        
             default: return ['error' => 102];
         }
     }
