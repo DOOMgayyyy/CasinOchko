@@ -15,14 +15,19 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     // 3. Получаем актуальные данные пользователя из store
     const [player, setPlayer] = useState(() => {
         const user = store.getUser();
-        return user ? {
+        return user ?{
             name: user.name,
             balance: user.balance
-        } : {
-            name: 'dev',
-            balance: 99999
-        };
+        } : null;
     });
+    //==================DEV-Заглушка=====================
+    // const [player, setPlayer] = useState(() => {
+    //     return {
+    //         name: 'dev',
+    //         balance: 123
+    //     };
+    // });
+    //===================================================
 
     const [showSideMenu, setShowSideMenu] = useState(false);
     const [showPrivateRoomPage, setShowPrivateRoomPage] = useState(false);
