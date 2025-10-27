@@ -82,6 +82,10 @@ class User
         return ['error' => 1010];
     }
 
+    public function getUserStat($userId){
+        return $this->db->getUserStat($userId); // Здесь будет возвращен расширенный объект
+    }
+
     //проверка уникального имени
     private function isNameUnique($name, $excludingUserId = null){
         return $this->db->isNameUnique($name, $excludingUserId);

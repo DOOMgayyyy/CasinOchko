@@ -95,8 +95,8 @@ class Application
     public function getUserStat($params)
     {
         if ($params['token']) {
-            $user = $this->user->getUserStat($params['token']);
-            if ($user) {
+            $user = $this->user->getUser($params['token']);
+            if ($user){
                 return ['stats' => $this->user->getUserStat($user->id)];
             }
             return ['error' => 705];

@@ -68,6 +68,9 @@ class DB
     {
         $this->execute("UPDATE users SET token=? WHERE id=?", [$token, $userId]);
     }
+    public function getUserStat($userId) {
+        return $this->query("SELECT total_played, total_win, total_balance FROM users WHERE id=?", [$userId]);
+    }
 
     public function updateUserName($userId, $newName) {
         return $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
