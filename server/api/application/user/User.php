@@ -42,7 +42,7 @@ class User
         return ['error' => 1003];
     }
 
-    public function registration($email, $password, $name){
+    public function registration($email, $password, $name) {
         //проверка email (уникальность)
         $user = $this->db->getUserByEmail($email);
         if ($user) {
