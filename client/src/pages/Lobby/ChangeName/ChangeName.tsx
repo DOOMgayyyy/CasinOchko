@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useContext, useRef } from 'react';
+import { ServerContext } from '../../../App';
+
 import './ChangeName.scss';
 
 interface ChangeNameProps {
@@ -8,14 +10,46 @@ interface ChangeNameProps {
 }
 
 const ChangeName: React.FC<ChangeNameProps> = ({ currentName, onClose, onSuccess }) => {
-  const [newName, setNewName] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const server = useContext(ServerContext);
+  const newNameRef = useRef<HTMLInputElement>(null);
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (newName.trim()) {
-      onSuccess();
-      onClose();
+
+    const ERROR_CODES = {
+      EMPTY_NAME: 1001,
+      SAME_NAME: 1002,
+      UPDATE_FAILED: 1003
+    };
+
+    if (newNameRef.current) {
+      const newName = newNameRef.current.value;
+      
+      if (!newName.trim()) {
+        server.showErrorCb({
+          code: ERROR_CODES.EMPTY_NAME,
+          text: "Введите новое имя"
+        });
+        return;
+      }
+      
+      if (newName.trim() === currentName) {
+        server.showErrorCb({
+          code: ERROR_CODES.SAME_NAME,
+          text: "Новое имя должно отличаться от текущего"
+        });
+        return;
+      }
+      
+      const success = await server.updateUserName(newName.trim());
+      if (success) {
+        onSuccess(); 
+        onClose();  
+      } else {
+        server.showErrorCb({
+          code: ERROR_CODES.UPDATE_FAILED,
+          text: "Ошибка обновления имени"
+        });
+      }
     }
   };
 
@@ -28,11 +62,10 @@ const ChangeName: React.FC<ChangeNameProps> = ({ currentName, onClose, onSuccess
           <div className="field">
             <label className="label" htmlFor="newName">Новый ник:</label>
             <input
+              ref={newNameRef}
               className="input"
               id="newName"
               type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
               placeholder="Введите новый ник"
             />
           </div>
@@ -46,7 +79,6 @@ const ChangeName: React.FC<ChangeNameProps> = ({ currentName, onClose, onSuccess
             <button 
               type="submit" 
               className="btn-submit"
-              disabled={!newName.trim()}
             >
               <span>сохранить</span>
               <span className="arrow">&gt;</span>
