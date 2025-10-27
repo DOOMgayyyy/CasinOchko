@@ -7,9 +7,9 @@ class DB
     function __construct()
     {
         $host = '127.0.0.1';// ip для подключения к бд
-        $port = '8889';// порт 
+        $port = '3306';// порт 
         $user = 'root';// логин для входа в бд
-        $pass = 'rootroot'; // пароль для бд
+        $pass = ''; // пароль для бд
         $db = 'casinochko';// название базы данных 
         $connect = "mysql:host=$host;port=$port;dbname=$db;charset=utf8";// формирование команды для подключения к базе данных
         // cоздаем объект PDO для работы с БД
