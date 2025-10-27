@@ -97,24 +97,8 @@ class User
         return ['error' => 705];
     }
 
-    public function addBalance($userId, $amount){
-        if (!is_numeric($amount) || $amount <= 0) {
-            return ['error' => 242];
-        }
-<<<<<<< Updated upstream
-        $success = $this->db->updateBalance($userId, (int)$amount);
-=======
-        $success = $this->db->updateBalance($userId, (int)$amount); // $amount положительный
->>>>>>> Stashed changes
-        if ($success){
-            $user = $this->db->getUserById($userId);
-            return ['balance' => $user->balance];
-        }
-        return ['error' => 9000];
-    }
-
     public function subtractBalance($userId, $amount) {
-        
+
         if (!is_numeric($amount) || $amount <= 0) {
             return ['error' => 242];
         }
@@ -125,17 +109,14 @@ class User
         }
 
         if ($user->balance < $amount) {
-            return ['error' => 802];  //денег нет
+            return ['error' => 802];  // Денег нет
         }
     
-<<<<<<< Updated upstream
-        $success = $this->db->updateBalance($userId, -(int)$amount);
-=======
-        $success = $this->db->updateBalance($userId, -(int)$amount); // -(int)$amount отрицательный
->>>>>>> Stashed changes
+        // Если все проверки пройдены, выполняем обновление.
+        // Передаем отрицательное значение в updateBalance
+        $success = $this->db->updateBalance($userId, -(int)$amount); 
         
         if ($success) {
-
             $user = $this->db->getUserById($userId);
             return ['balance' => $user->balance];
         }

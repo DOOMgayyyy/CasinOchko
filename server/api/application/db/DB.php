@@ -185,16 +185,13 @@ class DB
     }
 
     public function updateBalance($userId, $amount){
-<<<<<<< Updated upstream
-=======
+        // Обновляем баланс
         // Если $amount положительный (добавление), обновляем и balance, и total_balance
         if ($amount > 0) {
             return $this->execute("UPDATE users SET balance = balance + ?, total_balance = total_balance + ? WHERE id = ?", [$amount, $amount, $userId]);
         }
         // Если $amount отрицательный (вычитание), обновляем только balance
->>>>>>> Stashed changes
         return $this->execute("UPDATE users SET balance = balance + ? WHERE id = ?", [$amount, $userId]);
     }
-
 
 }
