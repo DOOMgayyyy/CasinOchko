@@ -95,8 +95,8 @@ class DB
     {
         // Добавляем баланс 5000 для нового пользователя
         $this->execute(
-            "INSERT INTO users (email, password, name) VALUES (?, ?, ?)",
-            [$email, $password, $name]
+            "INSERT INTO users (email, password, name, balance) VALUES (?, ?, ?, ?)",
+            [$email, $password, $name, 5000]
         );
     }
 
@@ -185,6 +185,15 @@ class DB
             ORDER BY balance DESC
             LIMIT 100
     ");
+    }
+
+    public function updateBalance($userId, $amount){
+        // Если $amount положительный (добавление), обновляем и balance, и total_balance
+        if ($amount > 0) {
+            return $this->execute("UPDATE users SET balance = balance + ?, total_balance = total_balance + ? WHERE id = ?", [$amount, $amount, $userId]);
+        }
+        // Если $amount отрицательный (вычитание), обновляем только balance
+        return $this->execute("UPDATE users SET balance = balance + ? WHERE id = ?", [$amount, $userId]);
     }
 
 
