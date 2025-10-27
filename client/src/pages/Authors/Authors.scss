@@ -87,10 +87,21 @@
   margin-bottom: -0.5rem;
 }
 
-.authors-logo-image {
-  width: 305px;
-  height: 150px;
-  object-fit: contain;
+.authors-logo {
+    font-family: 'Jersey 10', sans-serif;
+  font-size: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.authors-logo-casino {
+    color: #ffffff;
+}
+
+.authors-logo-ochko {
+    color: #FFD700;
 }
 
 .authors-columns-container {

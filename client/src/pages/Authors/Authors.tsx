@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { IBasePage, PAGES } from '../PageManager';
 import { StoreContext, ServerContext } from '../../App';
 import './Authors.scss';
-import CasinochkoLogo from '../../assets/img/authors/CASINOCHKO.png';
+
 
 
 const Authors: React.FC<IBasePage> = ({ setPage }) => {
@@ -36,8 +36,10 @@ const Authors: React.FC<IBasePage> = ({ setPage }) => {
                     {/* Заголовок Авторы */}
                     <h1 className="authors-page-title">Авторы</h1>
                     
-                    {/* Логотип */}
-                     <img src={CasinochkoLogo} alt="Casinochko" className="authors-logo-image" />
+                    <div className="authors-logo">
+                    <span className="authors-logo-casino">CASIN</span>
+                    <span className="authors-logo-ochko">OCHKO</span>
+                    </div>
                 </div>
 
                   {/* Три столбика */}
