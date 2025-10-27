@@ -1,5 +1,7 @@
 import React from 'react';
-import './PrivateRoom.css';
+import './PrivateRoom.scss';
+import MenuIcon from '../../../assets/img/toppanel/sidebarmenu.png';
+import PlusIcon from '../../../assets/img/toppanel/topupthebalance.png';
 
 export interface PrivateRoomProps {
     player: {
@@ -26,13 +28,13 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
             
             <header className="private-room-header">
                 <div className="header-left">
-                    <button className="menu-btn" onClick={onShowSideMenu}>☰</button>
+                    <button className="menu-btn" onClick={onShowSideMenu}><img src={MenuIcon}/></button>
                     <span className="player-name">{player.name}</span>
                 </div>
                 <div className="header-right">
                     <span className="balance-text">Ваш баланс: </span>
                     <span className="balance-amount">${player.balance}</span>
-                    <button className="add-money-btn">+</button>
+                    <button className="add-money-btn"><img src={PlusIcon}  /></button>
                 </div>
             </header>
 
