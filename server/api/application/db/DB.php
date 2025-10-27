@@ -185,7 +185,6 @@ class DB
     }
 
     public function updateBalance($userId, $amount){
-        // Обновляем баланс
         // Если $amount положительный (добавление), обновляем и balance, и total_balance
         if ($amount > 0) {
             return $this->execute("UPDATE users SET balance = balance + ?, total_balance = total_balance + ? WHERE id = ?", [$amount, $amount, $userId]);

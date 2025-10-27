@@ -97,8 +97,20 @@ class User
         return ['error' => 705];
     }
 
-    public function subtractBalance($userId, $amount) {
+    public function addBalance($userId, $amount){
+        if (!is_numeric($amount) || $amount <= 0) {
+            return ['error' => 242];
+        }
+        $success = $this->db->updateBalance($userId, (int)$amount); // Здесь $amount положительный
+        if ($success){
+            $user = $this->db->getUserById($userId);
+            return ['balance' => $user->balance];
+        }
+        return ['error' => 9000];
+    }
 
+    public function subtractBalance($userId, $amount) {
+        
         if (!is_numeric($amount) || $amount <= 0) {
             return ['error' => 242];
         }
@@ -109,12 +121,10 @@ class User
         }
 
         if ($user->balance < $amount) {
-            return ['error' => 802];  // Денег нет
+            return ['error' => 802];  //денег нет
         }
     
-        // Если все проверки пройдены, выполняем обновление.
-        // Передаем отрицательное значение в updateBalance
-        $success = $this->db->updateBalance($userId, -(int)$amount); 
+        $success = $this->db->updateBalance($userId, -(int)$amount); // Здесь $amount отрицательный
         
         if ($success) {
             $user = $this->db->getUserById($userId);
