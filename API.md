@@ -1,85 +1,128 @@
-Описание API
+Хорошо, вот исправленная и актуализированная документация API, основанная строго на предоставленных PHP файлах.
+
+-----
+
+## Описание API
+
 Здесь описано всё АПИ, используемое в приложении, с описанием структур данных
 Содержание
 
-Общее
-1.1. Адрес сервера
-1.2. Используемый протокол
+1.  Общее
+    1.1. Адрес сервера
+    1.2. Используемый протокол
+2.  Структуры данных
+    2.1. Общий формат ответа
+    2.2. Пользователь (User)
+    2.3. Сообщение (Message)
+    2.4. Рейтинг пользователя (UserRating)
+    2.5. Статистика пользователя (UserStats)
+3.  Список запросов
+    3.1. Общие ошибки
+4.  Подробно
+    4.1. login
+    4.2. logout
+    4.3. registration
+    4.4. updateUserName
+    4.5. sendMessage
+    4.6. getMessages
+    4.7. getUserBalance
+    4.8. getUserStat
+    4.9. quickStart
+    4.10. createPrivateRoom
+    4.11. joinPrivateRoom
+    4.12. getRatingTable
+    4.13. addBalance
+    4.14. subtractBalance
 
-Структуры данных
-2.1. Общий формат ответа
-2.2. Пользователь
-2.3. Сообщение
-2.4. Рейтинг пользователя
+-----
 
-Список запросов
-3.1. Общие ошибки
+## 1\. Общее
 
-Подробно
-4.1. login
-4.2. logout
-4.3. registration
-4.4. updateUserName
-4.5. sendMessage
-4.6. getMessages
-<<<<<<< Updated upstream
+### 1.1. Адрес сервера
 
+[http://casinochko.local/api](https://www.google.com/search?q=http://casinochko.local/api)
 
-=======
-4.7. getUserBalance
-4.8. getUserStat
-4.9. quickStart
-4.10. createPrivateRoom
-4.11. joinPrivateRoom
-4.12. getRatingTable
-4.13. addBalance
-4.14. subtractBalance
->>>>>>> Stashed changes
+### 1.2. Используемый протокол
 
-1. Общее
-1.1. Адрес сервера
-http://nopainnogame.local/api
-1.2. Используемый протокол
-API полностью реализовано на http(s). 
+API полностью реализовано на http(s).
 Формат возвращаемых значений JSON.
-Все методы, если это особо не оговорено, имеют тип GET. Метод updateUserName использует POST.
-2. Структуры данных
-2.1. Общий формат ответа
-T - какие-то данные. В случае успешного ответа возвращается result = 'ok' и поле data с данными.
-В случае ошибки возвращается result = 'error' и поле error с кодом и текстом ошибки
+Параметры принимаются как GET-параметры строки запроса или как JSON body в POST-запросе. (Метод `updateUserName` традиционно использует POST, как указано в прошлой документации, хотя код позволяет оба варианта).
+
+-----
+
+## 2\. Структуры данных
+
+### 2.1. Общий формат ответа
+
+T - какие-то данные. В случае успешного ответа возвращается `result = 'ok'` и поле `data` с данными.
+В случае ошибки возвращается `result = 'error'` и поле `error` с кодом и текстом ошибки.
+
+```json
 Answer<T>: {
-    result: 'ok' | 'error';
-    data?: T;
-    error?: {
-        code: number;
-        text: string;
+    "result": "ok" | "error";
+    "data"?: T;
+    "error"?: {
+        "code": number;
+        "text": string;
     };
 }
+```
 
-2.2. Пользователь
+### 2.2. Пользователь (User)
+
+Возвращается при `login`, `registration` и `updateUserName`.
+
+```json
 User: {
-    id: number;
-    email: string;
-    token: string;
-    name?: string;
-    balance?: number;
+    "id": number;
+    "email": string;
+    "name": string;
+    "balance": number;
+    "token": string;
 }
+```
 
-2.3. Сообщение
+### 2.3. Сообщение (Message)
+
+Структура сообщения в чате.
+
+```json
 Message: {
-    message: string;
-    author: string;
-    created: string;
+    "message": string;
+    "author": string;
+    "created": string;
 }
+```
 
-2.4. Рейтинг пользователя
+### 2.4. Рейтинг пользователя (UserRating)
+
+Структура пользователя в таблице рейтинга.
+
+```json
 UserRating: {
-    id: number;
-    name: string;
-    balance: number;
+    "id": number;
+    "name": string;
+    "balance": number;
 }
+```
 
-3. Список запросов
+### 2.5. Статистика пользователя (UserStats)
+
+Структура статистики пользователя.
+
+```json
+UserStats: {
+    "total_played": number;
+    "total_win": number;
+    "total_balance": number;
+}
+```
+
+-----
+
+## 3\. Список запросов
+
+Список всех методов, обрабатываемых API.
 
 | Название | О чем |
 | :--- | :--- |
@@ -95,354 +138,361 @@ UserRating: {
 | createPrivateRoom | Создать приватную комнату |
 | joinPrivateRoom | Подключиться к приватной комнате |
 | getRatingTable | Получить таблицу рейтинга |
+| addBalance | Пополнить баланс |
+| subtractBalance | Списать с баланса |
 
-3.1. Общие ошибки
+### 3.1. Общие ошибки
 
-101 - Param method not setted
-102 - Method not found
-242 - Params not set fully
-705 - User is not found
-800 - User is already playing in another room
-801 - Failed to generate unique room code
-802 - Private room not found or invalid code
-803 - Room is full (maximum 6 players)
-9000 - unknown error
+Список кодов ошибок, определенных в `Answer.php`.
 
-4. Подробно
-4.1. login
-Авторизация пользователя в системе
-Параметры
+  * **101** - Param method not setted
+  * **102** - Method not found
+  * **242** - Params not set fully
+  * **705** - User is not found
+  * **800** - Невозможно войти в комнату. Игрок уже играет
+  * **801** - Failed to generate unique room code
+  * **802** - Private room not found or invalid code
+  * **803** - Room is full (maximum 6 players)
+  * **804** - у тебя нет денег
+  * **9000** - unknown error
+
+-----
+
+## 4\. Подробно
+
+### 4.1. login
+
+Авторизация пользователя в системе.
+**Параметры**
+
+```json
 {
-    email: string; - email пользователя
-    password: string; - пароль пользователя (в открытом виде)
+    "email": string; - email пользователя
+    "password": string; - пароль пользователя (в открытом виде)
 }
+```
 
-Успешный ответ
-    Answer<User>
+**Успешный ответ**
+`Answer<User>`
+**Ошибки**
 
-Ошибки
+  * **242** - Params not set fully
+  * **1002** - Wrong login or password (неверный пароль)
+  * **1005** - User is no exists (пользователь не найден)
 
-* 242 - Params not set fully
-* 1002 - Wrong login or password
-* 1005 - User is no exists
+### 4.2. logout
 
-4.2. logout
-Выход пользователя из системы
-Параметры
+Выход пользователя из системы.
+**Параметры**
+
+```json
 {
-    token: string; - токен авторизации
+    "token": string; - токен авторизации
 }
+```
 
-Успешный ответ
-    Answer<true>
+**Успешный ответ**
+`Answer<true>`
+**Ошибки**
 
-Ошибки
+  * **242** - Params not set fully
+  * **705** - User is not found
+  * **1003** - Error to logout user (внутренняя ошибка выхода)
 
-* 242 - Params not set fully
-* 705 - User is not found
-* 1003 - Error to logout user
+### 4.3. registration
 
-4.3. registration
-Регистрация нового пользователя
-Параметры
+Регистрация нового пользователя.
+**Параметры**
+
+```json
 {
-    email: string; - email пользователя (должен быть валидным, например, user@example.com)
-    password: string; - пароль пользователя
-    name: string; - имя пользователя
+    "email": string; - email пользователя
+    "password": string; - пароль пользователя (в открытом виде, сервер сам его хэширует)
+    "name": string; - имя пользователя
 }
+```
 
-Примечание: Email должен быть валидным (проверяется сервером с помощью фильтра валидации email). Если email не соответствует формату, возвращается ошибка 242.
-Успешный ответ
-    Answer<User>
+**Успешный ответ**
+`Answer<User>`
+**Ошибки**
 
-Ошибки
+  * **242** - Params not set fully (или email невалиден)
+  * **1007** - user with this email is already registered (email занят)
+  * **1004** - Error to register user (внутренняя ошибка регистрации)
 
-* 242 - Params not set fully или email невалиден
-* 1007 - user with this email is already registered
-* 1004 - Error to register user
+### 4.4. updateUserName
 
-4.4. updateUserName
-Обновление имени пользователя
-Тип запроса: POST
-Параметры JSON body
+Обновление имени пользователя. (Рекомендуется использовать POST).
+**Параметры**
+
+```json
 {
-    method: "updateUserName";
-    token: string; - токен авторизации
-    newName: string; - новое имя пользователя
+    "token": string; - токен авторизации
+    "newName": string; - новое имя пользователя
 }
+```
 
-Успешный ответ
-    Answer<User>
+**Успешный ответ**
+`Answer<User>` (Возвращает обновленный объект пользователя)
+**Ошибки**
 
-Ошибки
+  * **242** - Params not set fully
+  * **705** - User is not found
+  * **1009** - Error updating user name (внутренняя ошибка обновления)
+  * **1010** - Name is already taken (имя занято)
 
-* 242 - Params not set fully
-* 705 - User is not found
-* 1009 - Error updating user name
-* 1010 - Name is already taken
+### 4.5. sendMessage
 
-4.5. sendMessage
-Отправка сообщения в чат
-Параметры
+Отправка сообщения в чат.
+**Параметры**
+
+```json
 {
-    token: string; - токен авторизации
-    message: string; - текст сообщения
+    "token": string; - токен авторизации
+    "message": string; - текст сообщения
 }
+```
 
-Успешный ответ
-    Answer<true>
+**Успешный ответ**
+`Answer<true>` (Предположительно, на основе `Chat::sendMessage` в `Application.php`)
+**Ошибки**
 
-Ошибки
+  * **242** - Params not set fully
+  * **705** - User is not found
+  * **706** - text message is empty
+  * **707** - could not send message
 
-* 242 - Params not set fully
-* 705 - User is not found
-* 706 - text message is empty
-* 707 - could not send message
+### 4.6. getMessages
 
-4.6. getMessages
-Получение всех сообщений чата
-Параметры
+Получение всех сообщений чата.
+**Параметры**
+
+```json
 {
-    token: string; - токен авторизации
-    hash: string; - хеш-сумма чата
+    "token": string; - токен авторизации
+    "hash": string; - хеш-сумма чата (для проверки обновлений)
 }
+```
 
-Успешный ответ
-    Answer<{
-        messages: Message[]; - список сообщений
-        hash: string; - новый хеш чата
-    }>
+**Успешный ответ**
+(Структура ответа неполная, т.к. `Chat.php` отсутствует, но `DB.php` определяет `Message`)
 
-Примечание: в случае отсутствия новых сообщений будет ответ:
-    Answer<{
-        hash: string; - новый хеш чата
-    }>
-
-Ошибки
-
-* 242 - Params not set fully
-* 705 - User is not found
-
-4.7. getUserBalance
-Получение баланса пользователя
-
-4.8 getUserStat Получение статистики пользователя
-
-Параметры: {token: string - токен авторизации}
-
-Успешный ответ Answer <{
-    stats: UserStats;
+```json
+Answer<{
+    "messages": Message[]; - список сообщений
+    "hash": string; - новый хеш чата
 }>
+```
 
+**Ошибки**
 
-Ошибки
+  * **242** - Params not set fully
+  * **705** - User is not found
 
-242 - Params not set fully
-705 - User is not found
+### 4.7. getUserBalance
 
-Параметры
+Получение баланса пользователя.
+**Параметры**
+
+```json
 {
     "token": string; - токен авторизации
 }
-Успешный ответ
-    Answer<{
-        "balance": number;
-    }>
-Ошибки
+```
 
-* 242 - Params not set fully
-* 705 - User is not found
+**Успешный ответ**
+(Метод в `Application.php` возвращает баланс напрямую из объекта User)
 
-4.8. getUserStat
-Получение статистики пользователя
-Параметры
+```json
+Answer<{
+    "balance": number;
+}>
+```
+
+**Ошибки**
+
+  * **242** - Params not set fully
+  * **705** - User is not found
+
+### 4.8. getUserStat
+
+Получение статистики пользователя.
+**Параметры**
+
+```json
 {
     "token": string; - токен авторизации
 }
-Успешный ответ
-    Answer<{
-        stats: UserStats; // (Структура UserStats не определена, но используется в коде)
-    }>
-Ошибки
+```
 
-* 242 - Params not set fully
-* 705 - User is not found
+**Успешный ответ**
+(Структура `UserStats` определена в `DB.php`)
 
-4.9. quickStart
+```json
+Answer<{
+    "stats": UserStats;
+}>
+```
+
+**Ошибки**
+
+  * **242** - Params not set fully
+  * **705** - User is not found
+
+### 4.9. quickStart
+
 Быстрое подключение к игровой комнате.
-Ищет открытую комнату или создает новую.
-Параметры
+**Параметры**
+
+```json
 {
     "token": string; - токен авторизации
 }
-Успешный ответ
-    Answer<object> // Возвращает объект комнаты (структура Room не определена)
+```
 
-Ошибки
-* 242 - Params not set fully
-* 705 - User is not found
-* 800 - Невозможно войти в комнату. Игрок уже играет
+**Успешный ответ**
+`Answer<object>` (Возвращает объект комнаты. Логика в `Lobby.php` не завершена)
+**Ошибки**
 
-4.10. createPrivateRoom
-Создание приватной комнаты с уникальным 4-буквенным кодом (AAAA-ZZZZ)
-Параметры
+  * **242** - Params not set fully
+  * **705** - User is not found
+  * **800** - Невозможно войти в комнату. Игрок уже играет
+
+### 4.10. createPrivateRoom
+
+Создание приватной комнаты.
+**Параметры**
+
+```json
 {
-    token: string; - токен авторизации
+    "token": string; - токен авторизации
 }
-Успешный ответ
-    Answer<{
-        private: {
-            code: string; - 4-буквенный код комнаты (например: "ABCD")
-            room_id: number; - ID созданной комнаты
-        }
-    }>
-Создает комнату: type='private', status='closed', добавляет создателя в room_members (bet=0).
-Ошибки
+```
 
-* 242 - Params not set fully
-* 705 - User is not found
-* 801 - Failed to generate unique room code
+**Успешный ответ**
+(Основано на `Lobby::createPrivateRoom` и `Application::createPrivateRoom`)
 
-4.11. getBalance
-Получение баланса пользователя
-
-4.12 getUserStat Получение статистики пользователя
-
-Параметры: {token: string - токен авторизации}
-
-Успешный ответ Answer <{
-    stats: UserStats;
+```json
+Answer<{
+    "private": {
+        "code": string; - 4-буквенный код комнаты
+        "room_id": number; - ID созданной комнаты
+    }
 }>
+```
 
-Ошибки
+**Ошибки**
 
-242 - Params not set fully
-705 - User is not found
+  * **242** - Params not set fully
+  * **705** - User is not found
+  * **801** - Failed to generate unique room code
 
-Параметры
+### 4.11. joinPrivateRoom
+
+Подключение к приватной комнате по коду.
+**Параметры**
+
+```json
 {
     "token": string; - токен авторизации
     "code": string; - 4-буквенный код комнаты
 }
-Успешный ответ
-    Answer<{
-        room: object // Возвращает объект комнаты (структура Room не определена)
-    }>
-Ошибки
-* 242 - Params not set fully
-* 705 - User is not found
-* (Другие ошибки, связанные с подключением к комнате, не реализованы в Lobby.php)
+```
 
-4.13 getRatingTable 
-Получение топ-100 игроков по балансу
-Параметры
-{
-    "token": "string"  // токен авторизации пользователя
-}
-Успешный ответ
-    Answer<{
-        rating: UserRating[]
-    }>
+**Успешный ответ**
+(Основано на `Lobby::joinPrivateRoom` и `Application::joinPrivateRoom`)
 
-Пример `data`:
-{
-    "rating": [
-        {
-            "id": 3,
-            "name": "Артём",
-            "balance": 1500
-        },
-        {
-            "id": 1,
-            "name": "Егор",
-            "balance": 1200
-        }
-    ]
-}
+```json
+Answer<{
+    "room": {
+        "room_id": number;
+        "code": string;
+    }
+}>
+```
 
-Ошибки
-<<<<<<< Updated upstream
-242	Params not set fully (не передан токен)
-705	User is not found (токен невалидный, пользователь не найден)
+**Ошибки**
 
-4.14. addBalance
-Метод для прибавления указанной суммы к балансу пользователя.
+  * **242** - Params not set fully
+  * **705** - User is not found
+  * **800** - Невозможно войти в комнату. Игрок уже играет
+  * **802** - Private room not found or invalid code
+  * **803** - Room is full (maximum 6 players)
 
-Параметры
+### 4.12. getRatingTable
+
+Получение топ-100 игроков по балансу.
+**Параметры**
+
+```json
 {
     "token": string; - токен авторизации
-    "amount": number; - СУММА
 }
+```
 
-Успешный ответ
-    Answer<{
-        "balance": number; - Обновленный баланс
-    }>
+**Успешный ответ**
+(Основано на `Lobby::getRatingTable` и `DB::getUsersByBalance`)
 
-Ошибки
-242 - Params not set fully
-705 - User is not found 
+```json
+Answer<{
+    "rating": UserRating[]
+}>
+```
 
-4.15 subtractBalance
-Метод для убавления указанной суммы с баланса пользователя с обязательной проверкой достаточности средств.
+**Ошибки**
 
-Параметры
-{
-    "token": string; - токен авторизации
-    "amount": number; - Сумма для списания (должна быть > 0).
-=======
-* 242 - Params not set fully (не передан токен)
-* 705 - User is not found (токен невалидный, пользователь не найден)
+  * **242** - Params not set fully
+  * **705** - User is not found
 
-4.13. addBalance
+### 4.13. addBalance
+
 Пополнение баланса пользователя.
+**Параметры**
 
-Параметры
+```json
 {
-    "token": "string",  // токен авторизации
-    "amount": "number"  // сумма пополнения 
+    "token": string; - токен авторизации
+    "amount": number; - Сумма пополнения (должна быть > 0)
 }
+```
 
+**Успешный ответ**
+
+```json
 Answer<{
-        "balance": number; // новый баланс
-    }>
+    "balance": number; // новый баланс
+}>
+```
 
-Примечание: Total balance также увеличивается на эту сумму.
+**Ошибки**
 
-Ошибки
+  * **242** - Params not set fully (или `amount` невалидный, т.е. не число или \<= 0)
+  * **705** - User is not found
+  * **9000** - unknown error (ошибка БД при обновлении)
 
-242 - Params not set fully, или amount невалидный (не число, или ≤0)
-705 - User is not found
+### 4.14. subtractBalance
 
-4.14. subtractBalance
 Снятие средств с баланса пользователя.
+**Параметры**
 
-Параметры
+```json
 {
-    "token": "string",  // токен авторизации
-    "amount": "number"  // сумма снятия (должна быть > 0)
->>>>>>> Stashed changes
+    "token": string; - токен авторизации
+    "amount": number; - Сумма снятия (должна быть > 0)
 }
+```
 
-Успешный ответ
+**Успешный ответ**
+
+```json
 Answer<{
-<<<<<<< Updated upstream
-    "balance": number; // Обновленный баланс пользователя
+    "balance": number; // новый баланс
 }>
+```
 
-Ошибки
-242 - Params not set fully
-705 - User is not found
-802 - у тебя нет денег
-=======
-        "balance": number; // новый баланс
-}>
+**Ошибки**
 
-Примечание: Total balance не меняется.
-
-Ошибки
-
-242 - Params not set fully, или amount невалидный (не число, или ≤0)
-705 - User is not found
-802 - у тебя нет денег (недостаточно средств на балансе)
->>>>>>> Stashed changes
+  * **242** - Params not set fully (или `amount` невалидный, т.е. не число или \<= 0)
+  * **705** - User is not found
+  * **804** - у тебя нет денег (недостаточно средств на балансе)
+  * **9000** - unknown error (ошибка БД при обновлении)
