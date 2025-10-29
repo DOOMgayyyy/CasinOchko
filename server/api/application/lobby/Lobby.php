@@ -47,6 +47,30 @@ class Lobby {
         }
         return null;
     }
+
+    # Генерации уникального кода для приватной комнаты
+    private function generateUniquePrivateCode() {
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $charsLength = strlen($chars);
+        $codeLength = 4;
+        $maxAttempts = 100;
+        $attempts = 0;
+
+        while ($attempts < $maxAttempts) {
+            $privateCode = '';
+            for ($i = 0; $i < $codeLength; $i++) {
+                $privateCode .= $chars[random_int(0, $charsLength - 1)];
+            }
+
+            # Проверка уникальности кода в БД
+            if ($this->db->isPrivateCodeUnique($privateCode)) {
+                return $privateCode;
+            }
+
+            $attempts++;
+        }
+        return null;
+    }
         /**
      * Быстрое подключение пользователя к игровой комнате
      * 
@@ -84,42 +108,28 @@ class Lobby {
         return $this->db->getUsersByBalance();
     }
 
+    # Генерации уникального кода для приватной комнаты
+    
+
 
     # Создание приватной комнаты
     public function createPrivateRoom($userId) {
-        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $charsLength = strlen($chars);
-        $codeLength = 4;
-        $maxAttempts = 100;
-        
-        // Генерация уникального кода
-        for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
-            $privateCode = '';
-            for ($i = 0; $i < $codeLength; $i++) {
-                $privateCode .= $chars[random_int(0, $charsLength - 1)];
-            }
-            
-            // Проверка уникальности кода в БД
-            if ($this->db->isPrivateCodeUnique($privateCode)) {
-                // Генерация хэша комнаты
-                $hash = md5(random_int(0, PHP_INT_MAX));
-                
-                // Создание комнаты
-                $roomId = $this->db->createRoom('private', 'closed', $privateCode, $hash);
-                
-                // Добавление создателя в комнату с bet=0
-                $this->db->addRoomMember($roomId, $userId, 0);
-                
-                // Возврат кода комнаты
-                return [
-                    'code' => $privateCode,
-                    'room_id' => $roomId
-                ];
-            }
-        }
-        
-        // Не удалось сгенерировать уникальный код за maxAttempts попыток
-        return ['error' => 801];
+       $privateCode = $this->generateUniquePrivateCode();
+       
+       if ($privateCode === null) {
+            return ['error' => 801];
+       }
+       
+       $hash = md5(random_int(0, PHP_INT_MAX));
+
+       $roomId = $this->db->createRoom('private', 'closed', $privateCode, $hash);
+       // Добавление создателя в комнату с bet=0
+       $this->db->addRoomMember($roomId, $userId, 0);
+
+       return [
+            'code' => $privateCode,
+            'room_id' => $roomId
+        ];
     }
     
     # Подключение к приватной комнате по 4-значному коду
@@ -128,11 +138,9 @@ class Lobby {
             return ['error' => 800];
         }
 
-        $code = strtoupper($code); # Верхний регистр
-
         $room = $this->db->getRoomByPrivateCode($code);
 
-        if (!$room || $room->type !== 'private') {
+        if (!$room) {
             return ['error' => 802];
         }
 
