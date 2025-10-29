@@ -114,17 +114,21 @@ class Lobby {
 
     # Создание приватной комнаты
     public function createPrivateRoom($userId) {
+        if ($this->isUserPlaying($userId)) {
+            return ['error' => 800];
+        }
+
        $privateCode = $this->generateUniquePrivateCode();
-       
+
        if ($privateCode === null) {
             return ['error' => 801];
        }
        
        $hash = md5(random_int(0, PHP_INT_MAX));
 
-       $roomId = $this->db->createRoom('private', 'closed', $privateCode, $hash);
-       // Добавление создателя в комнату с bet=0
-       $this->db->addRoomMember($roomId, $userId, 0);
+       $roomId = $this->db->createRoom('private', 'playing', $privateCode, $hash);
+
+       $this->db->addRoomMember($roomId, $userId);
 
        return [
             'code' => $privateCode,
@@ -150,7 +154,7 @@ class Lobby {
             return ['error' => 803];
         }
 
-        $this->db->addRoomMember($room->id, $userId, 0); # Добавление игрока со ставкой 0 в комнату
+        $this->db->addRoomMember($room->id, $userId); 
 
         return [
             'room_id' => $room->id,
