@@ -29,3 +29,10 @@ export type TMessagesResponse = {
     messages: TMessages;
     hash: string;
 }
+
+export type TPrivateRoomResponse = {
+    private: {
+        code: string;      // 4-буквенный код комнаты
+        room_id: number;   // ID комнаты
+    }
+};

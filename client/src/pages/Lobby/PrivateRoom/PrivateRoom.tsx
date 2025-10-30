@@ -10,7 +10,8 @@ export interface PrivateRoomProps {
     onCreateRoom: () => void;
     onJoinRoom: () => void;
     onShowSideMenu: () => void;
-    
+    roomCreated?: {code: string, room_id: number} | null;
+    onCloseRoomMessage?: () => void;
 }
 
 const PrivateRoom: React.FC<PrivateRoomProps> = ({ 
@@ -18,7 +19,9 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
     onBack, 
     onCreateRoom, 
     onJoinRoom,
-    onShowSideMenu
+    onShowSideMenu,
+    roomCreated,
+    onCloseRoomMessage
 }) => {
     return (
         <div className="private-room">
@@ -43,9 +46,29 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
                 </div>
                 
                 <div className="private-room-buttons">
-                    <button className="private-room-btn create-btn" onClick={onCreateRoom}>
-                        Создать 
-                    </button>
+                    <div className="create-room-section">
+                        <button className="private-room-btn create-btn" onClick={onCreateRoom}>
+                            Создать 
+                        </button>
+                        
+                        {roomCreated && (
+                            <div className="room-created-message">
+                                <div className="room-created-header">
+                                    <span className="success-icon">✅</span>
+                                    <span className="success-text">Комната создана!</span>
+                                    {onCloseRoomMessage && (
+                                        <button className="close-message-btn" onClick={onCloseRoomMessage}>×</button>
+                                    )}
+                                </div>
+                                <div className="room-code-display">
+                                    <div className="room-code-label">Код комнаты:</div>
+                                    <div className="room-code-value">{roomCreated.code}</div>
+                                </div>
+                                <div className="room-id">ID: {roomCreated.room_id}</div>
+                                <div className="room-instruction">Поделитесь кодом с друзьями!</div>
+                            </div>
+                        )}
+                    </div>
                     
                     <button className="private-room-btn join-btn" onClick={onJoinRoom}>
                         Присоединиться
