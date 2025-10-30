@@ -29,6 +29,7 @@ class Answer
         '802' => 'Private room not found or invalid code',
         '803' => 'Room is full (maximum 6 players)',
         '804' => 'у тебя нет денег',
+        '805' => 'Room not found',
 
         '9000' => 'unknown error'
     );
