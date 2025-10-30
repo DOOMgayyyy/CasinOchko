@@ -30,9 +30,10 @@
     4.9. quickStart
     4.10. createPrivateRoom
     4.11. joinPrivateRoom
-    4.12. getRatingTable
-    4.13. addBalance
-    4.14. subtractBalance
+    4.12. connectRoom
+    4.13. getRatingTable
+    4.14. addBalance
+    4.15. subtractBalance
 
 -----
 
@@ -137,6 +138,7 @@ UserStats: {
 | quickStart | Быстрое подключение к игре |
 | createPrivateRoom | Создать приватную комнату |
 | joinPrivateRoom | Подключиться к приватной комнате |
+| connectRoom | Получить данные комнаты |
 | getRatingTable | Получить таблицу рейтинга |
 | addBalance | Пополнить баланс |
 | subtractBalance | Списать с баланса |
@@ -419,7 +421,43 @@ Answer<{
   * **802** - Private room not found or invalid code
   * **803** - Room is full (maximum 6 players)
 
-### 4.12. getRatingTable
+### 4.12. connectRoom
+
+Получение полных данных о комнате (информация о комнате + список игроков).
+**Параметры**
+
+```json
+{
+    "token": string; - токен авторизации
+    "room_id": number; - ID комнаты
+}
+```
+
+**Успешный ответ**
+
+```json
+Answer<{
+    "id": number; - ID комнаты
+    "type": string; - тип комнаты ("open" | "private")
+    "status": string; - статус комнаты ("playing" | "closed" | "finished")
+    "private_code": string | null; - код комнаты (для приватных) или null
+    "players": [
+        {
+            "id": number; - ID игрока
+            "name": string; - имя игрока
+            "balance": number; - баланс игрока
+        }
+    ]
+}>
+```
+
+**Ошибки**
+
+  * **242** - Params not set fully
+  * **705** - User is not found
+  * **805** - Room not found
+
+### 4.13. getRatingTable
 
 Получение топ-100 игроков по балансу.
 **Параметры**
@@ -444,7 +482,7 @@ Answer<{
   * **242** - Params not set fully
   * **705** - User is not found
 
-### 4.13. addBalance
+### 4.14. addBalance
 
 Пополнение баланса пользователя.
 **Параметры**
@@ -470,7 +508,7 @@ Answer<{
   * **705** - User is not found
   * **9000** - unknown error (ошибка БД при обновлении)
 
-### 4.14. subtractBalance
+### 4.15. subtractBalance
 
 Снятие средств с баланса пользователя.
 **Параметры**

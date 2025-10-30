@@ -155,6 +155,21 @@ class Application
         return ['error' => 242];
     }
 
+    public function connectRoom($params)
+    {
+        if ($params['token'] && $params['room_id']) {
+            $user = $this->user->getUser($params['token']);
+
+            if ($user) {
+                return $this->lobby->connectRoom($params['room_id']);
+            }
+
+            return ['error' => 705];
+        }
+
+        return ['error' => 242];
+    }
+
     public function getRatingTable($params)
     {
         if ($params['token']) {

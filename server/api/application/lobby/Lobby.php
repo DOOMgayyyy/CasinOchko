@@ -23,8 +23,13 @@ class Lobby {
      */
 
     private function isUserPlaying($userId) {
-        $roomId = $this->db->getRoomId($userId)->room_id;
-        $room = $this->db->getRoom($roomId);
+        $roomMemberEntry = $this->db->getRoomId($userId);
+
+        if (!$roomMemberEntry || !$roomMemberEntry->room_id) {
+            return false;
+        }
+
+        $room = $this->db->getRoom($roomMemberEntry->room_id);
         return $room && $room->status === 'playing';
     }
 
@@ -71,6 +76,24 @@ class Lobby {
         }
         return null;
     }
+
+    public function connectRoom($roomId) {
+        $room = $this->db->getRoom($roomId);
+        
+        if (!$room) {
+            return ['error' => 805];
+        }
+
+        $players = $this->db->getRoomMembers($roomId);
+
+        return [
+            'id' => $room->id,
+            'type' => $room->type,
+            'status' => $room->status,
+            'private_code' => $room->private_code,
+            'players' => $players
+        ];
+    }
         /**
      * Быстрое подключение пользователя к игровой комнате
      * 
@@ -95,22 +118,26 @@ class Lobby {
         }
         // есть открытая комната со свободными местами
         $room = $this->getOpenRoom();
+
         if ($room) {
             // добавить игрока в комнату
             //...
-            return $room;
+            $this->db->addRoomMember($room->id, $userId);
+            return $this->connectRoom($room->id);   
         }
         // создать новую комнату
         //...
+        $hash = md5(random_int(0, PHP_INT_MAX));
+        $roomId = $this->db->createRoom('open', 'playing', null, $hash);
+        $this->db->addRoomMember($roomId, $userId);
+    
+        return $this->connectRoom($roomId);
     }
+
     public function getRatingTable($currentUserId = null)
     {
         return $this->db->getUsersByBalance();
     }
-
-    # Генерации уникального кода для приватной комнаты
-    
-
 
     # Создание приватной комнаты
     public function createPrivateRoom($userId) {
@@ -130,10 +157,7 @@ class Lobby {
 
        $this->db->addRoomMember($roomId, $userId);
 
-       return [
-            'code' => $privateCode,
-            'room_id' => $roomId
-        ];
+       return $this->connectRoom($roomId);
     }
     
     # Подключение к приватной комнате по 4-значному коду
@@ -156,9 +180,6 @@ class Lobby {
 
         $this->db->addRoomMember($room->id, $userId); 
 
-        return [
-            'room_id' => $room->id,
-            'code' => $room->private_code
-        ];
+        return $this->connectRoom($room->id);
     }
 }
