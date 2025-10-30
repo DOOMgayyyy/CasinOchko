@@ -31,6 +31,7 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
 
     const [showSideMenu, setShowSideMenu] = useState(false);
     const [showPrivateRoomPage, setShowPrivateRoomPage] = useState(false);
+    const [roomCreated, setRoomCreated] = useState<{code: string, room_id: number} | null>(null);
     ///
     const [playerStats] = useState({
         totalGames: 156,
@@ -39,8 +40,28 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         totalHours: 47
     });
 
-    const handleCreateRoom = () => {
-        console.log('Create private room');
+    const handleCreateRoom = async () => {
+        try {
+            const result = await server.createPrivateRoom();
+            
+            if (result && result.private) {
+                const { code, room_id } = result.private;
+                
+                // Сохраняем данные комнаты для отображения на странице
+                setRoomCreated({ code, room_id });
+                     
+            } else {
+                server.showErrorCb({
+                    code: 9001,
+                    text: 'Не удалось создать комнату. Попробуйте еще раз.'
+                });
+            }
+        } catch (error) {
+            server.showErrorCb({
+                code: 9002,
+                text: 'Произошла ошибка при создании комнаты.'
+            });
+        }
     };
 
     const handleJoinRoom = () => {
@@ -69,6 +90,8 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                 onCreateRoom={handleCreateRoom}
                 onJoinRoom={handleJoinRoom}
                 onShowSideMenu={() => setShowSideMenu(true)}
+                roomCreated={roomCreated}
+                onCloseRoomMessage={() => setRoomCreated(null)}
             />
         );
     }

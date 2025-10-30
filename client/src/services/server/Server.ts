@@ -1,7 +1,7 @@
 import md5 from 'md5';
 import CONFIG from "../../config";
 import Store from "../store/Store";
-import { TAnswer, TError, TMessagesResponse, TUser } from "./types";
+import { TAnswer, TError, TPrivateRoomResponse, TMessagesResponse, TUser } from "./types";
 
 const { CHAT_TIMESTAMP, HOST } = CONFIG;
 
@@ -129,6 +129,10 @@ class Server {
             this.chatInterval = null;
             this.store.clearMessages();
         }
+    }
+    
+    async createPrivateRoom(): Promise<TPrivateRoomResponse | null> {
+        return await this.request<TPrivateRoomResponse>('createPrivateRoom');
     }
 }
 
