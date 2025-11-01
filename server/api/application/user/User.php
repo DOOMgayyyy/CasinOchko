@@ -49,11 +49,7 @@ class User
             return ['error' => 1007]; // user with this email is already registered
         }
         
-        // Хэшируем пароль перед записью в БД
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        
-        // Передаем в БД уже хэшированный пароль
-        $this->db->registration($email, $hashedPassword, $name);
+        $this->db->registration($email, $password, $name);
         
         $user = $this->db->getUserByEmail($email);
         if ($user) {
