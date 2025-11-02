@@ -122,15 +122,27 @@ class Lobby {
         if ($room) {
             // добавить игрока в комнату
             //...
-            $this->db->addRoomMember($room->id, $userId);
+            $this->db->removeUserFromAllRooms($userId);
+            $result = $this->db->addRoomMember($room->id, $userId);
+
+            if (!$result) {
+                return ['error' => 806];
+            }
+
             return $this->connectRoom($room->id);   
         }
         // создать новую комнату
         //...
         $hash = md5(random_int(0, PHP_INT_MAX));
         $roomId = $this->db->createRoom('open', 'playing', null, $hash);
-        $this->db->addRoomMember($roomId, $userId);
-    
+
+        $this->db->removeUserFromAllRooms($userId);
+        $result = $this->db->addRoomMember($roomId, $userId);
+
+        if (!$result) {
+            return ['error' => 806];
+        }
+
         return $this->connectRoom($roomId);
     }
 
@@ -155,7 +167,13 @@ class Lobby {
 
        $roomId = $this->db->createRoom('private', 'playing', $privateCode, $hash);
 
-       $this->db->addRoomMember($roomId, $userId);
+       $this->db->removeUserFromAllRooms($userId);
+
+       $result = $this->db->addRoomMember($roomId, $userId);
+
+       if (!$result) {
+            return ['error' => 806];
+       }
 
        return $this->connectRoom($roomId);
     }
@@ -178,7 +196,13 @@ class Lobby {
             return ['error' => 803];
         }
 
-        $this->db->addRoomMember($room->id, $userId); 
+        $this->db->removeUserFromAllRooms($userId);
+
+        $result = $this->db->addRoomMember($room->id, $userId); 
+
+        if (!$result) {
+            return ['error' => 806];
+        }
 
         return $this->connectRoom($room->id);
     }

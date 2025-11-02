@@ -155,7 +155,9 @@ UserStats: {
   * **801** - Failed to generate unique room code
   * **802** - Private room not found or invalid code
   * **803** - Room is full (maximum 6 players)
-  * **804** - у тебя нет денег
+  * **804** - Недостаточно средств на балансе
+  * **805** - Room not found
+  * **806** - Failed to add player to room
   * **9000** - unknown error
 
 -----
@@ -359,6 +361,7 @@ Answer<{
   * **242** - Params not set fully
   * **705** - User is not found
   * **800** - Невозможно войти в комнату. Игрок уже играет
+  * **806** - Failed to add player to room
 
 ### 4.10. createPrivateRoom
 
@@ -387,7 +390,9 @@ Answer<{
 
   * **242** - Params not set fully
   * **705** - User is not found
+  * **800** - Невозможно войти в комнату. Игрок уже играет
   * **801** - Failed to generate unique room code
+  * **806** - Failed to add player to room
 
 ### 4.11. joinPrivateRoom
 
@@ -420,6 +425,7 @@ Answer<{
   * **800** - Невозможно войти в комнату. Игрок уже играет
   * **802** - Private room not found or invalid code
   * **803** - Room is full (maximum 6 players)
+  * **806** - Failed to add player to room
 
 ### 4.12. connectRoom
 
@@ -532,5 +538,5 @@ Answer<{
 
   * **242** - Params not set fully (или `amount` невалидный, т.е. не число или \<= 0)
   * **705** - User is not found
-  * **804** - у тебя нет денег (недостаточно средств на балансе)
+  * **804** - Недостаточно средств на балансе
   * **9000** - unknown error (ошибка БД при обновлении)
