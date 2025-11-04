@@ -26,6 +26,7 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     //         name: 'dev',
     //         balance: 123
     //     };
+    //     console.log('No user data in store');
     // });
     //===================================================
 
