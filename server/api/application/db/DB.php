@@ -165,16 +165,47 @@ class DB
         return $this->pdo->lastInsertId();
     }
 
-    public function addRoomMember($roomId, $userId, $bet = 0) {
-        $this->execute(
+    public function removeUserFromAllRooms($userId) {
+        return $this->execute(
+            "DELETE FROM room_members WHERE user_id = ?",
+            [$userId]
+        );
+    }
+
+public function removeUserFromRoom($roomId, $userId) {
+        return $this->execute(
+            "DELETE FROM room_members WHERE room_id = ? AND user_id = ?",
+            [$roomId, $userId]
+        );
+    }
+
+public function addRoomMember($roomId, $userId, $bet = 0) {
+    try {
+        return $this->execute(
             "INSERT INTO room_members (room_id, user_id, bet) VALUES (?, ?, ?)",
             [$roomId, $userId, $bet]
         );
+    } catch (PDOException $e) {
+        error_log("Error while adding room member: " . $e->getMessage());
+        return false;
     }
+}
 
     public function getRoomByPrivateCode($code) {
         return $this->query("SELECT * FROM rooms WHERE private_code=?", [$code]);
     }
+
+    public function getRoomMembers($roomId) {
+        return $this->queryAll(
+            "SELECT u.id, u.name, u.balance 
+             FROM room_members rm 
+             JOIN users u ON rm.user_id = u.id 
+             WHERE rm.room_id = ? 
+             ORDER BY u.id ASC",
+            [$roomId]
+        );
+    }
+
     public function getUsersByBalance()
     {
         return $this->queryAll("SELECT 

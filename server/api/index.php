@@ -30,10 +30,6 @@ function result($params) {
             case 'getUserStat': return $app->getUserStat($params);
             case 'getUserBalance': return $app->getUserBalance($params);
 
-            // balance 
-            case 'addBalance': return $app->addBalance($params);
-            case 'subtractBalance': return $app->subtractBalance($params);
-
             // lobby
             case 'quickStart': return $app->quickStart($params);
             case 'createPrivateRoom': return $app->createPrivateRoom($params);
