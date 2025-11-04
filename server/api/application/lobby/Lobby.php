@@ -77,7 +77,7 @@ class Lobby {
         return null;
     }
 
-    public function connectRoom($roomId) {
+    private function connectRoom($roomId) {
         $room = $this->db->getRoom($roomId);
         
         if (!$room) {

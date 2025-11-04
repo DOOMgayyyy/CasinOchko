@@ -34,7 +34,6 @@ function result($params) {
             case 'quickStart': return $app->quickStart($params);
             case 'createPrivateRoom': return $app->createPrivateRoom($params);
             case 'joinPrivateRoom': return $app->joinPrivateRoom($params);
-            case 'connectRoom': return $app->connectRoom($params);
             case 'getRatingTable': return $app->getRatingTable($params);
         
             default: return ['error' => 102];
