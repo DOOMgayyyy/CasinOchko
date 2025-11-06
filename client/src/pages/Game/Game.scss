@@ -31,14 +31,11 @@
 
       .game-button {
         background-color: #202020;
-        color: #ffffff;
-        border: 1px solid #ffffff;
-        border-radius: 8px;
+        border-radius: 16px;
         padding: 20px 40px;
         font-family: 'Handjet', monospace;
         font-size: 22px;
         font-weight: 600;
-        cursor: pointer;
         transition: all 0.3s ease;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -49,42 +46,56 @@
         align-items: center;
         justify-content: center;
 
-      &:hover {
-        background-color: #ffffff;
-        color: #202020;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
-      }
-
       &:active {
         transform: translateY(0);
         box-shadow: 0 2px 6px rgba(255, 255, 255, 0.2);
       }
 
-      // Специфичные стили для разных кнопок
       &.hit-button {
-        &:hover {
-          background-color: #28a745;
-          border-color: #28a745;
-          color: #ffffff;
-        }
-      }
+        border: 1px solid #27C213;
+        color: #27C213;
+        cursor: pointer;
 
-      &.stand-button {
-        &:hover {
-          background-color: #dc3545;
-          border-color: #dc3545;
-          color: #ffffff;
-        }
       }
 
       &.split-button {
+        border: 1px solid #8F8F8F;
+        color: #8F8F8F;
+      }
+
+      &.stand-button {
+        border: 1px solid #FF2220;
+        color: #FF2220;
+        cursor: pointer;
+      }
+
+      // Специфичные стили для разных кнопо
+      &.stand-button {
         &:hover {
-          background-color: #17a2b8;
-          border-color: #17a2b8;
+          background-color: #FF2220;
+          border-color: #FF2220;
           color: #ffffff;
+          transform: translateY(-2px);
         }
       }
+
+      &.hit-button {
+        &:hover {
+          background-color: #27C213;
+          border-color: #27C213;
+          color: #ffffff;
+          transform: translateY(-2px);
+        }
+      }
+
+      // &.split-button {
+      //   &:hover {
+      //     background-color: #17a2b8;
+      //     border-color: #17a2b8;
+      //     color: #ffffff;
+      //   }
+      // }
+
     }
   }
 
@@ -164,95 +175,41 @@
     &:hover { background-color: rgba(255,255,255,0.1); border-color: #fff; transform: translateX(-2px); }
     &:active { transform: translateX(0); }
   }
-  
-  
+
 }
 
-// Адаптивность для мобильных устройств
-// @media (max-width: 768px) {
-//   .game-page {
-//     .game-controls {
-//       gap: 15px;
-      
-//       &.horizontal {
-//         bottom: 20px;
-//         padding: 0 10px;
-//         flex-wrap: wrap;
-//         justify-content: center;
-//       }
+.bet-button{
+  background-color: #202020;
+  border: 1px solid #FFC300;
+  color: #FFC300;
+  cursor: pointer;
+  border-radius: 16px;
+  padding: 15px 32px;
+  font-family: 'Handjet', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  // min-width: 180px;
+  white-space: nowrap;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  left: 18%;
+  bottom: 5%;
+}
 
-//       &.vertical {
-//         bottom: 20px;
-//         left: 20px;
-//         padding: 15px 0;
-//       }
-
-//       .game-button {
-//         padding: 18px 35px;
-//         font-size: 20px;
-//         min-width: 150px;
-//       }
-//     }
-
-//     .top-right-controls {
-//       top: 15px;
-//       right: 15px;
-//       gap: 8px;
-//     }
-
-//     .chat-button {
-//       width: 45px;
-//       height: 45px;
-//       font-size: 20px;
-//     }
-
-//     .chat-button .chat-icon {
-//       width: 26px;
-//       height: 26px;
-//     }
-//   }
-// }
-
-// @media (max-width: 480px) {
-//   .game-page {
-//     .game-controls {
-//       gap: 10px;
-
-//       &.horizontal {
-//         bottom: 15px;
-//       }
-
-//       &.vertical {
-//         bottom: 15px;
-//         left: 15px;
-//         padding: 10px 0;
-//       }
-
-//       .game-button {
-//         padding: 15px 25px;
-//         font-size: 18px;
-//         min-width: 120px;
-//       }
-//     }
-
-//     .top-right-controls {
-//       top: 10px;
-//       right: 10px;
-//       gap: 6px;
-//     }
-
-//     .chat-button {
-//       width: 40px;
-//       height: 40px;
-//       font-size: 18px;
-//     }
-
-//     .chat-button .chat-icon {
-//       width: 22px;
-//       height: 22px;
-//     }
-//   }
-// }
+.bet-button {
+  &:hover {
+    background-color: #FFC300;
+    border-color: #FFC300;
+    color: #ffffff;
+    transform: translateY(-2px);
+  }
+}
 
 // Анимации появления
 @keyframes fadeIn {
@@ -297,14 +254,6 @@
 .players .right-middle { top: 61%; right: 22%; }
 .players .right-bottom { top: 72%; right: 31%; }
 .players .balance { color: #FFC300; padding-left: 30px; padding-right: 30px;}
-
-.left-span {
-  position: absolute;
-  display: flex;
-  top: 33%;
-  left: 3%;
-  font-size: 24px;
-}
 
 .diller-slot  { top: 1.5%; left: 47%; }
 .diller-name  { padding-right: 20px;}
@@ -373,4 +322,45 @@
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.timer-div {
+  position: fixed;
+  bottom: 35%;
+  left: 2%;
+}
+
+.timer-span{
+  font-size: 25px;
+}
+
+.timer-count {
+  display: block;
+  font-size: 60px;
+  color: #FFC300;
+  font-weight: 700;
+}
+
+.count-div {
+  position: fixed;
+  bottom: 35%;
+  right: 2%;
+}
+
+.count-span {
+  font-size: 25px;
+}
+
+.count-number {
+  display: block;
+  font-size: 60px;
+  text-align: right;
+  color: #27C213;
+  font-weight: 700;
+}
+
+.player-slot.active-player {
+  border: 2px solid #27C213;
+  box-shadow: 0 0 20px #27C213; /* эффект свечения */
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
