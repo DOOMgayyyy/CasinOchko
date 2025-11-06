@@ -1,18 +1,20 @@
 <?php
 /*
  Класс для работы с базой данных
- 
+
  Инкапсулирует всю логику взаимодействия с БД через PDO
  Предоставляет безопасные методы для выполнения запросов
  */
-class Lobby {
+class Lobby
+{
     private $db;
     /**
      * Конструктор класса Lobby
      * 
      * @param DB $db Объект для работы с базой данных
      */
-    function __construct($db) {
+    function __construct($db)
+    {
         $this->db = $db;
     }
     /**
@@ -22,7 +24,8 @@ class Lobby {
      * @return bool true если пользователь сейчас в игре, false если нет
      */
 
-    private function isUserPlaying($userId) {
+    private function isUserPlaying($userId)
+    {
         $roomId = $this->db->getRoomId($userId)->room_id;
         $room = $this->db->getRoom($roomId);
         return $room && $room->status === 'playing';
@@ -37,7 +40,8 @@ class Lobby {
      * 
      * @return object|null Объект комнаты если найдена подходящая, иначе null
      */
-    private function getOpenRoom() {
+    private function getOpenRoom()
+    {
         $rooms = $this->db->getOpenRooms();
         foreach ($rooms as $room) {
             $membersCount = $this->db->getMembersCount($room->id)->count;
@@ -47,7 +51,7 @@ class Lobby {
         }
         return null;
     }
-        /**
+    /**
      * Быстрое подключение пользователя к игровой комнате
      * 
      * Алгоритм работы:
@@ -64,16 +68,16 @@ class Lobby {
      * @todo Реализовать логику добавления игрока в найденную комнату
      * @todo Реализовать создание новой комнаты когда нет доступных
      */
-    public function quickStart($userId) {
+    public function quickStart($userId)
+    {
         // этот пользователь уже играет -> error
         if ($this->isUserPlaying($userId)) {
             return ['error' => 800];
         }
-        // есть открытая комната со свободными местами
+        // Ищем открытую комнату со свободными местами
         $room = $this->getOpenRoom();
         if ($room) {
-            // добавить игрока в комнату
-            //...
+            $this->db->addUserToRoom($room->id, $userId);
             return $room;
         }
         // создать новую комнату
