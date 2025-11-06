@@ -85,6 +85,7 @@ class Lobby
 
         // Добавляем игрока
         $this->db->addUserToRoom($roomId, $userId);
+
         // Генерация стандартной колоды (52 карты)
         $deck = [];
         $suits = ['H', 'D', 'C', 'S']; // Червы, Бубны, Трефы, Пики
@@ -96,6 +97,11 @@ class Lobby
         }
 
         shuffle($deck); // Перемешиваем
+        // Сохраняем колоду в БД
+        $this->db->saveDeck($roomId, $deck);
+
+        // Возвращаем объект комнаты
+        return $this->db->getRoom($roomId);
     }
 
 }
