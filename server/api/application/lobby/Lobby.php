@@ -80,7 +80,10 @@ class Lobby
             $this->db->addUserToRoom($room->id, $userId);
             return $room;
         }
-        // создать новую комнату
-        //...
+        // Создаём новую комнату
+        $roomId = $this->db->createRoom();
+
+        // Добавляем игрока
+        $this->db->addUserToRoom($roomId, $userId);
     }
 }
