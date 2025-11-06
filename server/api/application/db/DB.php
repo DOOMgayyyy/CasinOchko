@@ -162,10 +162,16 @@ class DB
         );
     }
 
-    public function saveDeck($roomId, $deck) {
-    $json = json_encode($deck);
-    $this->execute("UPDATE rooms SET deck=? WHERE id=?", [$json, $roomId]);
-}
+    public function saveDeck($roomId, $deck)
+    {
+        $json = json_encode($deck);
+        $this->execute("UPDATE rooms SET deck=? WHERE id=?", [$json, $roomId]);
+    }
+    public function getDeck($roomId)
+    {
+        $data = $this->query("SELECT deck FROM rooms WHERE id=?", [$roomId]);
+        return $data ? json_decode($data->deck, true) : [];
+    }
 
 
 }
