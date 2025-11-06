@@ -85,5 +85,17 @@ class Lobby
 
         // Добавляем игрока
         $this->db->addUserToRoom($roomId, $userId);
+        // Генерация стандартной колоды (52 карты)
+        $deck = [];
+        $suits = ['H', 'D', 'C', 'S']; // Червы, Бубны, Трефы, Пики
+        $values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        foreach ($suits as $suit) {
+            foreach ($values as $value) {
+                $deck[] = $value . $suit;
+            }
+        }
+
+        shuffle($deck); // Перемешиваем
     }
+
 }
