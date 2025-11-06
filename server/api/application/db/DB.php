@@ -162,6 +162,10 @@ class DB
         );
     }
 
+    public function saveDeck($roomId, $deck) {
+    $json = json_encode($deck);
+    $this->execute("UPDATE rooms SET deck=? WHERE id=?", [$json, $roomId]);
+}
 
 
 }
