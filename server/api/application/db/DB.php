@@ -94,7 +94,7 @@ class DB
     public function registration($email, $password, $name)
     {
         $this->execute(
-            "INSERT INTO users (email, password, name, balance) VALUES (?, ?, ?)",
+            "INSERT INTO users (email, password, name) VALUES (?, ?, ?)",
             [$email, $password, $name]
         );
     }
