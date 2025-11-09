@@ -42,25 +42,12 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     });
 
     const handleCreateRoom = async () => {
-        try {
-            const result = await server.createPrivateRoom();
-            
-            if (result && result.private) {
-                const { code, room_id } = result.private;
-                
-                // Сохраняем данные комнаты для отображения на странице
-                setRoomCreated({ code, room_id });
-                     
-            } else {
-                server.showErrorCb({
-                    code: 9001,
-                    text: 'Не удалось создать комнату. Попробуйте еще раз.'
-                });
-            }
-        } catch (error) {
-            server.showErrorCb({
-                code: 9002,
-                text: 'Произошла ошибка при создании комнаты.'
+        const result = await server.createPrivateRoom();
+        
+        if (result && result.private_code) {
+            setRoomCreated({ 
+                code: result.private_code,
+                room_id: result.id 
             });
         }
     };
