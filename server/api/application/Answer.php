@@ -25,6 +25,7 @@ class Answer
         '709' => ' session did not start or you need use previous method',
 
         '800' => 'Невозможно войти в комнату. Игрок уже играет',
+        '900' => 'Ошибка добавления игрока в комнату',
 
         '9000' => 'unknown error'
     );

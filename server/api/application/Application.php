@@ -128,7 +128,7 @@ class Application
         if($params['token']){
             $user = $this->user->getUser($params['token']);
             if ($user){
-                return ['private' => $this->lobby->createPrivateRoom($user->id)];
+                return $this->lobby->createPrivateRoom($user->id);
             }
             return ['error' => 705];
         }
@@ -139,7 +139,7 @@ class Application
         if ($params['token'] && $params['code']) {
             $user = $this->user->getUser($params['token']);
             if ($user) {
-                return ['room' => $this->lobby->joinPrivateRoom($user->id, $params['code'])];
+                return $this->lobby->joinPrivateRoom($user->id, $params['code']);
             }
             return ['error' => 705];
         }

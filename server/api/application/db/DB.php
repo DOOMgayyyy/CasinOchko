@@ -24,8 +24,22 @@ class DB
     // выполнить запрос без возвращения данных, базовый метод для работы с Бд
     private function execute($sql, $params = [])
     {
-        $sth = $this->pdo->prepare($sql); // Подготавливаем запрос
-        return $sth->execute($params); // Выполняем с параметрами
+        try {
+            $sth = $this->pdo->prepare($sql); // Подготавливаем запрос
+            $result = $sth->execute($params); // Выполняем с параметрами
+            
+            // Если выполнение не удалось, логируем ошибку (для отладки)
+            if (!$result) {
+                $errorInfo = $sth->errorInfo();
+                error_log("DB Execute Error: " . $errorInfo[2] . " | SQL: " . $sql);
+            }
+            
+            return $result;
+        } catch (PDOException $e) {
+            // В случае исключения PDO логируем и возвращаем false
+            error_log("DB PDOException: " . $e->getMessage() . " | SQL: " . $sql);
+            return false;
+        }
     }
 
     // получение ОДНОЙ записи
@@ -42,7 +56,8 @@ class DB
     {
         $sth = $this->pdo->prepare($sql);
         $sth->execute($params);
-        return $sth->fetchAll(PDO::FETCH_ASSOC);
+        // БЫЛО: return $sth->fetchAll(PDO::FETCH_ASSOC);
+        return $sth->fetchAll(PDO::FETCH_OBJ); // <-- ИСПРАВЛЕНО
     }
 
     /*public function getUserByLogin($name) {
@@ -154,23 +169,35 @@ class DB
         return $this->pdo->lastInsertId();
     }
 
-    public function addUserToRoom($roomId, $userId, $bet = 0, $type = 'player')
+    public function createPrivateRoom($privateCode)
     {
-        $this->execute(
-            "INSERT INTO room_members (room_id, user_id, bet, types) VALUES (?, ?, ?, ?)",
-            [$roomId, $userId, $bet, $type]
+        $this->execute("INSERT INTO rooms (type, status, private_code) VALUES (?, ?, ?)", ['private', 'playing', $privateCode]);
+        return $this->pdo->lastInsertId();
+    }
+
+    public function getRoomByPrivateCode($privateCode)
+    {
+        return $this->query("SELECT * FROM rooms WHERE type='private' AND private_code=? AND status='playing'", [$privateCode]);
+    }
+
+    public function addUserToRoom($roomId, $userId, $bet = 0, $type = 0)
+    {
+        // Поле cards имеет NOT NULL, поэтому передаем пустую строку (карты будут выданы позже)
+        return $this->execute(
+            "INSERT INTO room_members (room_id, user_id, bet, types, cards) VALUES (?, ?, ?, ?, ?)",
+            [$roomId, $userId, $bet, $type, '']
         );
     }
 
     public function saveDeck($roomId, $deck)
     {
         $json = json_encode($deck);
-        $this->execute("UPDATE rooms SET deck=? WHERE id=?", [$json, $roomId]);
+        $this->execute("UPDATE rooms SET deckOfCards=? WHERE id=?", [$json, $roomId]);
     }
     public function getDeck($roomId)
     {
-        $data = $this->query("SELECT deck FROM rooms WHERE id=?", [$roomId]);
-        return $data ? json_decode($data->deck, true) : [];
+        $data = $this->query("SELECT deckOfCards FROM rooms WHERE id=?", [$roomId]);
+        return $data ? json_decode($data->deckOfCards, true) : [];
     }
 
 
