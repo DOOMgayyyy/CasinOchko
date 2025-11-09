@@ -13,21 +13,24 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     const server = useContext(ServerContext);
     
     // 3. Получаем актуальные данные пользователя из store
+   // const [player, setPlayer] = useState(() => {
+       //  const user = store.getUser();
+        //  return user ?{
+           //  name: user.name,
+           //  balance: user.balance
+        //} : null;
+    // });
+    //==================DEV-Заглушка=====================
     const [player, setPlayer] = useState(() => {
         const user = store.getUser();
-        return user ?{
+        return user ? {
             name: user.name,
             balance: user.balance
-        } : null;
+        } : {
+            name: 'dev',
+            balance: 99999
+        };
     });
-    //==================DEV-Заглушка=====================
-    // const [player, setPlayer] = useState(() => {
-    //     return {
-    //         name: 'dev',
-    //         balance: 123
-    //     };
-    //     console.log('No user data in store');
-    // });
     //===================================================
 
     const [showSideMenu, setShowSideMenu] = useState(false);
@@ -65,9 +68,38 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         }
     };
 
-    const handleJoinRoom = () => {
-        console.log('Join private room');
-    };
+    const handleJoinRoom = async (code: string) => {
+    try {
+        const result = await server.joinPrivateRoom(code);
+        
+        if (result && result.private) {
+            const { code: roomCode, room_id } = result.private;
+            
+            // Успешное подключение к приватной комнате
+            console.log('Успешно подключились к комнате:', roomCode, room_id);
+            
+            // Можно перейти на страницу игры или показать сообщение об успехе
+            server.showErrorCb({
+                code: 0,
+                text: `Успешно подключились к комнате ${roomCode}`
+            });
+            
+            // TODO: Переход на страницу игры с приватной комнатой
+            // setPage(PAGES.GAME);
+            
+        } else {
+            server.showErrorCb({
+                code: 9004,
+                text: 'Не удалось подключиться к комнате. Проверьте код.'
+            });
+        }
+    } catch (error) {
+        server.showErrorCb({
+            code: 9005,
+            text: 'Произошла ошибка при подключении к комнате.'
+        });
+    }
+};
     
     // 4. Функция выхода теперь вызывает метод сервера и очищает данные
     const handleLogout = async () => {
