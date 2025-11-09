@@ -117,33 +117,37 @@ class Lobby
      */
     public function createPrivateRoom($userId)
     {
-        // Проверяем, не играет ли пользователь уже
         if ($this->isUserPlaying($userId)) {
             return ['error' => 800];
         }
 
-        // Генерируем уникальный 4-значный код
+        // Генерируем уникальный 4-буквенный код
+        $attempts = 0;
+        $privateCode = null;
         do {
-            $privateCode = rand(1000, 9999);
-            $existingRoom = $this->db->getRoomByPrivateCode($privateCode);
-        } while ($existingRoom); // Повторяем, пока код не будет уникальным
+            $privateCode = $this->generatePrivateCode();
+            $attempts++;
+        } while (!$this->isPrivateCodeUnique($privateCode) && $attempts < 100);
+
+        if ($attempts >= 100) {
+            return ['error' => 901]; // Не удалось сгенерировать уникальный код
+        }
 
         // Создаём приватную комнату
         $roomId = $this->db->createPrivateRoom($privateCode);
 
-        // Добавляем создателя в комнату
+        // Добавляем создателя
         $success = $this->db->addUserToRoom($roomId, $userId);
         if (!$success) {
-            return ['error' => 900]; // Ошибка добавления в комнату
+            return ['error' => 900];
         }
 
         // Создаём и сохраняем колоду
         $deck = $this->createShuffledDeck();
         $this->db->saveDeck($roomId, $deck);
 
-        // Возвращаем комнату с кодом
-        $room = $this->db->getRoom($roomId);
-        return $room;
+        // Возвращаем комнату
+        return $this->db->getRoom($roomId);
     }
 
     /**
@@ -154,31 +158,50 @@ class Lobby
      */
     public function joinPrivateRoom($userId, $code)
     {
-        // Проверяем, не играет ли пользователь уже
         if ($this->isUserPlaying($userId)) {
             return ['error' => 800];
         }
 
-        // Ищем комнату по коду
+        // Приводим к верхнему регистру (на случай ввода строчных)
+        $code = strtoupper($code);
+
+        // Проверяем формат: только 4 буквы A-Z
+        if (!preg_match('/^[A-Z]{4}$/', $code)) {
+            return ['error' => 901]; // Неверный формат кода
+        }
+
         $room = $this->db->getRoomByPrivateCode($code);
         if (!$room) {
             return ['error' => 901]; // Комната не найдена
         }
 
-        // Проверяем, есть ли свободные места (максимум 6 игроков)
         $membersCount = $this->db->getMembersCount($room->id)->count;
         if ($membersCount >= 6) {
             return ['error' => 902]; // Комната заполнена
         }
 
-        // Добавляем пользователя в комнату
         $success = $this->db->addUserToRoom($room->id, $userId);
         if (!$success) {
-            return ['error' => 900]; // Ошибка добавления в комнату
+            return ['error' => 900];
         }
 
-        // Возвращаем актуальные данные комнаты
         return $this->db->getRoom($room->id);
+    }
+    
+    private function generatePrivateCode()
+    {
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $code = '';
+        for ($i = 0; $i < 4; $i++) {
+            $code .= $chars[random_int(0, 25)];
+        }
+        return $code;
+    }
+
+    private function isPrivateCodeUnique($code)
+    {
+        $existing = $this->db->getRoomByPrivateCode($code);
+        return !$existing;
     }
 
 }

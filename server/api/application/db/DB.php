@@ -199,6 +199,15 @@ class DB
         $data = $this->query("SELECT deckOfCards FROM rooms WHERE id=?", [$roomId]);
         return $data ? json_decode($data->deckOfCards, true) : [];
     }
+    
+    public function updateBalance($userId, $amount){
+        // Если $amount положительный (добавление), обновляем и balance, и total_balance
+        if ($amount > 0) {
+            return $this->execute("UPDATE users SET balance = balance + ?, total_balance = total_balance + ? WHERE id = ?", [$amount, $amount, $userId]);
+        }
+        // Если $amount отрицательный (вычитание), обновляем только balance
+        return $this->execute("UPDATE users SET balance = balance + ? WHERE id = ?", [$amount, $userId]);
+    }
 
 
 }

@@ -25,7 +25,12 @@ class Answer
         '709' => ' session did not start or you need use previous method',
 
         '800' => 'Невозможно войти в комнату. Игрок уже играет',
-        '900' => 'Ошибка добавления игрока в комнату',
+        '801' => 'Failed to generate unique room code',
+        '802' => 'Private room not found or invalid code',
+        '803' => 'Room is full (maximum 6 players)',
+        '804' => 'у тебя нет денег',
+        '900' => 'Ошибка добавления в комнату',
+        '901' => 'Комната не найдена',
 
         '9000' => 'unknown error'
     );

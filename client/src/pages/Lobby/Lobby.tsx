@@ -13,16 +13,26 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     const server = useContext(ServerContext);
     
     // 3. Получаем актуальные данные пользователя из store
-    //const player = store.getUser();
-    //=================DEV ЗАГЛУШКА=============================
-    const [player] = useState({    
-    name: 'dev',
-    balance: 99999,
+    const [player, setPlayer] = useState(() => {
+        const user = store.getUser();
+        return user ?{
+            name: user.name,
+            balance: user.balance
+        } : null;
     });
-    //==========================================================
+    //==================DEV-Заглушка=====================
+    // const [player, setPlayer] = useState(() => {
+    //     return {
+    //         name: 'dev',
+    //         balance: 123
+    //     };
+    //     console.log('No user data in store');
+    // });
+    //===================================================
 
     const [showSideMenu, setShowSideMenu] = useState(false);
     const [showPrivateRoomPage, setShowPrivateRoomPage] = useState(false);
+    const [roomCreated, setRoomCreated] = useState<{code: string, room_id: number} | null>(null);
     ///
     const [playerStats] = useState({
         totalGames: 156,
@@ -31,8 +41,28 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         totalHours: 47
     });
 
-    const handleCreateRoom = () => {
-        console.log('Create private room');
+    const handleCreateRoom = async () => {
+        try {
+            const result = await server.createPrivateRoom();
+            
+            if (result && result.private) {
+                const { code, room_id } = result.private;
+                
+                // Сохраняем данные комнаты для отображения на странице
+                setRoomCreated({ code, room_id });
+                     
+            } else {
+                server.showErrorCb({
+                    code: 9001,
+                    text: 'Не удалось создать комнату. Попробуйте еще раз.'
+                });
+            }
+        } catch (error) {
+            server.showErrorCb({
+                code: 9002,
+                text: 'Произошла ошибка при создании комнаты.'
+            });
+        }
     };
 
     const handleJoinRoom = () => {
@@ -61,6 +91,8 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                 onCreateRoom={handleCreateRoom}
                 onJoinRoom={handleJoinRoom}
                 onShowSideMenu={() => setShowSideMenu(true)}
+                roomCreated={roomCreated}
+                onCloseRoomMessage={() => setRoomCreated(null)}
             />
         );
     }
@@ -111,7 +143,17 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     player={player}
                     stats={playerStats}
                     onClose={() => setShowSideMenu(false)}
-                    onEditName={() => console.log('Edit name clicked')}
+                    onEditName={() => {
+                        // Получить обновленные данные пользователя из Store
+                        const updatedUser = store.getUser();
+                        if (updatedUser) {
+                            // Обновить локальное состояние player
+                            setPlayer({
+                                name: updatedUser.name,
+                                balance: updatedUser.balance
+                            });
+                        }
+                    }}
                     onShowRules={() => setPage(PAGES.RULES)}
                     onShowAuthors={() => setPage(PAGES.AUTHORS)}
                     onLogout={handleLogout}
