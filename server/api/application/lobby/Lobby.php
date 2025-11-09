@@ -55,7 +55,6 @@ class Lobby
     }
 
     /**
-     * ✅ НОВАЯ ФУНКЦИЯ
      * Создает и перемешивает стандартную 52-карточную колоду
      * @return array Массив карт
      */
@@ -86,7 +85,6 @@ class Lobby
         // Ищем открытую комнату со свободными местами
         $room = $this->getOpenRoom();
         if ($room) {
-            // ✅ ИСПРАВЛЕНИЕ: Добавлена проверка на успех
             $success = $this->db->addUserToRoom($room->id, $userId);
             if (!$success) {
                 return ['error' => 900]; // Ошибка добавления в комнату
@@ -98,13 +96,11 @@ class Lobby
         $roomId = $this->db->createRoom();
 
         // Добавляем игрока
-        // ✅ ИСПРАВЛЕНИЕ: Добавлена проверка на успех
         $success = $this->db->addUserToRoom($roomId, $userId);
         if (!$success) {
             return ['error' => 900]; // Ошибка добавления в комнату
         }
 
-        // ✅ РЕФАКТОРИНГ: Вызов новой функции для создания колоды
         $deck = $this->createShuffledDeck();
 
         // Сохраняем колоду в БД
