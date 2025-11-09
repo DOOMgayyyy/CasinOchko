@@ -232,15 +232,4 @@ class DB
         return $this->execute("UPDATE rooms SET deckOfCards = ? WHERE id = ?", [$json, $roomId]);
     }
 
-    public function updateBalance($userId, $amount) {
-    // Используем SQL-функцию ADD для прибавления или вычитания.
-    // Если $amount положительный, произойдет прибавление.
-    // Если $amount отрицательный, произойдет вычитание.
-    // Выражение 'balance + ?' гарантирует, что мы не перезаписываем, а обновляем баланс.
-        return $this->execute(
-            "UPDATE users SET balance = balance + ? WHERE id = ?",
-            [$amount, $userId]
-        );
-    }
-
 }

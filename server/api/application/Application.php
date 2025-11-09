@@ -1,6 +1,7 @@
 <?php
 require_once('db/DB.php');
 require_once('user/User.php');
+require_once('lobby/Lobby.php');
 // require_once('chat/Chat.php'); 
 
 class Application

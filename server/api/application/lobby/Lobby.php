@@ -116,7 +116,6 @@ class Lobby
         }
 
         $room = $this->getOpenRoom();
-
         if ($room) {
             $success = $this->db->addRoomMember($room->id, $userId);
             if (!$success) {
