@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Окт 15 2025 г., 23:34
+-- Время создания: Ноя 09 2025 г., 00:41
 -- Версия сервера: 8.0.30
 -- Версия PHP: 7.2.34
 
@@ -59,7 +59,8 @@ CREATE TABLE `rooms` (
   `status` enum('playing','closed') NOT NULL,
   `current_member_id` bigint UNSIGNED DEFAULT NULL,
   `private_code` int DEFAULT NULL,
-  `hash` varchar(255) DEFAULT NULL
+  `hash` varchar(255) DEFAULT NULL,
+  `deckOfCards` text COMMENT 'номинал карты - 16-ричное число, масть - один из символов: HDCS'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица комнат';
 
 -- --------------------------------------------------------
@@ -73,7 +74,8 @@ CREATE TABLE `room_members` (
   `room_id` bigint UNSIGNED NOT NULL,
   `user_id` bigint UNSIGNED NOT NULL,
   `bet` int DEFAULT '0',
-  `types` tinyint(1) DEFAULT '0'
+  `types` tinyint(1) DEFAULT '0',
+  `cards` text NOT NULL COMMENT 'Карты игрока в формате: номинал (hex) + масть (HDCS)'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица членов комнат';
 
 -- --------------------------------------------------------
