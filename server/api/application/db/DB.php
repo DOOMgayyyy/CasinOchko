@@ -216,7 +216,16 @@ class DB
             LIMIT 100
     ");
     }
-
+    public function updateBalance($userId, $amount) {
+    // Используем SQL-функцию ADD для прибавления или вычитания.
+    // Если $amount положительный, произойдет прибавление.
+    // Если $amount отрицательный, произойдет вычитание.
+    // Выражение 'balance + ?' гарантирует, что мы не перезаписываем, а обновляем баланс.
+        return $this->execute(
+            "UPDATE users SET balance = balance + ? WHERE id = ?",
+            [$amount, $userId]
+        );
+    }
     public function saveDeck($roomId, $deck)
     {
         $json = json_encode($deck);
