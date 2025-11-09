@@ -171,3 +171,48 @@
     flex-shrink: 0;
     transition: all 0.2s ease;
 }
+
+.add-money-btn {
+  position: relative;
+  background: transparent;
+  border: 2px solid #ffffff;
+  border-radius: 12px;
+  width: 70px;
+  height: 40px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-money-btn::before,
+.add-money-btn::after {
+  content: '';
+  position: absolute;
+  background-color: #ffffff;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: background-color 0.25s ease;
+}
+
+.add-money-btn::before {
+  width: 18px;
+  height: 2.5px;
+}
+
+.add-money-btn::after {
+  width: 2.5px;
+  height: 18px;
+}
+
+.add-money-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.add-money-btn:active {
+  transform: scale(0.95);
+  background-color: rgba(255, 255, 255, 0.25);
+}

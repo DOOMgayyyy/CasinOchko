@@ -4,6 +4,7 @@ import SideMenu from './SideMenu/SideMenu';
 import PrivateRoom from './PrivateRoom/PrivateRoom';
 import { IBasePage, PAGES } from '../PageManager';
 import { StoreContext, ServerContext } from '../../App'; // 1. Импортируем контексты
+import AdReward from './AdReward/AdReward'; 
 
 export interface LobbyProps extends IBasePage {}
 
@@ -40,6 +41,8 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         totalHours: 47
     });
 
+    const [showAdModal, setShowAdModal] = useState(false);
+
     const handleCreateRoom = async () => {
         try {
             const result = await server.createPrivateRoom();
@@ -72,6 +75,19 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     const handleLogout = async () => {
         await server.logout(); // Вызываем метод logout из Server.ts
         setPage(PAGES.LOGIN); // Перенаправляем на страницу входа
+    };
+
+    const handleAdSuccess = (newBalance: number) => {
+        setPlayer((prev) =>
+            prev ? { ...prev, balance: newBalance } : prev
+        );
+
+        if (typeof store.setUser === 'function') {
+            const currentUser = store.getUser();
+            if (currentUser) {
+                store.setUser({ ...currentUser, balance: newBalance });
+            }
+        }
     };
 
     // 5. Защита: если данных пользователя нет, перенаправляем на логин
@@ -110,7 +126,13 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                 <div className="header-right">
                     <span className="balance-text">Ваш баланс: </span>
                     <span className="balance-amount">${player.balance}</span>
-                    <button className="add-money-btn">+</button>
+                    
+                    <button 
+                        className="add-money-btn" 
+                        onClick={() => setShowAdModal(true)}
+                    >
+                        
+                    </button>
                 </div>
             </header>
 
@@ -156,6 +178,14 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     onShowRules={() => setPage(PAGES.RULES)}
                     onShowAuthors={() => setPage(PAGES.AUTHORS)}
                     onLogout={handleLogout}
+                />
+            )}
+
+            {showAdModal && (
+                <AdReward
+                    videoUrl={require('../../assets/ads/ad.mp4')}
+                    onClose={() => setShowAdModal(false)}
+                    onSuccess={handleAdSuccess}
                 />
             )}
         </div>
