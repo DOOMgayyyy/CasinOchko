@@ -133,8 +133,7 @@ class Application
     {
         if ($params['token']) {
             $user = $this->user->getUser($params['token']);
-
-            if ($user) {
+            if ($user){
                 return $this->lobby->createPrivateRoom($user->id);
             }
             return ['error' => 705];
@@ -175,14 +174,24 @@ class Application
         if ($params['token']) {
             $user = $this->user->getUser($params['token']);
             if ($user) {
-                return ['rating' => $this->lobby->getRatingTable()];
+                return $this->lobby->joinPrivateRoom($user->id, $params['code']);
             }
             return ['error' => 705];
         }
         return ['error' => 242];
     }
-
-    public function addBalance($params){
+    
+    public function getRatingTable($params) {
+        if($params['token']){
+            $user = $this->user->getUser($params['token']);
+            if ($user){
+                return ['rating' => $this->user->getRatingTable($user->id)];
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242];
+    }
+        public function addBalance($params){
         if ($params['token'] && $params['amount']) { 
             
             $user = $this->user->getUser($params['token']);
@@ -195,7 +204,6 @@ class Application
         }
         return ['error' => 242];
     }
-
     public function subtractBalance($params){
         if ($params['token'] && $params['amount']) { 
             

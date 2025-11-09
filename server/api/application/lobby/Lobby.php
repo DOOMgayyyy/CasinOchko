@@ -1,49 +1,50 @@
 <?php
 /*
  Класс для работы с базой данных
- 
+
  Инкапсулирует всю логику взаимодействия с БД через PDO
  Предоставляет безопасные методы для выполнения запросов
  */
-class Lobby {
+class Lobby
+{
     private $db;
     /**
      * Конструктор класса Lobby
-     * 
-     * @param DB $db Объект для работы с базой данных
+     * * @param DB $db Объект для работы с базой данных
      */
-    function __construct($db) {
+    function __construct($db)
+    {
         $this->db = $db;
     }
     /**
      * Проверяет, участвует ли пользователь в активной игровой сессии
-     * 
-     * @param int $userId ID пользователя для проверки
+     * * @param int $userId ID пользователя для проверки
      * @return bool true если пользователь сейчас в игре, false если нет
      */
 
-    private function isUserPlaying($userId) {
-        $roomMemberEntry = $this->db->getRoomId($userId);
-
-        if (!$roomMemberEntry || !$roomMemberEntry->room_id) {
+    private function isUserPlaying($userId)
+    {
+        // !! Небольшое исправление: нужно проверять, существует ли ->room_id
+        $data = $this->db->getRoomId($userId);
+        if (!$data || !$data->room_id) {
             return false;
         }
-
-        $room = $this->db->getRoom($roomMemberEntry->room_id);
+        $roomId = $data->room_id;
+        $room = $this->db->getRoom($roomId);
         return $room && $room->status === 'playing';
     }
 
     /**
      * Находит открытую комнату со свободными местами
-     * 
-     * Производит поиск среди всех открытых комнат со статусом 'playing'
+     * * Производит поиск среди всех открытых комнат со статусом 'playing'
      * и проверяет количество участников в каждой. Возвращает первую 
      * найденную комнату, где меньше 6 участников.
-     * 
-     * @return object|null Объект комнаты если найдена подходящая, иначе null
+     * * @return object|null Объект комнаты если найдена подходящая, иначе null
      */
-    private function getOpenRoom() {
+    private function getOpenRoom()
+    {
         $rooms = $this->db->getOpenRooms();
+        // queryAll теперь возвращает массив объектов (PDO::FETCH_OBJ)
         foreach ($rooms as $room) {
             $membersCount = $this->db->getMembersCount($room->id)->count;
             if ($membersCount < 6) {
@@ -53,157 +54,155 @@ class Lobby {
         return null;
     }
 
-    # Генерации уникального кода для приватной комнаты
-    private function generateUniquePrivateCode() {
-        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $charsLength = strlen($chars);
-        $codeLength = 4;
-        $maxAttempts = 100;
-        $attempts = 0;
-
-        while ($attempts < $maxAttempts) {
-            $privateCode = '';
-            for ($i = 0; $i < $codeLength; $i++) {
-                $privateCode .= $chars[random_int(0, $charsLength - 1)];
-            }
-
-            # Проверка уникальности кода в БД
-            if ($this->db->isPrivateCodeUnique($privateCode)) {
-                return $privateCode;
-            }
-
-            $attempts++;
-        }
-        return null;
-    }
-
-    private function connectRoom($roomId) {
-        $room = $this->db->getRoom($roomId);
-        
-        if (!$room) {
-            return ['error' => 805];
-        }
-
-        $players = $this->db->getRoomMembers($roomId);
-
-        return [
-            'id' => $room->id,
-            'type' => $room->type,
-            'status' => $room->status,
-            'private_code' => $room->private_code,
-            'players' => $players
-        ];
-    }
-        /**
-     * Быстрое подключение пользователя к игровой комнате
-     * 
-     * Алгоритм работы:
-     * 1. Проверяет, не играет ли пользователь уже в другой комнате
-     * 2. Ищет существующую открытую комнату со свободными местами
-     * 3. Если комнаты нет - создает новую (реализация создания пока отсутствует)
-     * 
-     * @param int $userId ID пользователя для подключения
-     * @return array Результат операции:
-     *               - ['error' => 800] если пользователь уже в игре
-     *               - object комнаты если найдена подходящая
-     *               - ... (нужно дописать для случая создания новой комнаты)
-     * 
-     * @todo Реализовать логику добавления игрока в найденную комнату
-     * @todo Реализовать создание новой комнаты когда нет доступных
+    /**
+     * Создает и перемешивает стандартную 52-карточную колоду
+     * @return array Массив карт
      */
-    public function quickStart($userId) {
+    private function createShuffledDeck()
+    {
+        $deck = [];
+        $suits = ['H', 'D', 'C', 'S']; // Червы, Бубны, Трефы, Пики
+        $values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        foreach ($suits as $suit) {
+            foreach ($values as $value) {
+                $deck[] = $value . $suit;
+            }
+        }
+        shuffle($deck); // Перемешиваем
+        return $deck;
+    }
+
+    /**
+     * Быстрое подключение пользователя к игровой комнате
+     */
+    public function quickStart($userId)
+    {
         // этот пользователь уже играет -> error
         if ($this->isUserPlaying($userId)) {
             return ['error' => 800];
         }
-        // есть открытая комната со свободными местами
+        
+        // Ищем открытую комнату со свободными местами
         $room = $this->getOpenRoom();
 
         if ($room) {
-            // добавить игрока в комнату
-            //...
-            $this->db->removeUserFromAllRooms($userId);
-            $result = $this->db->addRoomMember($room->id, $userId);
-
-            if (!$result) {
-                return ['error' => 806];
+            $success = $this->db->addUserToRoom($room->id, $userId);
+            if (!$success) {
+                return ['error' => 900]; // Ошибка добавления в комнату
             }
-
-            return $this->connectRoom($room->id);   
-        }
-        // создать новую комнату
-        //...
-        $hash = md5(random_int(0, PHP_INT_MAX));
-        $roomId = $this->db->createRoom('open', 'playing', null, $hash);
-
-        $this->db->removeUserFromAllRooms($userId);
-        $result = $this->db->addRoomMember($roomId, $userId);
-
-        if (!$result) {
-            return ['error' => 806];
+            return $room;
         }
 
-        return $this->connectRoom($roomId);
+        // Создаём новую комнату
+        $roomId = $this->db->createRoom();
+
+        // Добавляем игрока
+        $success = $this->db->addUserToRoom($roomId, $userId);
+        if (!$success) {
+            return ['error' => 900]; // Ошибка добавления в комнату
+        }
+
+        $deck = $this->createShuffledDeck();
+
+        // Сохраняем колоду в БД
+        $this->db->saveDeck($roomId, $deck);
+
+        // Возвращаем объект комнаты
+        return $this->db->getRoom($roomId);
     }
 
-    public function getRatingTable($currentUserId = null)
+    /**
+     * Создает приватную комнату с уникальным 4-значным кодом
+     * @param int $userId ID пользователя, создающего комнату
+     * @return array|object Результат операции с кодом комнаты
+     */
+    public function createPrivateRoom($userId)
     {
-        return $this->db->getUsersByBalance();
-    }
-
-    # Создание приватной комнаты
-    public function createPrivateRoom($userId) {
         if ($this->isUserPlaying($userId)) {
             return ['error' => 800];
         }
 
-       $privateCode = $this->generateUniquePrivateCode();
+        // Генерируем уникальный 4-буквенный код
+        $attempts = 0;
+        $privateCode = null;
+        do {
+            $privateCode = $this->generatePrivateCode();
+            $attempts++;
+        } while (!$this->isPrivateCodeUnique($privateCode) && $attempts < 100);
 
-       if ($privateCode === null) {
-            return ['error' => 801];
-       }
-       
-       $hash = md5(random_int(0, PHP_INT_MAX));
+        if ($attempts >= 100) {
+            return ['error' => 901]; // Не удалось сгенерировать уникальный код
+        }
 
-       $roomId = $this->db->createRoom('private', 'playing', $privateCode, $hash);
+        // Создаём приватную комнату
+        $roomId = $this->db->createPrivateRoom($privateCode);
 
-       $this->db->removeUserFromAllRooms($userId);
+        // Добавляем создателя
+        $success = $this->db->addUserToRoom($roomId, $userId);
+        if (!$success) {
+            return ['error' => 900];
+        }
 
-       $result = $this->db->addRoomMember($roomId, $userId);
+        // Создаём и сохраняем колоду
+        $deck = $this->createShuffledDeck();
+        $this->db->saveDeck($roomId, $deck);
 
-       if (!$result) {
-            return ['error' => 806];
-       }
-
-       return $this->connectRoom($roomId);
+        // Возвращаем комнату
+        return $this->db->getRoom($roomId);
     }
-    
-    # Подключение к приватной комнате по 4-значному коду
-    public function joinPrivateRoom($userId, $code) {
+
+    /**
+     * Присоединяет пользователя к приватной комнате по коду
+     * @param int $userId ID пользователя
+     * @param int $code 4-значный код приватной комнаты
+     * @return array|object Результат операции
+     */
+    public function joinPrivateRoom($userId, $code)
+    {
         if ($this->isUserPlaying($userId)) {
             return ['error' => 800];
+        }
+
+        // Приводим к верхнему регистру (на случай ввода строчных)
+        $code = strtoupper($code);
+
+        // Проверяем формат: только 4 буквы A-Z
+        if (!preg_match('/^[A-Z]{4}$/', $code)) {
+            return ['error' => 901]; // Неверный формат кода
         }
 
         $room = $this->db->getRoomByPrivateCode($code);
-
         if (!$room) {
-            return ['error' => 802];
+            return ['error' => 901]; // Комната не найдена
         }
 
         $membersCount = $this->db->getMembersCount($room->id)->count;
-
         if ($membersCount >= 6) {
-            return ['error' => 803];
+            return ['error' => 902]; // Комната заполнена
         }
 
-        $this->db->removeUserFromAllRooms($userId);
-
-        $result = $this->db->addRoomMember($room->id, $userId); 
-
-        if (!$result) {
-            return ['error' => 806];
+        $success = $this->db->addUserToRoom($room->id, $userId);
+        if (!$success) {
+            return ['error' => 900];
         }
 
-        return $this->connectRoom($room->id);
+        return $this->db->getRoom($room->id);
     }
+    
+    private function generatePrivateCode()
+    {
+        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        $code = '';
+        for ($i = 0; $i < 4; $i++) {
+            $code .= $chars[random_int(0, 25)];
+        }
+        return $code;
+    }
+
+    private function isPrivateCodeUnique($code)
+    {
+        $existing = $this->db->getRoomByPrivateCode($code);
+        return !$existing;
+    }
+
 }
