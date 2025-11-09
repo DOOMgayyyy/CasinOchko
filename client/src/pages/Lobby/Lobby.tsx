@@ -1,9 +1,11 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import './Lobby.css';
 import SideMenu from './SideMenu/SideMenu';
 import PrivateRoom from './PrivateRoom/PrivateRoom';
 import { IBasePage, PAGES } from '../PageManager';
-import { StoreContext, ServerContext } from '../../App'; // 1. Импортируем контексты
+import { StoreContext, ServerContext } from '../../App';
+import { TUserStats } from '../../services/server/types'; 
+
 
 export interface LobbyProps extends IBasePage {}
 
@@ -20,6 +22,7 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
             balance: user.balance
         } : null;
     });
+
     //==================DEV-Заглушка=====================
     // const [player, setPlayer] = useState(() => {
     //     return {
@@ -33,13 +36,42 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     const [showSideMenu, setShowSideMenu] = useState(false);
     const [showPrivateRoomPage, setShowPrivateRoomPage] = useState(false);
     const [roomCreated, setRoomCreated] = useState<{code: string, room_id: number} | null>(null);
-    ///
-    const [playerStats] = useState({
-        totalGames: 156,
-        totalWins: 89,
-        totalMoney: 25400,
-        totalHours: 47
+    
+    const [playerStats, setPlayerStats] = useState<TUserStats>({
+        totalGames: 0,
+        totalWins: 0,
+        totalMoney: 0,
+        totalHours: 0
     });
+
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadStats = async () => {
+            try {
+                const stats = await server.getUserStat();
+                if (!cancelled && stats) {
+                    console.log(stats);
+                    setPlayerStats(stats);
+                }
+            } catch (e) {
+                // ошибки обрабатываются внутри Server
+                console.error(e);
+            }
+        };
+
+            // вызываем только если пользователь авторизован
+        if (player) {
+            loadStats();
+        }
+
+        return () => {
+            cancelled = true;
+        };
+    }, [server, player]);
+
+    
 
     const handleCreateRoom = async () => {
         try {

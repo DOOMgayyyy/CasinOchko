@@ -27,7 +27,7 @@ const Login: React.FC<IBasePage> = (props) => {
 
     //=================DEV-ЗАГЛУШКА======================
     // const loginClickHandler = async () => {
-    // setPage(PAGES.LOBBY);
+    //   setPage(PAGES.LOBBY);
     // };
     //===================================================
 

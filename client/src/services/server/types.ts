@@ -36,3 +36,19 @@ export type TPrivateRoomResponse = {
         room_id: number;   // ID комнаты
     }
 };
+
+// используется в React
+export type TUserStats = {
+    totalGames: number;
+    totalWins: number;
+    totalMoney: number;
+    totalHours: number;
+};
+
+// формат как отвечает PHP
+export type TRawUserStats = {
+    total_played: string;
+    total_win: string;
+    total_balance: string;
+    total_hours?: string;
+};

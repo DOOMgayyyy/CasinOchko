@@ -1,7 +1,8 @@
 import md5 from 'md5';
 import CONFIG from "../../config";
 import Store from "../store/Store";
-import { TAnswer, TError, TPrivateRoomResponse, TMessagesResponse, TUser } from "./types";
+import { TAnswer, TError, TPrivateRoomResponse, TMessagesResponse, TUser, TUserStats, TRawUserStats } from "./types";
+
 
 const { CHAT_TIMESTAMP, HOST } = CONFIG;
 
@@ -137,6 +138,25 @@ class Server {
     async createPrivateRoom(): Promise<TPrivateRoomResponse | null> {
         return await this.request<TPrivateRoomResponse>('createPrivateRoom');
     }
+
+    async getUserStat(): Promise<TUserStats | null> {
+    const result = await this.request<{ stats: TRawUserStats }>('getUserStat');
+
+    if (!result) {
+        return null;
+    }
+
+    const { total_played, total_win, total_balance, total_hours } = result.stats;
+
+    return {
+        totalGames: Number(total_played),
+        totalWins: Number(total_win),
+        totalMoney: Number(total_balance),
+        totalHours: total_hours ? Number(total_hours) : 0
+    };
+}
+
+
 }
 
 export default Server;
