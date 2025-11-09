@@ -1,9 +1,7 @@
 <?php
-
 class DB
 {
     private $pdo;
-    // разкомент тут MYsql и смена названия базы данных
     function __construct()
     {
         $host = '127.0.0.1';// ip для подключения к бд
@@ -22,42 +20,26 @@ class DB
     }
 
     // выполнить запрос без возвращения данных, базовый метод для работы с Бд
-    private function execute($sql, $params = [])
+    public function execute($sql, $params = [])
     {
-        try {
-            $sth = $this->pdo->prepare($sql); // Подготавливаем запрос
-            $result = $sth->execute($params); // Выполняем с параметрами
-            
-            // Если выполнение не удалось, логируем ошибку (для отладки)
-            if (!$result) {
-                $errorInfo = $sth->errorInfo();
-                error_log("DB Execute Error: " . $errorInfo[2] . " | SQL: " . $sql);
-            }
-            
-            return $result;
-        } catch (PDOException $e) {
-            // В случае исключения PDO логируем и возвращаем false
-            error_log("DB PDOException: " . $e->getMessage() . " | SQL: " . $sql);
-            return false;
-        }
+        $sth = $this->pdo->prepare($sql); // Подготавливаем запрос
+        return $sth->execute($params); // Выполняем с параметрами
     }
 
     // получение ОДНОЙ записи
-    private function query($sql, $params = [])
+    public function query($sql, $params = [])
     {
         $sth = $this->pdo->prepare($sql);
         $sth->execute($params);
         return $sth->fetch(PDO::FETCH_OBJ);
     }
 
-
     // получение НЕСКОЛЬКИХ записей
     private function queryAll($sql, $params = [])
     {
         $sth = $this->pdo->prepare($sql);
         $sth->execute($params);
-        // БЫЛО: return $sth->fetchAll(PDO::FETCH_ASSOC);
-        return $sth->fetchAll(PDO::FETCH_OBJ); // <-- ИСПРАВЛЕНО
+        return $sth->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /*public function getUserByLogin($name) {
@@ -87,8 +69,7 @@ class DB
         return $this->query("SELECT total_played, total_win, total_balance FROM users WHERE id=?", [$userId]);
     }
 
-    public function updateUserName($userId, $newName)
-    {
+    public function updateUserName($userId, $newName) {
         return $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
     }
     public function isNameUnique($name, $excludingUserId = null)
@@ -109,34 +90,35 @@ class DB
 
     public function registration($email, $password, $name)
     {
-        // Добавляем баланс 5000 для нового пользователя
         $this->execute(
             "INSERT INTO users (email, password, name) VALUES (?, ?, ?)",
             [$email, $password, $name]
         );
     }
 
-    public function getChatHash()
+    public function getRoomChatHash($roomId)
     {
-        return $this->query("SELECT * FROM hashes WHERE id=1");
+        return $this->query("SELECT hash FROM message_hashes WHERE room_id=?", [$roomId]);
     }
 
-    public function updateChatHash($hash)
+    public function updateRoomChatHash($roomId, $hash)
     {
-        $this->execute("UPDATE hashes SET chat_hash=? WHERE id=1", [$hash]);
+        return $this->execute("REPLACE INTO message_hashes (room_id, hash) VALUES (?, ?)", [$roomId, $hash]);
     }
 
-    public function addMessage($userId, $message)
+    public function addMessage($userId, $message, $roomId)
     {
-        $this->execute('INSERT INTO messages (user_id, message, created) VALUES (?,?, now())', [$userId, $message]);
+        $this->execute('INSERT INTO messages (room_id, user_id, message, created) VALUES (?, ?, ?, now())', [$roomId, $userId, $message]);
     }
 
-    public function getMessages()
+    public function getMessages($roomId)
     {
         return $this->queryAll("SELECT u.name AS author, m.message AS message,
                                 m.created AS created FROM messages as m 
                                 LEFT JOIN users as u on u.id = m.user_id 
-                                ORDER BY m.created DESC"
+                                WHERE m.room_id = ?
+                                ORDER BY m.created DESC",
+                                [$roomId]
         );
     }
 
@@ -166,51 +148,90 @@ class DB
         );
     }
 
-    public function createRoom($type = 'open', $status = 'playing')
-    {
-        $this->execute("INSERT INTO rooms (type, status) VALUES (?, ?)", [$type, $status]);
-        return $this->pdo->lastInsertId();
+    public function isPrivateCodeUnique($code) {
+        $sql = "SELECT COUNT(*) FROM rooms WHERE private_code = ?";
+        $count = $this->query($sql, [$code])->{'COUNT(*)'};
+        return $count == 0;
     }
 
-    public function createPrivateRoom($privateCode)
-    {
-        $this->execute("INSERT INTO rooms (type, status, private_code) VALUES (?, ?, ?)", ['private', 'playing', $privateCode]);
-        return $this->pdo->lastInsertId();
-    }
-
-    public function getRoomByPrivateCode($privateCode)
-    {
-        return $this->query("SELECT * FROM rooms WHERE type='private' AND private_code=? AND status='playing'", [$privateCode]);
-    }
-
-    public function addUserToRoom($roomId, $userId, $bet = 0, $type = 0)
-    {
-        // Поле cards имеет NOT NULL, поэтому передаем пустую строку (карты будут выданы позже)
-        return $this->execute(
-            "INSERT INTO room_members (room_id, user_id, bet, types, cards) VALUES (?, ?, ?, ?, ?)",
-            [$roomId, $userId, $bet, $type, '']
+    public function createRoom($type, $status, $privateCode, $hash) {
+        $this->execute(
+            "INSERT INTO rooms (type, status, private_code, hash) VALUES (?, ?, ?, ?)",
+            [$type, $status, $privateCode, $hash]
         );
+        // Возвращаем ID созданной комнаты
+        return $this->pdo->lastInsertId();
+    }
+
+    public function removeUserFromAllRooms($userId) {
+        return $this->execute(
+            "DELETE FROM room_members WHERE user_id = ?",
+            [$userId]
+        );
+    }
+
+    public function removeUserFromRoom($roomId, $userId) {
+            return $this->execute(
+                "DELETE FROM room_members WHERE room_id = ? AND user_id = ?",
+                [$roomId, $userId]
+            );
+        }
+
+    public function addRoomMember($roomId, $userId, $bet = 0) { 
+        $this->removeUserFromAllRooms($userId); 
+        try {
+            return $this->execute(
+                "INSERT INTO room_members (room_id, user_id, bet) VALUES (?, ?, ?)",
+                [$roomId, $userId, $bet]
+            );
+        } catch (PDOException $e) {
+            error_log("Error while adding user to room: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function getRoomByPrivateCode($code) {
+        return $this->query("SELECT * FROM rooms WHERE private_code=?", [$code]);
+    }
+
+    public function getRoomMembers($roomId) {
+        return $this->queryAll(
+            "SELECT u.id, u.name, u.balance 
+             FROM room_members rm 
+             JOIN users u ON rm.user_id = u.id 
+             WHERE rm.room_id = ? 
+             ORDER BY u.id ASC",
+            [$roomId]
+        );
+    }
+
+    public function getUsersByBalance()
+    {
+        return $this->queryAll("SELECT 
+                id,
+                name,
+                balance
+            FROM users
+            ORDER BY balance DESC
+            LIMIT 100
+    ");
     }
 
     public function saveDeck($roomId, $deck)
     {
         $json = json_encode($deck);
-        $this->execute("UPDATE rooms SET deckOfCards=? WHERE id=?", [$json, $roomId]);
-    }
-    public function getDeck($roomId)
-    {
-        $data = $this->query("SELECT deckOfCards FROM rooms WHERE id=?", [$roomId]);
-        return $data ? json_decode($data->deckOfCards, true) : [];
-    }
-    
-    public function updateBalance($userId, $amount){
-        // Если $amount положительный (добавление), обновляем и balance, и total_balance
-        if ($amount > 0) {
-            return $this->execute("UPDATE users SET balance = balance + ?, total_balance = total_balance + ? WHERE id = ?", [$amount, $amount, $userId]);
-        }
-        // Если $amount отрицательный (вычитание), обновляем только balance
-        return $this->execute("UPDATE users SET balance = balance + ? WHERE id = ?", [$amount, $userId]);
+        return $this->execute("UPDATE rooms SET deckOfCards = ? WHERE id = ?", [$json, $roomId]);
     }
 
+    public function updateBalance($userId, $amount) {
+    // Используем SQL-функцию ADD для прибавления или вычитания.
+    // Если $amount положительный, произойдет прибавление.
+    // Если $amount отрицательный, произойдет вычитание.
+    // Выражение 'balance + ?' гарантирует, что мы не перезаписываем, а обновляем баланс.
+        return $this->execute(
+            "UPDATE users SET balance = balance + ? WHERE id = ?",
+            [$amount, $userId]
+        );
+    }
 
 }
