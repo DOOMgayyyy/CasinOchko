@@ -36,6 +36,19 @@ export type TPrivateRoomResponse = {
         room_id: number;   // ID комнаты
     }
 };
+export type TJoinPrivateRoomResponse = {
+    room: {
+        id: number;
+        type: string;
+        status: string;
+        private_code: string;
+        players: Array<{
+            id: number;
+            name: string;
+            balance: number;
+        }>;
+    }
+};
 
 // используется в React
 export type TUserStats = {

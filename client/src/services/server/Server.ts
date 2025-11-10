@@ -50,10 +50,9 @@ class Server {
     }
 
     async login(email: string, password: string): Promise<boolean> {
-        const rnd = Math.round(Math.random() * 100000);
-        const passHash = md5(password);
-        const hash = md5(`${passHash}${rnd}`);  
-        const user = await this.request<TUser>('login', { email, hash, rnd: `${rnd}` });
+        // Убираем всю логику с rnd и md5
+        // Просто отправляем email и password
+        const user = await this.request<TUser>('login', { email, password });
         if (user) {
             this.store.setUser(user);
             return true;
@@ -87,17 +86,15 @@ class Server {
 
 
     async registration(email: string, password: string, name: string): Promise<boolean> {
-        const passHash = md5(password);
-        // 1. Ожидаем от сервера полный объект пользователя (TUser)
-        const user = await this.request<TUser>('registration', { email, password: passHash, name });
+        // Убираем passHash = md5(password)
+        // Отправляем сырой password
+        const user = await this.request<TUser>('registration', { email, password, name });
 
-        // 2. Если пользователь успешно создан и получен...
         if (user) {
-            // 3. ...сохраняем его данные в store, чтобы он сразу вошел в систему
             this.store.setUser(user);
             return true;
         }
-        // 4. Если что-то пошло не так, возвращаем false
+        
         return false;
     }
 
@@ -138,6 +135,9 @@ class Server {
     async createPrivateRoom(): Promise<TPrivateRoomResponse | null> {
         return await this.request<TPrivateRoomResponse>('createPrivateRoom');
     }
+    async joinPrivateRoom(code: string): Promise<TPrivateRoomResponse | null> {
+    return await this.request<TPrivateRoomResponse>('joinPrivateRoom', { code });
+}
 
     async getUserStat(): Promise<TUserStats | null> {
     const result = await this.request<{ stats: TRawUserStats }>('getUserStat');

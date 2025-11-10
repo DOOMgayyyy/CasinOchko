@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './PrivateRoom.css';
 
 export interface PrivateRoomProps {
@@ -8,7 +8,7 @@ export interface PrivateRoomProps {
     };
     onBack: () => void;
     onCreateRoom: () => void;
-    onJoinRoom: () => void;
+    onJoinRoom: (code: string) => void;
     onShowSideMenu: () => void;
     roomCreated?: {code: string, room_id: number} | null;
     onCloseRoomMessage?: () => void;
@@ -23,6 +23,31 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
     roomCreated,
     onCloseRoomMessage
 }) => {
+    const [joinCode, setJoinCode] = useState('');
+    const [showJoinInput, setShowJoinInput] = useState(false);
+
+    const handleJoinClick = () => {
+        if (showJoinInput && joinCode.trim()) {
+            onJoinRoom(joinCode.toUpperCase());
+            setJoinCode('');
+            setShowJoinInput(false);
+        } else {
+            setShowJoinInput(true);
+        }
+    };
+
+    const handleCancelJoin = () => {
+        setShowJoinInput(false);
+        setJoinCode('');
+    };
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
+        if (value.length <= 4) {
+            setJoinCode(value);
+        }
+    };
+
     return (
         <div className="private-room">
             <div className="private-room-background"></div>
@@ -70,15 +95,51 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
                         )}
                     </div>
                     
-                    <button className="private-room-btn join-btn" onClick={onJoinRoom}>
-                        Присоединиться
-                    </button>
+                    <div className="join-room-section">
+                        {showJoinInput ? (
+                            <div className="join-input-container">
+                                <div className="create-code-text">Введите код</div>
+                                
+                                {/* Прямоугольник-фон */}
+                                <div className="join-input-background"></div>
+                                
+                                {/* Поле ввода */}
+                                <input
+                                    type="text"
+                                    value={joinCode}
+                                    onChange={handleInputChange}
+                                    
+                                    maxLength={4}
+                                    autoFocus
+                                />
+                                
+                                {/* Кнопки */}
+                                <div className="join-buttons-container">
+                                    <button 
+                                        className="back-join-btn" 
+                                        onClick={handleCancelJoin}
+                                    >
+                                        &lt; назад
+                                    </button>
+                                    <button 
+                                        className="connect-join-btn" 
+                                        onClick={handleJoinClick}
+                                    >
+                                        &gt; подключиться
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <button className="private-room-btn join-btn" onClick={handleJoinClick}>
+                                Присоединиться
+                            </button>
+                        )}
+                    </div>
+                    
                     <button className="back-btn" onClick={onBack}>
                         &lt;назад
                     </button>
                 </div>
-
-                
             </main>
         </div>
     );
