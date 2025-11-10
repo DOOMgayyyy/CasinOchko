@@ -63,7 +63,9 @@ class Lobby
                 $deck[] = $value . $suit;
             }
         }
-        shuffle($deck);
+        if (!shuffle($deck)) {
+            return ['error' => 806];
+        }
         return $deck;
     }
 
@@ -117,27 +119,29 @@ class Lobby
 
         $room = $this->getOpenRoom();
         if ($room) {
-            $success = $this->db->addRoomMember($room->id, $userId);
-            if (!$success) {
-                return ['error' => 900];
-            }
-            $this->refreshRoomHash($room->id);
-            return $this->db->getRoom($room->id);
+            $roomId = $room->id;
+        } else {
+            $initialHash = md5(random_int(0, PHP_INT_MAX));
+            $roomId = $this->db->createRoom('open', 'playing', null, $initialHash);
+            if (!$roomId)
+                return ['error' => 807];
+
+            $deck = $this->createShuffledDeck();
+            if (isset($deck['error']))
+                return $deck;
+            if (!$this->db->saveDeck($roomId, $deck))
+                return ['error' => 805];
         }
-
-        $initialHash = md5(random_int(0, PHP_INT_MAX));
-        $roomId = $this->db->createRoom('open', 'playing', null, $initialHash);
-
-        $success = $this->db->addRoomMember($roomId, $userId);
-        if (!$success) {
+        if (!$this->db->addRoomMember($roomId, $userId))
             return ['error' => 900];
-        }
 
         $this->refreshRoomHash($roomId);
-        $deck = $this->createShuffledDeck();
-        $this->db->saveDeck($roomId, $deck);
 
-        return $this->db->getRoom($roomId);
+        $roomData = $this->db->getRoom($roomId);
+        if(!$roomData){
+            return ['error'=> 811];
+        }
+        return $roomData;
     }
 
     /**
