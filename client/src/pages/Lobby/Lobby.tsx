@@ -1,12 +1,9 @@
 import React, { useState, useContext, useEffect } from 'react';
-import './Lobby.css';
+import './Lobby.scss';
 import SideMenu from './SideMenu/SideMenu';
 import PrivateRoom from './PrivateRoom/PrivateRoom';
 import { IBasePage, PAGES } from '../PageManager';
-import { StoreContext, ServerContext } from '../../App';
-import { TUserStats } from '../../services/server/types'; 
-
-import AdReward from './AdReward/AdReward'; 
+import { StoreContext, ServerContext } from '../../App'; // 1. Импортируем контексты
 
 export interface LobbyProps extends IBasePage {}
 
@@ -182,13 +179,15 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         );
     }
 
+    
+
     return (
         <div className="lobby">
             <div className="lobby-background"></div>
 
             <header className="lobby-header">
                 <div className="header-left">
-                    <button className="menu-btn" onClick={() => setShowSideMenu(true)}>☰</button>
+                    <button className="menu-btn" onClick={() => setShowSideMenu(true)}><img src={MenuIcon}  /></button>
                     {/* 6. Данные берутся из 'player', полученного из store */}
                     <span className="player-name">{player.name}</span>
                 </div>
@@ -196,13 +195,7 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                 <div className="header-right">
                     <span className="balance-text">Ваш баланс: </span>
                     <span className="balance-amount">${player.balance}</span>
-                    
-                    <button 
-                        className="add-money-btn" 
-                        onClick={() => setShowAdModal(true)}
-                    >
-                        
-                    </button>
+                    <button className="add-money-btn">+</button>
                 </div>
             </header>
 
