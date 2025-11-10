@@ -50,9 +50,10 @@ class Server {
     }
 
     async login(email: string, password: string): Promise<boolean> {
-        // Убираем всю логику с rnd и md5
-        // Просто отправляем email и password
-        const user = await this.request<TUser>('login', { email, password });
+        const rnd = Math.round(Math.random() * 100000);
+        const passHash = md5(password);
+        const hash = md5(`${passHash}${rnd}`);  
+        const user = await this.request<TUser>('login', { email, hash, rnd: `${rnd}` });
         if (user) {
             this.store.setUser(user);
             return true;
