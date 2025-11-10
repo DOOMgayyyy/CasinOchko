@@ -6,6 +6,7 @@ import { IBasePage, PAGES } from '../PageManager';
 import { StoreContext, ServerContext } from '../../App';
 import { TUserStats } from '../../services/server/types'; 
 
+import AdReward from './AdReward/AdReward'; 
 
 export interface LobbyProps extends IBasePage {}
 
@@ -51,6 +52,8 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         totalMoney: 0,
         totalHours: 0
     });
+
+    const [showAdModal, setShowAdModal] = useState(false);
 
 
     useEffect(() => {
@@ -144,6 +147,19 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         setPage(PAGES.LOGIN); // Перенаправляем на страницу входа
     };
 
+    const handleAdSuccess = (newBalance: number) => {
+        setPlayer((prev) =>
+            prev ? { ...prev, balance: newBalance } : prev
+        );
+
+        if (typeof store.setUser === 'function') {
+            const currentUser = store.getUser();
+            if (currentUser) {
+                store.setUser({ ...currentUser, balance: newBalance });
+            }
+        }
+    };
+
     // 5. Защита: если данных пользователя нет, перенаправляем на логин
     if (!player) {
         // Это предотвратит ошибку, если пользователь не авторизован
@@ -180,7 +196,13 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                 <div className="header-right">
                     <span className="balance-text">Ваш баланс: </span>
                     <span className="balance-amount">${player.balance}</span>
-                    <button className="add-money-btn">+</button>
+                    
+                    <button 
+                        className="add-money-btn" 
+                        onClick={() => setShowAdModal(true)}
+                    >
+                        
+                    </button>
                 </div>
             </header>
 
@@ -226,6 +248,14 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     onShowRules={() => setPage(PAGES.RULES)}
                     onShowAuthors={() => setPage(PAGES.AUTHORS)}
                     onLogout={handleLogout}
+                />
+            )}
+
+            {showAdModal && (
+                <AdReward
+                    videoUrl={require('../../assets/ads/ad.mp4')}
+                    onClose={() => setShowAdModal(false)}
+                    onSuccess={handleAdSuccess}
                 />
             )}
         </div>

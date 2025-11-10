@@ -158,6 +158,32 @@ class Server {
 }
 
 
-}
+
+    async addBalance(amount: number): Promise<{ ok: boolean; newBalance?: number }> {
+        const result = await this.request<{ balance: number }>('addBalance', { amount: String(amount) });
+
+        if (result && typeof result.balance === 'number') {
+            const user = this.store.getUser();
+            if (user) {
+                this.store.setUser({ ...user, balance: result.balance });
+            }
+            return { ok: true, newBalance: result.balance };
+        }
+
+        return { ok: false };
+    }
+
+    async getUserBalance(): Promise<number | null> {
+        const result = await this.request<{ balance: number }>('getUserBalance');
+        if (result && typeof result.balance === 'number') {
+            const user = this.store.getUser();
+            if (user) {
+                this.store.setUser({ ...user, balance: result.balance });
+            }
+            return result.balance;
+        }
+        return null;
+    }
+} 
 
 export default Server;
