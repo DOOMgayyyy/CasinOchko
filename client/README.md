@@ -1,46 +1,73 @@
-# Getting Started with Create React App
+# NoPainNoGame
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Обучающий проект по дисциплине "Информационные системы и технологии"
 
-## Available Scripts
 
-In the project directory, you can run:
+## Разворачивание приложения
 
-### `npm start`
+### Сервер
+Из папки server копируем код в `C://OSPanel/home` (для 6-й версии) или в `C://OSPanel/domains` (для более старых версий), или настраиваем директорию в OSPanel.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Папку называем так, как будет называться наш домен. Например: ``super.mega.trusov``.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+Перезапускаем OSPanel.
 
-### `npm test`
+Сервер доступен по адресу, указанному в названии папки. Протокол по умолчанию: ``http://``. То есть общий адрес сервера: ``http://super.mega.trusov``.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+**ВОПРОС**: Откуда тогда ``/api`` взялось?
 
-### `npm run build`
+**ОТВЕТ**: Чтобы разделить статику и исполняемый код, последний на бекенде вынесен в папочку ``api``, а в корне лежит статика приложения (реактовая сборка клиента)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+В ``client\src\config.ts`` в константе ``HOST`` прописываем название папки  плюс протокол и путь до API. По умолчанию ``http://nopainnogame.local/api``. Особо желающие могут прописать: `http://super.mega.trusov/api`, но на экзамене это всё равно не поможет.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+То есть в данном случае папка в OSPanel называется ``nopainnogame.local``. 
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Для особо одарённых: **НЕ НАДО** в названии папки писать ``http`` и ``api``!!!
 
-### `npm run eject`
+### Клиент
+В папке client выполняем команду ``npm install``, 
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+потом выполняем команду ``npm start``. 
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Клиент запускается по адресу ``http://localhost:3000/``
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## Структура проекта
+* server - серверная часть приложения. Написана на PHP + MySQL + OSPanel
+* client - клиентская часть приложения. Написана на React + TS
 
-## Learn More
+### Сервер
+Приложение спроектировано в парадигме MVC.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Весь код серверной части лежит в папке ``/api``. Вне оной в корне сервера должна лежать сборка клиента в любом виде. Сделано так для того, чтобы отделить непосредственный вызов методов API от обращения непосредственно к сайту (попытке его открыть).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Единой точкой входа для всех запросов является ``index.php``. В нём распределены обработчики запросов и формируется общий ответ на любые типы запросов. Формат ответа можно найти в ``/api/application/Answer.php``. ``index.php`` выполняет функцию Модели (и частично - Контроллера).
+
+``Application.php`` выполняет функции Контроллера. Здесь созданы все экземпляры Бизнес-Логики, и обеспечивается взаимосвязь между ними. Проверяется корректность переданных в запросе данных, осуществляются вызовы необходимых методов Бизнес-Логики. **`ЗАПРЕЩЕНО`** передавать экземпляры Бизнес-Логик друг в друга! Они расположены на одном уровне и "не знают" друг про друга.
+
+Классы Бизнес-Логики располагаются в директории ``/application`` и отвечают за слой Моделей в MVC. Каждому классу соответствует своя директория. Бизнес-Логика оперирует исключительно данными, она не занимается формарованием представления и не должна взаимодействовать с другими моделями.
+
+Класс ``DB.php`` работает с базой данных. **`ЗАПРЕЩЕНО`** обращаться к базе данных иными способами, кроме как посредством вызовов методов ``DB.php``. Такой подход позволяет поменять СУБД без последствий для остального приложения.
+
+### Клиент
+Приложение состоит из страниц, расположенных в директории ``/pages``. Если страница использует какие-либо внутренние компоненты, то они объявляются внутри этой директории в папке ``/components``. В общей директории ``/components`` расположены компоненты, используемые на нескольких страницах, т.е. общие для приложения.
+
+В директории ``/services`` расположены сервисы Хранилища (`Store`) и Сервера (`Server`). Сервис ``Server`` отвечает за отправку и обработку всех запросов с клиента в бекенд. Сервис ``Store`` отвечает за хранение данных в приложении.
+Оба сервиса помещены в контекст приложения, поэтому доступ к ним возможен из любой компоненты.
+
+**`Общее правило работы`** Данные, которые необходимы для работы приложения, размещаются в `Store`, все запросы отправляются с помощью `Server`. Полученные из бекенда данные, которые необходимо сохранить, сохраняются в `Store`. Компоненты приложения извлекают необходимые им данные из `Store`.
+
+### База данных
+Базу данных назвать аналогично названию проекта.
+
+Название базы данных прописывается в файле `api/application/db/DB.php`. Там же прописываются: пользователь, его пароль, хост СУБД и порт.
+
+ER-диаграмма базы данных.
+
+![ER-диаграмма базы данных](image.png)
+
+В таблице `users` лежат пользователи системы.
+
+В таблице `messages` - сообщения чата
+
+В таблице `hashes` лежат хеши приложения. В ней содержится **`ОДНА`** запись. Это необходимо для непротиворечивого обращения к хешам в системе.
