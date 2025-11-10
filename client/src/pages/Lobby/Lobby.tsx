@@ -3,7 +3,12 @@ import './Lobby.scss';
 import SideMenu from './SideMenu/SideMenu';
 import PrivateRoom from './PrivateRoom/PrivateRoom';
 import { IBasePage, PAGES } from '../PageManager';
-import { StoreContext, ServerContext } from '../../App'; // 1. Импортируем контексты
+import { StoreContext, ServerContext } from '../../App';
+import { TUserStats } from '../../services/server/types'; 
+
+import AdReward from './AdReward/AdReward'; 
+import MenuIcon from '../../assets/img/toppanel/sidebarmenu.png';
+import PlusIcon from '../../assets/img/toppanel/topupthebalance.png';
 
 export interface LobbyProps extends IBasePage {}
 
@@ -195,7 +200,13 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                 <div className="header-right">
                     <span className="balance-text">Ваш баланс: </span>
                     <span className="balance-amount">${player.balance}</span>
-                    <button className="add-money-btn">+</button>
+                    
+                    <button 
+                        className="add-money-btn" 
+                        onClick={() => setShowAdModal(true)}
+                    >
+                        
+                    </button>
                 </div>
             </header>
 
