@@ -181,8 +181,8 @@ class DB
         $this->removeUserFromAllRooms($userId); 
         try {
             return $this->execute(
-                "INSERT INTO room_members (room_id, user_id, bet) VALUES (?, ?, ?)",
-                [$roomId, $userId, $bet]
+                "INSERT INTO room_members (room_id, user_id, bet, cards) VALUES (?, ?, ?, ?)",
+                [$roomId, $userId, $bet, ''] 
             );
         } catch (PDOException $e) {
             error_log("Error while adding user to room: " . $e->getMessage());
