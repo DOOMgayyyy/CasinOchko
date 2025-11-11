@@ -207,6 +207,7 @@ const AdReward: React.FC<Props> = ({ onClose, onSuccess, videoUrl }) => {
             playsInline
             controls={false}
             muted={muted}
+            autoPlay
             onLoadedMetadata={onLoadedMetadata}
             onTimeUpdate={onTimeUpdate}
             onSeeking={onSeeking}

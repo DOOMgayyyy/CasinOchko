@@ -74,21 +74,76 @@
 }
 
 .menu-btn, .add-money-btn {
-  background: transparent;
-  border: none;
+  background: #333;
+  color: #ffffff;
+  border: 1px solid #555;
   border-radius: 8px;
   width: 45px;
   height: 45px;
+  font-size: 1rem;
   cursor: pointer;
+  padding-left: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
   
   img {
     width: 100%;
     height: 100%;
     object-fit: contain;
+  }
+  
+  &:hover {
+    background: #444;
+    border-color: #666;
+  }
+  
+  &:active {
+    background: #555;
+    border-color: #777;
+    transform: scale(0.98);
+  }
+}
+
+.add-money-btn {
+  position: relative;
+  background: transparent;
+  border: 2px solid #ffffff;
+  border-radius: 12px;
+  width: 70px;
+  height: 40px;
+  padding: 0;
+  transition: all 0.25s ease;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    background-color: #ffffff;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: background-color 0.25s ease;
+  }
+
+  &::before {
+    width: 18px;
+    height: 2.5px;
+  }
+
+  &::after {
+    width: 2.5px;
+    height: 18px;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: scale(0.95);
+    background-color: rgba(255, 255, 255, 0.25);
   }
 }
 

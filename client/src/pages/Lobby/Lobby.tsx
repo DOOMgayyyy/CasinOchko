@@ -205,7 +205,6 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                         className="add-money-btn" 
                         onClick={() => setShowAdModal(true)}
                     >
-                        
                     </button>
                 </div>
             </header>
