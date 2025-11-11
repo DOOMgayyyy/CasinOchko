@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import Authors from './Authors/Authors';
 import Preloader from './Preloader/Preloader';
 import Login from './Login/Login';
 import Chat from './Chat/Chat';
@@ -46,6 +46,7 @@ const PageManager: React.FC = () => {
             {page === PAGES.CHAT && <Chat setPage={setPage} />}
             {page === PAGES.LOBBY && <Lobby setPage={setPage} />}
             {page === PAGES.GAME && <GamePage setPage={setPage} />}
+            {page === PAGES.AUTHORS && <Authors setPage={setPage} />}
             {page === PAGES.RULES && <Rules setPage={setPage} />}
             {page === PAGES.NOT_FOUND && <NotFound setPage={setPage} />}
         </>

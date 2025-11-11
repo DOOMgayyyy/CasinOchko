@@ -1,11 +1,14 @@
 import React, { useState, useContext, useEffect } from 'react';
-import './Lobby.css';
+import './Lobby.scss';
 import SideMenu from './SideMenu/SideMenu';
 import PrivateRoom from './PrivateRoom/PrivateRoom';
 import { IBasePage, PAGES } from '../PageManager';
 import { StoreContext, ServerContext } from '../../App';
 import { TUserStats } from '../../services/server/types'; 
 
+import AdReward from './AdReward/AdReward'; 
+import MenuIcon from '../../assets/img/toppanel/sidebarmenu.png';
+import PlusIcon from '../../assets/img/toppanel/topupthebalance.png';
 
 export interface LobbyProps extends IBasePage {}
 
@@ -51,6 +54,8 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         totalMoney: 0,
         totalHours: 0
     });
+
+    const [showAdModal, setShowAdModal] = useState(false);
 
 
     useEffect(() => {
@@ -131,6 +136,19 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         setPage(PAGES.LOGIN); // Перенаправляем на страницу входа
     };
 
+    const handleAdSuccess = (newBalance: number) => {
+        setPlayer((prev) =>
+            prev ? { ...prev, balance: newBalance } : prev
+        );
+
+        if (typeof store.setUser === 'function') {
+            const currentUser = store.getUser();
+            if (currentUser) {
+                store.setUser({ ...currentUser, balance: newBalance });
+            }
+        }
+    };
+
     // 5. Защита: если данных пользователя нет, перенаправляем на логин
     if (!player) {
         // Это предотвратит ошибку, если пользователь не авторизован
@@ -153,13 +171,15 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         );
     }
 
+    
+
     return (
         <div className="lobby">
             <div className="lobby-background"></div>
 
             <header className="lobby-header">
                 <div className="header-left">
-                    <button className="menu-btn" onClick={() => setShowSideMenu(true)}>☰</button>
+                    <button className="menu-btn" onClick={() => setShowSideMenu(true)}><img src={MenuIcon}  /></button>
                     {/* 6. Данные берутся из 'player', полученного из store */}
                     <span className="player-name">{player.name}</span>
                 </div>
@@ -167,7 +187,12 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                 <div className="header-right">
                     <span className="balance-text">Ваш баланс: </span>
                     <span className="balance-amount">${player.balance}</span>
-                    <button className="add-money-btn">+</button>
+                    
+                    <button 
+                        className="add-money-btn" 
+                        onClick={() => setShowAdModal(true)}
+                    >
+                    </button>
                 </div>
             </header>
 
@@ -213,6 +238,14 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     onShowRules={() => setPage(PAGES.RULES)}
                     onShowAuthors={() => setPage(PAGES.AUTHORS)}
                     onLogout={handleLogout}
+                />
+            )}
+
+            {showAdModal && (
+                <AdReward
+                    videoUrl={require('../../assets/ads/ad.mp4')}
+                    onClose={() => setShowAdModal(false)}
+                    onSuccess={handleAdSuccess}
                 />
             )}
         </div>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Ноя 09 2025 г., 00:41
+-- Время создания: Ноя 11 2025 г., 04:12
 -- Версия сервера: 8.0.30
 -- Версия PHP: 7.2.34
 
@@ -97,6 +97,14 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
+-- Дамп данных таблицы `users`
+--
+
+INSERT INTO `users` (`id`, `email`, `password`, `name`, `balance`, `token`, `total_played`, `total_win`, `total_balance`) VALUES
+(1, 'dev@dev.com', '$2y$10$GxI0vspK6N6IulLUOvsB6.Zw5Ky4MkmCCAfzme34kbEo6qtv4yn5y', 'devac', 5000, NULL, 0, 0, 5000),
+(2, 'kam@lo.com', '25d55ad283aa400af464c76d713c07ad', 'Kamilla', 100, 'c06d7980f2e7057cd7dd3801ef08451e', 0, 0, 5000);
+
+--
 -- Индексы сохранённых таблиц
 --
 
@@ -156,7 +164,7 @@ ALTER TABLE `message_hashes`
 -- AUTO_INCREMENT для таблицы `rooms`
 --
 ALTER TABLE `rooms`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT для таблицы `room_members`
@@ -168,7 +176,7 @@ ALTER TABLE `room_members`
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц

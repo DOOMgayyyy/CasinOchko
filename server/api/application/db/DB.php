@@ -39,8 +39,7 @@ class DB
     {
         $sth = $this->pdo->prepare($sql);
         $sth->execute($params);
-        return $sth->fetchAll(PDO::FETCH_ASSOC);
-    }
+        return $sth->fetchAll(PDO::FETCH_OBJ);    }
 
     /*public function getUserByLogin($name) {
         return $this->query("SELECT * FROM users WHERE login=?", [$name]);
@@ -181,8 +180,8 @@ class DB
         $this->removeUserFromAllRooms($userId); 
         try {
             return $this->execute(
-                "INSERT INTO room_members (room_id, user_id, bet) VALUES (?, ?, ?)",
-                [$roomId, $userId, $bet]
+                "INSERT INTO room_members (room_id, user_id, bet, cards) VALUES (?, ?, ?, ?)",
+                [$roomId, $userId, $bet, ''] 
             );
         } catch (PDOException $e) {
             error_log("Error while adding user to room: " . $e->getMessage());
