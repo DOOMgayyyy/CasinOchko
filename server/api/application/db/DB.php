@@ -39,8 +39,7 @@ class DB
     {
         $sth = $this->pdo->prepare($sql);
         $sth->execute($params);
-        return $sth->fetchAll(PDO::FETCH_ASSOC);
-    }
+        return $sth->fetchAll(PDO::FETCH_OBJ);    }
 
     /*public function getUserByLogin($name) {
         return $this->query("SELECT * FROM users WHERE login=?", [$name]);

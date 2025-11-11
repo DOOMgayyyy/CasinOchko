@@ -113,9 +113,9 @@ class Lobby
      */
     public function quickStart($userId)
     {
-        if ($this->isUserPlaying($userId)) {
-            return ['error' => 800];
-        }
+        // if ($this->isUserPlaying($userId)) {
+        //     return ['error' => 800];
+        // }
 
         $room = $this->getOpenRoom();
         if ($room) {
@@ -151,9 +151,9 @@ class Lobby
      */
     public function createPrivateRoom($userId)
     {
-        if ($this->isUserPlaying($userId)) {
-            return ['error' => 800];
-        }
+        // if ($this->isUserPlaying($userId)) {
+        //     return ['error' => 800];
+        // }
 
         $attempts = 0;
         $privateCode = null;
