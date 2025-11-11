@@ -31,10 +31,11 @@ export type TMessagesResponse = {
 }
 
 export type TPrivateRoomResponse = {
-    private: {
-        code: string;      // 4-буквенный код комнаты
-        room_id: number;   // ID комнаты
-    }
+    id: number;              // ID комнаты
+    type: string;            // Тип комнаты (private/open)
+    status: string;          // Статус комнаты (playing/waiting)
+    private_code: string;    // 4-буквенный код комнаты
+    players: any[];          // Список игроков в комнате
 };
 export type TJoinPrivateRoomResponse = {
     room: {
