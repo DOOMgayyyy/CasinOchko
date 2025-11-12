@@ -51,6 +51,14 @@ export type TJoinPrivateRoomResponse = {
     }
 };
 
+export type TQuickStartResponse = {
+    id: number;
+    type: string;
+    status: string;
+    hash: string;
+    deckOfCards?: string;
+};
+
 // используется в React
 export type TUserStats = {
     totalGames: number;

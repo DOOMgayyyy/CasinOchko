@@ -129,6 +129,17 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     //     });
     // }
 };
+
+    const handleQuickStart = async () => {
+        try {
+            const result = await server.quickStart();
+            if (result) {
+                setPage(PAGES.GAME);
+            }
+        } catch (error) {
+            console.error('Ошибка быстрого старта:', error);
+        }
+    };
     
     // 4. Функция выхода теперь вызывает метод сервера и очищает данные
     const handleLogout = async () => {
@@ -156,22 +167,57 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         return null; 
     }
 
+    // Общий компонент SideMenu для переиспользования
+    const sideMenuComponent = showSideMenu && (
+        <SideMenu
+            player={player}
+            stats={playerStats}
+            onClose={() => setShowSideMenu(false)}
+            onEditName={() => {
+                // Получить обновленные данные пользователя из Store
+                const updatedUser = store.getUser();
+                if (updatedUser) {
+                    // Обновить локальное состояние player
+                    setPlayer({
+                        name: updatedUser.name,
+                        balance: updatedUser.balance
+                    });
+                }
+            }}
+            onShowRules={() => setPage(PAGES.RULES)}
+            onShowAuthors={() => setPage(PAGES.AUTHORS)}
+            onLogout={handleLogout}
+        />
+    );
+
+    // Общий компонент AdReward для переиспользования
+    const adModalComponent = showAdModal && (
+        <AdReward
+            videoUrl={require('../../assets/ads/ad.mp4')}
+            onClose={() => setShowAdModal(false)}
+            onSuccess={handleAdSuccess}
+        />
+    );
+
     // Если показываем страницу приватной комнаты
     if (showPrivateRoomPage) {
         return (
-            <PrivateRoom
-                player={player}
-                onBack={() => setShowPrivateRoomPage(false)}
-                onCreateRoom={handleCreateRoom}
-                onJoinRoom={handleJoinRoom}
-                onShowSideMenu={() => setShowSideMenu(true)}
-                roomCreated={roomCreated}
-                onCloseRoomMessage={() => setRoomCreated(null)}
-            />
+            <>
+                <PrivateRoom
+                    player={player}
+                    onBack={() => setShowPrivateRoomPage(false)}
+                    onCreateRoom={handleCreateRoom}
+                    onJoinRoom={handleJoinRoom}
+                    onShowSideMenu={() => setShowSideMenu(true)}
+                    onShowAdModal={() => setShowAdModal(true)}
+                    roomCreated={roomCreated}
+                    onCloseRoomMessage={() => setRoomCreated(null)}
+                />
+                {sideMenuComponent}
+                {adModalComponent}
+            </>
         );
     }
-
-    
 
     return (
         <div className="lobby">
@@ -202,12 +248,8 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     <span className="logo-ochko">OCHKO</span>
                 </div>
 
-                <button className="lobby-btn quick-game-btn" onClick={() => setPage(PAGES.QUICK_GAME)}>
+                <button className="lobby-btn quick-game-btn" onClick={handleQuickStart}>
                     Быстрая игра
-                </button>
-
-                <button className="lobby-btn blackjack-btn" onClick={() => setPage(PAGES.GAME)}>
-                    Blackjack
                 </button>
 
                 <button className="lobby-btn private-room-btn" onClick={() => setShowPrivateRoomPage(true)}>
@@ -219,35 +261,9 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                 </button>
             </main>
 
-            {showSideMenu && (
-                <SideMenu
-                    player={player}
-                    stats={playerStats}
-                    onClose={() => setShowSideMenu(false)}
-                    onEditName={() => {
-                        // Получить обновленные данные пользователя из Store
-                        const updatedUser = store.getUser();
-                        if (updatedUser) {
-                            // Обновить локальное состояние player
-                            setPlayer({
-                                name: updatedUser.name,
-                                balance: updatedUser.balance
-                            });
-                        }
-                    }}
-                    onShowRules={() => setPage(PAGES.RULES)}
-                    onShowAuthors={() => setPage(PAGES.AUTHORS)}
-                    onLogout={handleLogout}
-                />
-            )}
+            {sideMenuComponent}
 
-            {showAdModal && (
-                <AdReward
-                    videoUrl={require('../../assets/ads/ad.mp4')}
-                    onClose={() => setShowAdModal(false)}
-                    onSuccess={handleAdSuccess}
-                />
-            )}
+            {adModalComponent}
         </div>
     );
 };
