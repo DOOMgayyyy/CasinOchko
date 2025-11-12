@@ -12,6 +12,7 @@ export interface PrivateRoomProps {
     onCreateRoom: () => void;
     onJoinRoom: (code: string) => void;
     onShowSideMenu: () => void;
+    onShowAdModal: () => void;
     roomCreated?: {code: string, room_id: number} | null;
     onCloseRoomMessage?: () => void;
 }
@@ -22,11 +23,13 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
     onCreateRoom, 
     onJoinRoom,
     onShowSideMenu,
+    onShowAdModal,
     roomCreated,
     onCloseRoomMessage
 }) => {
     const [joinCode, setJoinCode] = useState('');
     const [showJoinInput, setShowJoinInput] = useState(false);
+    const [copySuccess, setCopySuccess] = useState(false);
 
     const handleJoinClick = () => {
         if (showJoinInput && joinCode.trim()) {
@@ -49,6 +52,14 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
             setJoinCode(value);
         }
     };
+    // Ручка для копирования кода комнаты (при клике на код комнаты))
+    const handleCopyCode = async () => {
+        if (roomCreated?.code) {
+            await navigator.clipboard.writeText(roomCreated.code);
+            setCopySuccess(true);
+            setTimeout(() => setCopySuccess(false), 2000);
+        }
+    };
 
     return (
         <div className="private-room">
@@ -62,7 +73,7 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
                 <div className="header-right">
                     <span className="balance-text">Ваш баланс: </span>
                     <span className="balance-amount">${player.balance}</span>
-                    <button className="add-money-btn"><img src={PlusIcon}  /></button>
+                    <button className="add-money-btn" onClick={onShowAdModal}><img src={PlusIcon}  /></button>
                 </div>
             </header>
 
@@ -89,10 +100,17 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
                                 </div>
                                 <div className="room-code-display">
                                     <div className="room-code-label">Код комнаты:</div>
-                                    <div className="room-code-value">{roomCreated.code}</div>
+                                    <div 
+                                        className="room-code-value clickable" 
+                                        onClick={handleCopyCode}
+                                        title="Нажмите, чтобы скопировать код">
+                                        {roomCreated.code}
+                                    </div>
                                 </div>
                                 <div className="room-id">ID: {roomCreated.room_id}</div>
-                                <div className="room-instruction">Поделитесь кодом с друзьями!</div>
+                                {copySuccess && (
+                                    <div className="copy-success">Код скопирован!</div>
+                                )}
                             </div>
                         )}
                     </div>
