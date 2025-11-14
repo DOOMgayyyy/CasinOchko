@@ -1,19 +1,31 @@
-// @import url('https://fonts.googleapis.com/css2?family=Handjet:wght@400;600;700&display=swap');
-// @import url('https://fonts.googleapis.com/css2?family=Handjet:wght@100..900&family=Jersey+10&display=swap');
+/* Handjet, обычный */
+@font-face {
+  font-family: 'Handjet';
+  src: url('../../assets/fonts/Handjet-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
+/* Handjet, полужирный */
+@font-face {
+  font-family: 'Handjet';
+  src: url('../../assets/fonts/Handjet-Regular.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Jersey 10, один стиль */
 @font-face {
   font-family: 'Jersey 10';
-  src:
-    url('../../assets/fonts/Handjet-VariableFont_ELGR\,ELSH\,wght.ttf') format('woff2');
+  src: url('../../assets/fonts/Jersey10-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 :root{
-  --bg: #181818;     /* Задний фон */
-  --card: #202020;   /* Панель */
-  --text: #ffffff;   /* Заголовок и впервые здесь */
   --muted: #5b5b5b;  /* Подписи email */
   --field: #181818;  /* Инпуты фон */
   --stroke: #2a2d33; /* Обводка инпутов */
@@ -45,9 +57,9 @@
 html, body, #root{
   height: 100%;
   margin: 0;
-  background: var(--bg);
+  background: #181818;
   font-family: 'Handjet', cursive;
-  color: var(--text);
+  color: #ffffff;
 
   /* Глобально отключаем прокрутку страницы */
   overflow: hidden;
@@ -60,7 +72,6 @@ html, body, #root{
   align-items: center;
   justify-content: center;
 
-  /* Умный паддинг: на маленьких экранах ужмётся, скролла не будет */
   padding: clamp(40px, 10vh, 120px) 20px;
 
   overflow: hidden;           /* перестраховка: внутри логина тоже без прокрутки */
@@ -82,10 +93,9 @@ html, body, #root{
 }
 
 .sign-card{
-  background: var(--card);
+  background: #202020;
   border: 1px solid var(--stroke);
   border-radius: var(--radius);
-  /* box-shadow: var(--shadow); */
   padding: 15px 12px 10px;
 }
 
@@ -103,16 +113,14 @@ html, body, #root{
   border-radius: 6px;
   border: 1px solid var(--stroke);
   background: var(--field);
-  color: var(--text);
+  color: #ffffff;
   padding: 10px 14px;
   outline: none;
-  /* transition: border-color .15s ease, box-shadow .15s ease; */
   font-family: inherit;
 }
 .input::placeholder{ color: #7f848c; }
 .input:focus{
   border-color: #3a3f47;
-  /* box-shadow: 0 0 0 3px rgba(80,115,255,.12); */
 }
 
 .actions{
@@ -136,7 +144,6 @@ html, body, #root{
   transition: color .15s ease, transform .05s ease;
   font-family: inherit;
   text-decoration: none; /* на случай, если это <a> */
-  /* font-weight: 400px; */
 }
 .btn-link:hover{ color: var(--accent-hover); }
 .btn-link:active{ transform: translateY(1px); }

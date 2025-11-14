@@ -26,22 +26,22 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         //} : null;
     // });
     //==================DEV-Заглушка=====================
-    // const [player, setPlayer] = useState(() => {
-    //     const user = store.getUser();
-    //     return user ? {
-    //         name: user.name,
-    //         balance: user.balance
-    //     } : null;
-    // });
+    const [player, setPlayer] = useState(() => {
+        const user = store.getUser();
+        return user ? {
+            name: user.name,
+            balance: user.balance
+        } : null;
+    });
 
     //==================DEV-Заглушка=====================
-    const [player, setPlayer] = useState(() => {
-        return {
-            name: 'dev',
-            balance: 123
-        };
-        console.log('No user data in store');
-    });
+    // const [player, setPlayer] = useState(() => {
+    //     return {
+    //         name: 'dev',
+    //         balance: 123
+    //     };
+    //     console.log('No user data in store');
+    // });
     //===================================================
 
     const [showSideMenu, setShowSideMenu] = useState(false);
