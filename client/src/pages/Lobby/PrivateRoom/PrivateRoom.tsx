@@ -18,14 +18,14 @@ export interface PrivateRoomProps {
 }
 
 const PrivateRoom: React.FC<PrivateRoomProps> = ({ 
-    player,
-    onBack, 
-    onCreateRoom, 
-    onJoinRoom,
-    onShowSideMenu,
-    onShowAdModal,
-    roomCreated,
-    onCloseRoomMessage
+    player,              // Данные игрока (имя и баланс) для отображения в заголовке
+    onBack,              // Callback для возврата к основному лобби
+    onCreateRoom,        // Callback для создания новой приватной комнаты
+    onJoinRoom,          // Callback для присоединения к существующей комнате по коду
+    onShowSideMenu,      // Callback для открытия бокового меню с настройками
+    onShowAdModal,       // Callback для открытия модального окна с рекламой (пополнение баланса)
+    roomCreated,         // Данные созданной комнаты (код и ID) для отображения уведомления
+    onCloseRoomMessage   // Callback для закрытия уведомления о созданной комнате
 }) => {
     const [joinCode, setJoinCode] = useState('');
     const [showJoinInput, setShowJoinInput] = useState(false);

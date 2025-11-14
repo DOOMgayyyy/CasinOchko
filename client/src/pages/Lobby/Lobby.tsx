@@ -4,7 +4,6 @@ import SideMenu from './SideMenu/SideMenu';
 import PrivateRoom from './PrivateRoom/PrivateRoom';
 import { IBasePage, PAGES } from '../PageManager';
 import { StoreContext, ServerContext } from '../../App';
-import { TUserStats } from '../../services/server/types'; 
 
 import AdReward from './AdReward/AdReward'; 
 import MenuIcon from '../../assets/img/toppanel/sidebarmenu.png';
@@ -48,41 +47,7 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     const [showPrivateRoomPage, setShowPrivateRoomPage] = useState(false);
     const [roomCreated, setRoomCreated] = useState<{code: string, room_id: number} | null>(null);
     
-    const [playerStats, setPlayerStats] = useState<TUserStats>({
-        totalGames: 0,
-        totalWins: 0,
-        totalMoney: 0,
-        totalHours: 0
-    });
-
     const [showAdModal, setShowAdModal] = useState(false);
-
-
-    useEffect(() => {
-        let cancelled = false;
-
-        const loadStats = async () => {
-            try {
-                const stats = await server.getUserStat();
-                if (!cancelled && stats) {
-                    console.log(stats);
-                    setPlayerStats(stats);
-                }
-            } catch (e) {
-                // ошибки обрабатываются внутри Server
-                console.error(e);
-            }
-        };
-
-            // вызываем только если пользователь авторизован
-        if (player) {
-            loadStats();
-        }
-
-        return () => {
-            cancelled = true;
-        };
-    }, [server, player]);
 
     
 
@@ -171,7 +136,6 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     const sideMenuComponent = showSideMenu && (
         <SideMenu
             player={player}
-            stats={playerStats}
             onClose={() => setShowSideMenu(false)}
             onEditName={() => {
                 // Получить обновленные данные пользователя из Store
