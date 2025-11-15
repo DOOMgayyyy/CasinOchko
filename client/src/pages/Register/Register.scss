@@ -1,4 +1,29 @@
-@import url('https://fonts.googleapis.com/css2?family=Handjet:wght@100..900&family=Jersey+10&display=swap');
+/* Handjet, обычный */
+@font-face {
+  font-family: 'Handjet';
+  src: url('../../assets/fonts/Handjet-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Handjet, полужирный */
+@font-face {
+  font-family: 'Handjet';
+  src: url('../../assets/fonts/Handjet-Regular.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Jersey 10, один стиль */
+@font-face {
+  font-family: 'Jersey 10';
+  src: url('../../assets/fonts/Jersey10-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 .main-register{
   min-height: 100vh;           /* высота экрана */
