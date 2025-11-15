@@ -63,37 +63,19 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     };
 
     const handleJoinRoom = async (code: string) => {
-    // try {
-    //     const result = await server.joinPrivateRoom(code);
-        
-    //     if (result && result.private) {
-    //         const { code: roomCode, room_id } = result.private;
-            
-    //         // Успешное подключение к приватной комнате
-    //         console.log('Успешно подключились к комнате:', roomCode, room_id);
-            
-    //         // Можно перейти на страницу игры или показать сообщение об успехе
-    //         server.showErrorCb({
-    //             code: 0,
-    //             text: `Успешно подключились к комнате ${roomCode}`
-    //         });
-            
-    //         // TODO: Переход на страницу игры с приватной комнатой
-    //         // setPage(PAGES.GAME);
-            
-    //     } else {
-    //         server.showErrorCb({
-    //             code: 9004,
-    //             text: 'Не удалось подключиться к комнате. Проверьте код.'
-    //         });
-    //     }
-    // } catch (error) {
-    //     server.showErrorCb({
-    //         code: 9005,
-    //         text: 'Произошла ошибка при подключении к комнате.'
-    //     });
-    // }
-};
+        try {
+            const roomData = await server.joinPrivateRoom(code);
+
+            if (roomData) {
+                console.log('Successfully joined room:', roomData);
+                setPage(PAGES.GAME);
+            } else {
+                console.log('Failed to join room.');
+            }
+        } catch (error) {
+            console.error('Exception during joinPrivateRoom:', error);
+        }
+    };
 
     const handleQuickStart = async () => {
         try {

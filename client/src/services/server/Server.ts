@@ -1,8 +1,7 @@
 import md5 from 'md5';
 import CONFIG from "../../config";
 import Store from "../store/Store";
-import { TAnswer, TError, TPrivateRoomResponse, TMessagesResponse, TUser, TUserStats, TRawUserStats, TQuickStartResponse } from "./types";
-
+import { TAnswer, TError, TPrivateRoomResponse, TMessagesResponse, TUser, TUserStats, TRawUserStats, TQuickStartResponse, TJoinPrivateRoomResponse } from "./types";
 
 const { CHAT_TIMESTAMP, HOST } = CONFIG;
 
@@ -139,8 +138,13 @@ class Server {
         return await this.request<TPrivateRoomResponse>('createPrivateRoom');
     }
     
-    async joinPrivateRoom(code: string): Promise<TPrivateRoomResponse | null> {
-        return await this.request<TPrivateRoomResponse>('joinPrivateRoom', { code });
+    async joinPrivateRoom(code: string): Promise<TJoinPrivateRoomResponse['room'] | null> {
+        const result = await this.request<TJoinPrivateRoomResponse>('joinPrivateRoom', { code });
+
+        if (result && result.room) {
+            return result.room;
+        }
+        return null;
     }
 
     async quickStart(): Promise<TQuickStartResponse | null> {
