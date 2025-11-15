@@ -26,10 +26,6 @@ function result($params) {
             case 'addBalance': return $app->addBalance($params);
             case 'subtractBalance': return $app->subtractBalance($params);
 
-            // balance 
-            case 'addBalance': return $app->addBalance($params);
-            case 'subtractBalance': return $app->subtractBalance($params);
-
             // menu
             case 'getUserStat': return $app->getUserStat($params);
             case 'getUserBalance': return $app->getUserBalance($params);
