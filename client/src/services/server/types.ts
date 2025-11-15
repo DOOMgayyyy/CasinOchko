@@ -31,12 +31,14 @@ export type TMessagesResponse = {
 }
 
 export type TPrivateRoomResponse = {
-    id: number;              // ID комнаты
-    type: string;            // Тип комнаты (private/open)
-    status: string;          // Статус комнаты (playing/waiting)
-    private_code: string;    // 4-буквенный код комнаты
-    players: any[];          // Список игроков в комнате
+    id: number;                          
+    type: 'private';                     
+    status: 'playing' | 'closed';        
+    current_member_id?: number | null;   // ID игрока, чей сейчас ход
+    private_code: string;                
+    hash: string;                        
 };
+
 export type TJoinPrivateRoomResponse = {
     room: {
         id: number;
@@ -52,11 +54,12 @@ export type TJoinPrivateRoomResponse = {
 };
 
 export type TQuickStartResponse = {
-    id: number;
-    type: string;
-    status: string;
-    hash: string;
-    deckOfCards?: string;
+    id: number;                          
+    type: 'open';                       
+    status: 'playing' | 'closed';       
+    current_member_id?: number | null;   // ID игрока, чей сейчас ход
+    private_code: null;                  
+    hash: string;                        
 };
 
 // используется в React

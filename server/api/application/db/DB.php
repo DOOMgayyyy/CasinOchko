@@ -131,12 +131,12 @@ class DB
 
     public function getRoom($roomId)
     {
-        return $this->query("SELECT * FROM rooms WHERE id=?", [$roomId]);
+        return $this->query("SELECT id, type, status, current_member_id, private_code, hash FROM rooms WHERE id=?", [$roomId]);
     }
 
     public function getOpenRooms()
     {
-        return $this->queryAll("SELECT * FROM rooms WHERE type='open' AND status='playing'");
+        return $this->queryAll("SELECT id, type, status, current_member_id, private_code, hash FROM rooms WHERE type='open' AND status='playing'");
     }
 
     public function getMembersCount($roomId)

@@ -99,10 +99,10 @@ const Login: React.FC<IBasePage> = (props) => {
 
         <div className="foot">
           Впервые здесь?
-          <a className="foot-link" href="#Register">
+          <button className="foot-link" onClick={setRegisterPage}>
             <span className="arrow">&gt;</span>
-            <span onClick={setRegisterPage}>зарегистрироваться</span>
-          </a>
+            <span>зарегистрироваться</span>
+          </button>
         </div>
       </main>
     </div>
