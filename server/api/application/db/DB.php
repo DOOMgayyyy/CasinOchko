@@ -193,17 +193,6 @@ class DB
         return $this->query("SELECT * FROM rooms WHERE private_code=?", [$code]);
     }
 
-    public function getRoomMembers($roomId) {
-        return $this->queryAll(
-            "SELECT u.id, u.name, u.balance, rm.status, rm.bet 
-             FROM room_members rm 
-             JOIN users u ON rm.user_id = u.id 
-             WHERE rm.room_id = ? 
-             ORDER BY u.id ASC",
-            [$roomId]
-        );
-    }
-
     public function getUsersByBalance()
     {
         return $this->queryAll("SELECT 
@@ -229,6 +218,76 @@ class DB
     {
         $json = json_encode($deck);
         return $this->execute("UPDATE rooms SET deckOfCards = ? WHERE id = ?", [$json, $roomId]);
+    }
+    
+    /**
+     * Получить информацию об участнике комнаты
+     */
+    public function getRoomMember($roomId, $userId) {
+        return $this->query(
+            "SELECT rm.id as member_id, rm.user_id, rm.bet, rm.cards, rm.status,
+                    u.name, u.balance
+             FROM room_members rm
+             JOIN users u ON rm.user_id = u.id
+             WHERE rm.room_id = ? AND rm.user_id = ?",
+            [$roomId, $userId]
+        );
+    }
+    
+    /**
+     * Получить всех участников комнаты с подробной информацией
+     */
+    public function getRoomMembers($roomId) {
+        return $this->queryAll(
+            "SELECT rm.id as member_id, rm.user_id, rm.bet, rm.cards, rm.status,
+                    u.id, u.name, u.balance
+             FROM room_members rm
+             JOIN users u ON rm.user_id = u.id
+             WHERE rm.room_id = ?
+             ORDER BY rm.id ASC",
+            [$roomId]
+        );
+    }
+    
+    /**
+     * Обновить карты игрока в комнате
+     */
+    public function updateMemberCards($roomId, $userId, $cards) {
+        $json = json_encode($cards);
+        return $this->execute(
+            "UPDATE room_members SET cards = ? WHERE room_id = ? AND user_id = ?",
+            [$json, $roomId, $userId]
+        );
+    }
+    
+    /**
+     * Обновить ставку игрока
+     */
+    public function updateMemberBet($roomId, $userId, $bet) {
+        return $this->execute(
+            "UPDATE room_members SET bet = ? WHERE room_id = ? AND user_id = ?",
+            [$bet, $roomId, $userId]
+        );
+    }
+    
+    /**
+     * Обновить статус игрока (active, folded, waiting)
+     */
+    public function updateMemberStatus($roomId, $userId, $status) {
+        return $this->execute(
+            "UPDATE room_members SET status = ? WHERE room_id = ? AND user_id = ?",
+            [$status, $roomId, $userId]
+        );
+    }
+    
+    /**
+     * Установить текущего игрока и время начала хода
+     */
+    public function setCurrentPlayer($roomId, $memberId) {
+        return $this->execute(
+            "UPDATE rooms SET current_member_id = ?, turn_start_time = NOW() WHERE id = ?",
+            [$memberId, $roomId]
+        );
     }
 
 }
