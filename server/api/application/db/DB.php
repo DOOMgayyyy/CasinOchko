@@ -193,17 +193,6 @@ class DB
         return $this->query("SELECT * FROM rooms WHERE private_code=?", [$code]);
     }
 
-    public function getRoomMembers($roomId) {
-        return $this->queryAll(
-            "SELECT u.id, u.name, u.balance 
-             FROM room_members rm 
-             JOIN users u ON rm.user_id = u.id 
-             WHERE rm.room_id = ? 
-             ORDER BY u.id ASC",
-            [$roomId]
-        );
-    }
-
     public function getUsersByBalance()
     {
         return $this->queryAll("SELECT 
