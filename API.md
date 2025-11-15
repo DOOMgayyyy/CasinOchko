@@ -19,6 +19,8 @@
 2.4. Рейтинг пользователя
 2.5. Статистика пользователя
 2.6. Комната
+2.7. Игрок в комнате
+2.8. Таймер 
 
 Список запросов
 3.1. Общие ошибки
@@ -38,6 +40,7 @@
 4.12. getRatingTable
 4.13. addBalance
 4.14. subtractBalance
+4.15. getInfoRoom
 
 1. Общее
 1.1. Адрес сервера
@@ -110,6 +113,24 @@ Room: {
     private_code?: string | null;
     hash?: string | null;
     deckOfCards?: string; // JSON-массив карт
+}
+
+2.7. Игрок в комнате (Player)
+Player: {
+    "memberId": number,
+    "userId": number,
+    "name": string,
+    "balance": number,
+    "bet": number,
+    "cards": string[], 
+    "status": "active" | "folded" | "waiting"
+}
+
+2.8. Таймер (Timer)
+Timer: {
+    "currentPlayerId": number, // memberId игрока, который сейчас ходит
+    "timeLeft": number | null,   // Секунд осталось
+    "totalTime": number | null  // Всего секунд на ход
 }
 
 3. Список запросов
@@ -397,3 +418,36 @@ Room: {
 * 804 - у тебя нет денег
 * 9000 - unknown error
 
+4.15. getInfoRoom
+Получение актуальной информации об игровой комнате. Работает по принципу long polling с использованием хэша.
+
+Параметры
+{
+    token: string; - токен авторизации
+    room_id: number; - ID комнаты
+    hash: string; - текущий хэш клиента
+}
+
+Успешный ответ (при changed: true)
+Answer<{
+    "players": Player[], // (см. 2.7)
+    "myCards": string[], // Карты текущего пользователя
+    "timer": Timer | null, // (см. 2.8)
+    "hash": string, // Новый хэш
+    "changed": true // true, если данные изменились
+}>
+Успешный ответ (при changed: false)
+
+Примечание: Если changed = false, сервер сообщает, что хэш не изменился, и остальные поля (players, myCards, timer) будут пустыми или null.
+Answer<{
+    "players": [],
+    "myCards": [],
+    "timer": null,
+    "hash": string, // Хэш, который прислал клиент
+    "changed": false // false, т.к. изменений нет
+}>
+
+Ошибки
+242 - Params not set fully
+705 - User is not found
+901 - Комната не найдена
