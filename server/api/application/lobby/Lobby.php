@@ -132,7 +132,8 @@ class Lobby
             if (!$this->db->saveDeck($roomId, $deck))
                 return ['error' => 805];
         }
-        if (!$this->db->addRoomMember($roomId, $userId))
+    
+        if (!$this->db->addRoomMember($roomId, $userId, 'spectator', 0))
             return ['error' => 900];
 
         $this->refreshRoomHash($roomId);
@@ -169,7 +170,7 @@ class Lobby
         $initialHash = md5(random_int(0, PHP_INT_MAX));
         $roomId = $this->db->createRoom('private', 'playing', $privateCode, $initialHash);
 
-        $success = $this->db->addRoomMember($roomId, $userId);
+        $success = $this->db->addRoomMember($roomId, $userId, 'player', 0);
         if (!$success) {
             return ['error' => 900];
         }
@@ -209,7 +210,7 @@ class Lobby
             return ['error' => 803];
         }
 
-        $success = $this->db->addRoomMember($room->id, $userId);
+        $success = $this->db->addRoomMember($room->id, $userId, 'spectator', 0);
         if (!$success) {
             return ['error' => 900];
         }

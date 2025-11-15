@@ -176,12 +176,12 @@ class DB
             );
         }
 
-    public function addRoomMember($roomId, $userId, $bet = 0) { 
+    public function addRoomMember($roomId, $userId, $status = 'spectator', $bet = 0) { 
         $this->removeUserFromAllRooms($userId); 
         try {
             return $this->execute(
-                "INSERT INTO room_members (room_id, user_id, bet, cards) VALUES (?, ?, ?, ?)",
-                [$roomId, $userId, $bet, ''] 
+                "INSERT INTO room_members (room_id, user_id, status, bet, cards) VALUES (?, ?, ?, ?, ?)",
+                [$roomId, $userId, $status, $bet, ''] 
             );
         } catch (PDOException $e) {
             error_log("Error while adding user to room: " . $e->getMessage());
@@ -195,7 +195,7 @@ class DB
 
     public function getRoomMembers($roomId) {
         return $this->queryAll(
-            "SELECT u.id, u.name, u.balance 
+            "SELECT u.id, u.name, u.balance, rm.status, rm.bet 
              FROM room_members rm 
              JOIN users u ON rm.user_id = u.id 
              WHERE rm.room_id = ? 
