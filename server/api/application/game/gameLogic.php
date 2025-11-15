@@ -1,38 +1,148 @@
 <?php
+/**
+ * Класс для игровой логики и получения информации о комнате
+ */
+class GameLogic
+{
+    private $db;
 
-class gameLogic {
-    # Рассчитывает очки руки с учетом правил игры 
-    public static function calculateHandScore(array $cards) {
-        $score = 0;  # Общая сумма очков
-        $aces = 0;   # Количество тузов в руке
+    function __construct($db)
+    {
+        $this->db = $db;
+    }
 
-        # Первый проход: подсчитываем базовые очки и количество тузов
-        foreach ($cards as $card) {
-            if ($card->rank === 'A') {
-                $aces++;
-                $score += 11; # Изначально туз считается как 11
-            } else {
-                $score += $card->value; # Добавляем базовое значение карты
+    /**
+     * Получить информацию о комнате (игроки, карты, таймер)
+     * Работает по принципу long polling с hash-проверкой
+     * * @param int $roomId ID комнаты
+     * @param int $userId ID пользователя (для получения его карт)
+     * @param string $clientHash Hash от клиента для проверки изменений
+     * @return array Информация о комнате или пустой массив если hash совпадает
+     */
+    public function getInfoRoom($roomId, $userId, $clientHash)
+    {
+        // Получаем текущий hash комнаты
+        $room = $this->db->getRoom($roomId);
+        
+        if (!$room) {
+            return ['error' => 901]; // Комната не найдена
+        }
+
+        $currentHash = $room->hash;
+
+        // Если hash совпадает - изменений нет
+        if ($currentHash && $currentHash === $clientHash) {
+            return [
+                'players' => [],
+                'myCards' => [],
+                'timer' => null,
+                'hash' => $clientHash,
+                'changed' => false
+            ];
+        }
+
+        // Hash не совпадает - отправляем полную информацию
+        
+        // 1. Получаем всех игроков комнаты
+        $players = $this->getPlayersInfo($roomId);
+
+        // 2. Получаем карты текущего пользователя
+        $myCards = $this->getUserCards($roomId, $userId);
+
+        // 3. Получаем информацию о таймере хода
+        $timer = $this->getTimer($room);
+
+        return [
+            'players' => $players,
+            'myCards' => $myCards,
+            'timer' => $timer,
+            'hash' => $currentHash,
+            'changed' => true
+        ];
+    }
+
+    /**
+     * Получить информацию обо всех игроках в комнате
+     * * @param int $roomId ID комнаты
+     * @return array Массив с данными игроков
+     */
+    private function getPlayersInfo($roomId)
+    {
+        $members = $this->db->getRoomMembers($roomId); // Этот метод уже есть в DB.php
+        $players = [];
+
+        foreach ($members as $member) {
+            // Декодируем карты игрока из JSON
+            $cards = [];
+            if (!empty($member->cards)) {
+                $decoded = json_decode($member->cards, true);
+                if (is_array($decoded)) {
+                    $cards = $decoded;
+                }
             }
+
+            $players[] = [
+                'memberId' => $member->member_id, // Убедитесь, что getRoomMembers возвращает member_id
+                'userId' => $member->user_id, // В DB.php используется user_id, а не id
+                'name' => $member->name,
+                'balance' => (int)$member->balance,
+                'bet' => (int)$member->bet,
+                'cards' => $cards,
+                'status' => $member->status ?? 'active' // active, folded, waiting
+            ];
         }
 
-        # Второй проход: оптимизируем значение тузов
-        # Если сумма больше 21 и есть тузы, переводим их в единицы
-        while ($score > 21 && $aces > 0) {
-            $score -= 10; # Переводим туз с 11 на 1 (разница = 10)
-            $aces--;      # Уменьшаем счетчик доступных для перевода тузов
+        return $players;
+    }
+
+    /**
+     * Получить карты конкретного пользователя
+     * * @param int $roomId ID комнаты
+     * @param int $userId ID пользователя
+     * @return array Массив карт пользователя
+     */
+    private function getUserCards($roomId, $userId)
+    {
+        // Этот метод нужно добавить в DB.php
+        $member = $this->db->getRoomMember($roomId, $userId); 
+        
+        if (!$member || empty($member->cards)) {
+            return [];
         }
 
-        return $score;
+        $cards = json_decode($member->cards, true);
+        return is_array($cards) ? $cards : [];
     }
 
-    # Проверяет, является ли рука блэкджеком (натуральным числом 21)
-    public static function isBlackjack(array $cards) {
-        return count($cards) === 2 && self::calculateHandScore($cards) === 21;
-    }
+    /**
+     * Получить информацию о таймере хода
+     * * @param object $room Объект комнаты
+     * @return array|null Информация о таймере или null
+     */
+    private function getTimer($room)
+    {
+        if (!$room->current_member_id) {
+            return null;
+        }
 
-    # Проверяет, является ли рука перебором (больше 21 очка)
-    public static function isBust(array $cards) {
-        return self::calculateHandScore($cards) > 21;
+        // Если есть timestamp начала хода
+        if (isset($room->turn_start_time)) {
+            $turnDuration = 30; // Длительность хода в секундах
+            $timeElapsed = time() - strtotime($room->turn_start_time);
+            $timeLeft = max(0, $turnDuration - $timeElapsed);
+
+            return [
+                'currentPlayerId' => $room->current_member_id,
+                'timeLeft' => $timeLeft,
+                'totalTime' => $turnDuration
+            ];
+        }
+
+        // Если timestamp не установлен, просто возвращаем ID текущего игрока
+        return [
+            'currentPlayerId' => $room->current_member_id,
+            'timeLeft' => null,
+            'totalTime' => null
+        ];
     }
 }

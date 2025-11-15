@@ -39,6 +39,9 @@ function result($params) {
             case 'createPrivateRoom': return $app->createPrivateRoom($params);
             case 'joinPrivateRoom': return $app->joinPrivateRoom($params);
             case 'getRatingTable': return $app->getRatingTable($params);
+
+            // game
+            case 'getInfoRoom': return $app->getInfoRoom($params);
         
             default: return ['error' => 102];
         }

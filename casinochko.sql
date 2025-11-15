@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Ноя 10 2025 г., 01:10
+-- Время создания: Ноя 15 2025 г., 17:56
 -- Версия сервера: 8.0.30
 -- Версия PHP: 7.2.34
 
@@ -60,15 +60,18 @@ CREATE TABLE `rooms` (
   `current_member_id` bigint UNSIGNED DEFAULT NULL,
   `private_code` varchar(4) DEFAULT NULL,
   `hash` varchar(255) DEFAULT NULL,
-  `deckOfCards` text COMMENT 'JSON-массив карт: ["AH","KD",...]'
-) ;
+  `deckOfCards` text COMMENT 'номинал карты - 16-ричное число, масть - один из символов: HDCS',
+  `turn_start_time` datetime DEFAULT NULL COMMENT 'Время начала текущего хода'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица комнат';
 
 --
 -- Дамп данных таблицы `rooms`
 --
 
-INSERT INTO `rooms` (`id`, `type`, `status`, `current_member_id`, `private_code`, `hash`, `deckOfCards`) VALUES
-(9, 'private', 'playing', NULL, 'YKYN', '30ee435595786e81cf8f32e80b49b786', '[\"QS\",\"5C\",\"2D\",\"7S\",\"KH\",\"8S\",\"AH\",\"9D\",\"9H\",\"JD\",\"3S\",\"3C\",\"4H\",\"KC\",\"KS\",\"QC\",\"10D\",\"8D\",\"2C\",\"2S\",\"8C\",\"6S\",\"6C\",\"7C\",\"AC\",\"8H\",\"10H\",\"9S\",\"7D\",\"AD\",\"4S\",\"KD\",\"4C\",\"10C\",\"QH\",\"6D\",\"6H\",\"AS\",\"2H\",\"10S\",\"3D\",\"QD\",\"JS\",\"5D\",\"4D\",\"7H\",\"JC\",\"5S\",\"9C\",\"JH\",\"5H\",\"3H\"]');
+INSERT INTO `rooms` (`id`, `type`, `status`, `current_member_id`, `private_code`, `hash`, `deckOfCards`, `turn_start_time`) VALUES
+(128, 'private', 'playing', NULL, 'NKQB', '1652ad94fb2841555519661c93218360', '[\"AC\",\"8C\",\"5D\",\"4S\",\"AH\",\"7D\",\"6H\",\"3C\",\"KC\",\"9H\",\"6C\",\"QD\",\"6S\",\"4H\",\"2S\",\"10C\",\"QH\",\"JS\",\"10H\",\"KH\",\"2H\",\"JC\",\"5S\",\"4D\",\"8D\",\"6D\",\"4C\",\"AD\",\"JH\",\"2D\",\"10S\",\"9S\",\"10D\",\"9C\",\"5C\",\"JD\",\"7S\",\"5H\",\"7C\",\"KS\",\"3H\",\"7H\",\"QC\",\"8S\",\"3D\",\"AS\",\"9D\",\"3S\",\"QS\",\"2C\",\"8H\",\"KD\"]', NULL),
+(129, 'open', 'playing', NULL, NULL, '8afa8b4768a9bcdda7e9d47b7d0408a6', '[\"KS\",\"7D\",\"9D\",\"KC\",\"5C\",\"9C\",\"2S\",\"QS\",\"10S\",\"9H\",\"3H\",\"8S\",\"7H\",\"2D\",\"8C\",\"9S\",\"10C\",\"JH\",\"KH\",\"AD\",\"5D\",\"JS\",\"3D\",\"2H\",\"6C\",\"8D\",\"8H\",\"6D\",\"4D\",\"JD\",\"4C\",\"7S\",\"QH\",\"4H\",\"AS\",\"QD\",\"6H\",\"JC\",\"QC\",\"5H\",\"6S\",\"3C\",\"AC\",\"2C\",\"KD\",\"7C\",\"AH\",\"10D\",\"3S\",\"4S\",\"10H\",\"5S\"]', NULL),
+(130, 'private', 'playing', NULL, 'ZSVH', 'b173229b350cef36a3da8b3898757ba7', '[\"KC\",\"6C\",\"4C\",\"2D\",\"10H\",\"5C\",\"10C\",\"QC\",\"4H\",\"5D\",\"2S\",\"3C\",\"8C\",\"8S\",\"7S\",\"7C\",\"9D\",\"6D\",\"AS\",\"5S\",\"QH\",\"2C\",\"KD\",\"7D\",\"JC\",\"3D\",\"4D\",\"4S\",\"7H\",\"AD\",\"6S\",\"3H\",\"JH\",\"QS\",\"5H\",\"JD\",\"2H\",\"AC\",\"8D\",\"9H\",\"9C\",\"10S\",\"10D\",\"6H\",\"KS\",\"9S\",\"AH\",\"8H\",\"3S\",\"JS\",\"QD\",\"KH\"]', NULL);
 
 -- --------------------------------------------------------
 
@@ -82,16 +85,16 @@ CREATE TABLE `room_members` (
   `user_id` bigint UNSIGNED NOT NULL,
   `bet` int DEFAULT '0',
   `types` tinyint(1) DEFAULT '0',
-  `cards` text NOT NULL COMMENT 'Карты игрока в формате JSON: ["AH","KD",...]'
+  `cards` text NOT NULL COMMENT 'Карты игрока в формате: номинал (hex) + масть (HDCS)',
+  `status` varchar(20) DEFAULT 'active' COMMENT 'Статус игрока: active, folded, waiting'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица членов комнат';
 
 --
 -- Дамп данных таблицы `room_members`
 --
 
-INSERT INTO `room_members` (`id`, `room_id`, `user_id`, `bet`, `types`, `cards`) VALUES
-(10, 9, 2, 0, 0, ''),
-(11, 9, 3, 0, 0, '');
+INSERT INTO `room_members` (`id`, `room_id`, `user_id`, `bet`, `types`, `cards`, `status`) VALUES
+(138, 130, 3, 0, 0, '', 'active');
 
 -- --------------------------------------------------------
 
@@ -116,8 +119,10 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `email`, `password`, `name`, `balance`, `token`, `total_played`, `total_win`, `total_balance`) VALUES
-(2, 'yana@awsi.com', '$2y$10$yhQWfuyAW63mcy3ZksXBFOuv4Y4m2CuCoFOucVO768BAHMekzYooe', 'owerlord', 8000, '527ad0d366406ff3acf9d677ae9f72f2', 0, 0, 5000),
-(3, 'dev@dev.com', '$2y$10$hvDnmfqRDzCBShPSqWrm2.4YVxLBpS/.FKS.FG7DiBKCwjVnI0dpq', 'dev', 5000, '8a1954228142f4c6f15188d5649b560e', 0, 0, 5000);
+(1, 'dev@dev.com', '$2y$10$GxI0vspK6N6IulLUOvsB6.Zw5Ky4MkmCCAfzme34kbEo6qtv4yn5y', 'devac', 5000, 'd06d7980f2e7057cd7dd3801ef08451e', 0, 0, 100),
+(2, 'kam@lo.com', '25d55ad283aa400af464c76d713c07ad', 'Kamilla', 100, 'c06d7980f2e7057cd7dd3801ef08451e', 0, 0, 100),
+(3, 'yana@awsi.com', '25d55ad283aa400af464c76d713c07ad', 'join', 100, '2e993aaa33b961153109d744cb27a6d5', 10000, 0, 100),
+(5, 'job@com.ru', '25d55ad283aa400af464c76d713c07ad', 'Jober', 5000, NULL, 0, 0, 100);
 
 --
 -- Индексы сохранённых таблиц
@@ -142,9 +147,7 @@ ALTER TABLE `message_hashes`
 -- Индексы таблицы `rooms`
 --
 ALTER TABLE `rooms`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uniq_private_code` (`private_code`),
-  ADD KEY `type_status` (`type`,`status`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Индексы таблицы `room_members`
@@ -181,19 +184,19 @@ ALTER TABLE `message_hashes`
 -- AUTO_INCREMENT для таблицы `rooms`
 --
 ALTER TABLE `rooms`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
 
 --
 -- AUTO_INCREMENT для таблицы `room_members`
 --
 ALTER TABLE `room_members`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=139;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
