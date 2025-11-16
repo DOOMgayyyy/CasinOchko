@@ -33,16 +33,16 @@ class Lobby
     /**
      * Находит открытую комнату со свободными местами
      * Производит поиск среди всех открытых комнат со статусом 'playing'
-     * и проверяет количество участников в каждой. Возвращает первую 
-     * найденную комнату, где меньше 6 участников.
+     * и проверяет количество активных игроков в каждой.
+     * Возвращает первую найденную комнату, где меньше 6 активных игроков.
      * @return object|null Объект комнаты если найдена подходящая, иначе null
      */
     private function getOpenRoom()
     {
         $rooms = $this->db->getOpenRooms();
         foreach ($rooms as $room) {
-            $membersCount = $this->db->getMembersCount($room->id)->count;
-            if ($membersCount < 6) {
+            $playingMembersCount = $this->db->getPlayingMembersCount($room->id)->count;
+            if ($playingMembersCount < 6) {
                 return $room;
             }
         }
@@ -203,11 +203,6 @@ class Lobby
         $room = $this->db->getRoomByPrivateCode($code);
         if (!$room) {
             return ['error' => 901];
-        }
-
-        $membersCount = $this->db->getMembersCount($room->id)->count;
-        if ($membersCount >= 6) {
-            return ['error' => 803];
         }
 
         $success = $this->db->addRoomMember($room->id, $userId, 'spectator', 0);

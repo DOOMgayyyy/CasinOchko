@@ -147,6 +147,18 @@ class DB
         );
     }
 
+    /**
+     * Получает количество участников, не являющихся наблюдателями (т.е. игроков) в комнате.
+     * Считает всех, чей статус не 'spectator'.
+     * @param int $roomId ID комнаты
+     * @return object Объект с полем 'count'
+     */
+    public function getPlayingMembersCount($roomId)
+    {
+        // Считаем всех, кто не 'spectator' (т.е. 'player', 'active', 'folded', 'waiting' и т.д.)
+        return $this->query("SELECT COUNT(*) AS count FROM room_members WHERE room_id = ? AND status != 'spectator'", [$roomId]);
+    }
+
     public function isPrivateCodeUnique($code) {
         $sql = "SELECT COUNT(*) FROM rooms WHERE private_code = ?";
         $count = $this->query($sql, [$code])->{'COUNT(*)'};
