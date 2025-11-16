@@ -138,15 +138,9 @@ class Server {
         return await this.request<TPrivateRoomResponse>('createPrivateRoom');
     }
     
-    async joinPrivateRoom(code: string): Promise<TJoinPrivateRoomResponse['room'] | null> {
-        const result = await this.request<TJoinPrivateRoomResponse>('joinPrivateRoom', { code });
-
-        if (result && result.room) {
-            return result.room;
-        }
-        return null;
-    }
-
+    async joinPrivateRoom(code: string): Promise<TPrivateRoomResponse | null> {
+    return await this.request<TPrivateRoomResponse>('joinPrivateRoom', { code });
+}
     async quickStart(): Promise<TQuickStartResponse | null> {
         return await this.request<TQuickStartResponse>('quickStart');
     }

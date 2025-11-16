@@ -39,19 +39,7 @@ export type TPrivateRoomResponse = {
     hash: string;                        
 };
 
-export type TJoinPrivateRoomResponse = {
-    room: {
-        id: number;
-        type: string;
-        status: string;
-        private_code: string;
-        players: Array<{
-            id: number;
-            name: string;
-            balance: number;
-        }>;
-    }
-};
+export type TJoinPrivateRoomResponse = TPrivateRoomResponse;
 
 export type TQuickStartResponse = {
     id: number;                          
