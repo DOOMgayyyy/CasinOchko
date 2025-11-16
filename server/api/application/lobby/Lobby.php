@@ -220,6 +220,49 @@ class Lobby
         return $this->db->getRoom($room->id);
     }
 
+    public function leaveRoom($userId) 
+    {
+        $roomData = $this->db->getRoomId($userId);
+
+        if (!$roomData || !$roomData->room_id) {
+            return ['error' => 902];
+        }
+
+        $roomId = $roomData->room_id;
+
+        $room = $this->db->getRoom($roomId);
+
+        if (!$room) {
+            return ['error' => 901];
+        }
+
+        $member = $this->db->getRoomMember($roomId, $userId);
+
+        # Если уходящий игрок был текущим
+        if ($member && $room->current_member_id == $member->member_id) {
+            $this->db->execute(
+                "UPDATE rooms SET current_member_id = NULL WHERE id = ?",
+                [$roomId]
+            );
+        }
+
+        $success = $this->db->removeUserFromRoom($roomId, $userId);
+
+        if (!$success) {
+            return ['error' => 903];
+        }
+
+        $membersCount = $this->db->getMembersCount($roomId)->count;
+
+        if ($membersCount == 0) {
+            $this->db->execute("DELETE FROM rooms WHERE id = ?", [$roomId]);
+            return ['success' => true, 'roomDeleted' => true];
+        } else {
+            $this->refreshRoomHash($roomId);
+            return ['success' => true, 'roomDeleted' => false];
+        }
+    }
+
     /**
      * Возвращает рейтинг игроков по балансу
      * @return array Список пользователей
