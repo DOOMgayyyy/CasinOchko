@@ -312,4 +312,25 @@ class DB
         return $result ? $result->current_member_id : null;
     }
 
+    /**
+     * Удаление комнаты
+     */
+    public function deleteRoom($roomId) {
+        return $this->execute("DELETE FROM rooms WHERE id = ?", [$roomId]);
+    }
+
+    /**
+     * Обновление хэша комнаты
+     */
+    public function updateRoomHash($roomId, $hash) {
+        return $this->execute("UPDATE rooms SET hash = ? WHERE id = ?", [$hash, $roomId]);
+    }
+
+    /**
+     * Сброс текущего игрока в комнате
+     */
+    public function resetCurrentMember($roomId) {
+        return $this->execute("UPDATE rooms SET current_member_id = NULL WHERE id = ?", [$roomId]);
+    }
+
 }
