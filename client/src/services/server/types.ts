@@ -86,7 +86,7 @@ export type TPlayer = {
     balance: number;
     bet: number;
     cards: string[];
-    status: 'active' | 'folded' | 'waiting';
+    status: 'spectator' | 'player' ;
 };
 
 // Таймер хода
@@ -102,5 +102,6 @@ export type TRoomInfoResponse = {
     myCards: string[];
     timer: TTimer | null;
     hash: string;
+    currentPlayerId: number | null;
     changed: boolean;
 };
