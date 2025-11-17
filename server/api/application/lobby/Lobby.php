@@ -220,42 +220,38 @@ class Lobby
         return $this->db->getRoom($room->id);
     }
 
+    # Выход пользователя из комнаты
     public function leaveRoom($userId) 
     {
+        // Получаем данные о комнате пользователя
         $roomData = $this->db->getRoomId($userId);
-
         if (!$roomData || !$roomData->room_id) {
-            return ['error' => 902];
+            return ['error' => 902]; # Пользователь не в комнате
         }
 
         $roomId = $roomData->room_id;
 
         $room = $this->db->getRoom($roomId);
-
         if (!$room) {
-            return ['error' => 901];
+            return ['error' => 901]; # Комната не найдена
         }
 
+        # Проверка, был ли игрок текущим
         $member = $this->db->getRoomMember($roomId, $userId);
-
-        # Если уходящий игрок был текущим
         if ($member && $room->current_member_id == $member->member_id) {
-            $this->db->execute(
-                "UPDATE rooms SET current_member_id = NULL WHERE id = ?",
-                [$roomId]
-            );
+            $this->db->resetCurrentMember($roomId);
         }
 
+        # Удаляем пользователя из комнаты (ставка сгорает)
         $success = $this->db->removeUserFromRoom($roomId, $userId);
-
         if (!$success) {
-            return ['error' => 903];
+            return ['error' => 903]; # Ошибка удаления
         }
 
         $membersCount = $this->db->getMembersCount($roomId)->count;
-
+        
         if ($membersCount == 0) {
-            $this->db->execute("DELETE FROM rooms WHERE id = ?", [$roomId]);
+            $this->db->deleteRoom($roomId);
             return ['success' => true, 'roomDeleted' => true];
         } else {
             $this->refreshRoomHash($roomId);

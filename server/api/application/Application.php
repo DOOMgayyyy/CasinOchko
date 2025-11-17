@@ -218,6 +218,18 @@ class Application
         return ['error' => 242];
     }
 
+    public function leaveRoom($params)
+    {
+        if ($params['token']) {
+            $user = $this->user->getUser($params['token']);
+            if ($user) {
+                return $this->lobby->leaveRoom($user->id);
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242];
+    }
+
     public function addBalance($params){
         if ($params['token'] && $params['amount']) { 
             
