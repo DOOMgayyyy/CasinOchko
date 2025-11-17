@@ -99,6 +99,7 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         try {
             const result = await server.quickStart();
             if (result) {
+                store.setCurrentRoomId(result.id);
                 setPage(PAGES.GAME);
             }
         } catch (error) {
