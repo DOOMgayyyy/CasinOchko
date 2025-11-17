@@ -4,6 +4,8 @@ import Button from '../../components/Button/Button';
 import { IBasePage, PAGES } from '../PageManager';
 import Game from '../../game/Game';
 import { Canvas, useCanvas } from '../../services/canvas';
+import { ServerContext, StoreContext } from '../../App';
+import { TPlayer, TRoomInfoResponse, TTimer } from '../../services/server/types';
 
 import cardJH from '../../assets/img/cards/JH.png';
 import cardKH from '../../assets/img/cards/KH.png';
@@ -17,6 +19,8 @@ const GAME_FIELD = 'game-field';
 const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const { WINDOW, SPRITE_SIZE } = CONFIG;
     const { setPage } = props;
+    const server = useContext(ServerContext);
+    const store = useContext(StoreContext);
     
     let game: Game | null = null;
     // инициализация канваса
@@ -24,19 +28,18 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const Canvas = useCanvas(render);
     let interval: NodeJS.Timeout | null = null;
 
-    const currentPlayerId = 1;
     // инициализация стола
     const [tableImage, setTableImage] = useState<HTMLImageElement | null>(null);
 
-    // информация об игроках
-    const [players, setPlayers] = useState([
-        { id: 1, name: 'Decibek' + ':', balance: 42, score: 20, position: 'left-top' },
-        { id: 2, name: 'DOOMgay' + ':', balance: 66, score: 19, position: 'left-middle' },
-        { id: 3, name: 'safevitya' + ':', balance: 52, score: 17, position: 'left-bottom' },
-        { id: 4, name: 'Player228' + ':', balance: 2000, score: 17, position: 'right-bottom' },
-        { id: 5, name: 'Lotov123' + ':', balance: 220, score: 18, position: 'right-middle' },
-        { id: 6, name: 'Alexey Trusov' + ':', balance: 15, score: 24, position: 'right-top' },
-      ]);
+    // Состояние игры из сервера
+    const [myCards, setMyCards] = useState<string[]>([]);
+    const [players, setPlayers] = useState<TPlayer[]>([]);
+    const [timer, setTimer] = useState<TTimer | null>(null);
+    const [myMemberId, setMyMemberId] = useState<number | null>(null);
+    
+    // Получаем roomId из store
+    const roomId = store.getCurrentRoomId();
+    const user = store.getUser();
 
     // функция отрисовки одного кадра сцены
     function render(FPS: number): void {
@@ -98,6 +101,9 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
       };
     
       const handleBackToLobby = () => {
+        // Останавливаем game loop при выходе
+        server.stopGameLoop();
+        store.clearCurrentRoomId();
         setPage(PAGES.LOBBY);
       };
         
@@ -139,19 +145,63 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         img.onload = () => setTableImage(img);
     }, []);
 
+    // Game loop - каждую секунду запрашиваем обновления состояния игры
+    useEffect(() => {
+        if (!roomId) {
+            // Если нет roomId, возвращаемся в лобби
+            setPage(PAGES.LOBBY);
+            return;
+        }
+
+        // Функция обработки обновлений игры
+        const handleGameUpdate = (roomInfo: TRoomInfoResponse) => {
+            setMyCards(roomInfo.myCards);
+            setPlayers(roomInfo.players);
+            setTimer(roomInfo.timer);
+            
+            // Находим себя в списке игроков
+            if (user) {
+                const myPlayer = roomInfo.players.find(p => p.userId === user.id);
+                if (myPlayer) {
+                    setMyMemberId(myPlayer.memberId);
+                }
+            }
+        };
+
+        // Запускаем game loop
+        server.startGameLoop(roomId, handleGameUpdate);
+
+        // Очистка при размонтировании компонента
+        return () => {
+            server.stopGameLoop();
+        };
+    }, [roomId, server, user, setPage]);
+
     return (<div className='game-page'>
         <div className="game-scale-wrapper">
            
         {/* надписи с инфой игроков за столом */}
         <div id={GAME_FIELD} className={GAME_FIELD}>
             <div className="players">
-                {players.map(player => (
-                    <div className={`player-slot ${player.position} ${player.id === currentPlayerId ? 'active-player' : ''}`} key={player.id}>
-                    <span className="name">{player.name}</span>
-                    <span className="balance">${player.balance}</span>
-                    <span className="score">{player.score}</span>
-                    </div>
-                ))}
+                {players.map((player, index) => {
+                    const positions = ['left-top', 'left-middle', 'left-bottom', 'right-bottom', 'right-middle', 'right-top'];
+                    const position = positions[index] || 'left-top';
+                    const isCurrentPlayer = myMemberId !== null && player.memberId === myMemberId;
+                    const isActiveTurn = timer?.currentPlayerId === player.memberId;
+                    const score = player.cards.length * 5; // Реализовать правильный расчет очков
+                    
+                    return (
+                        <div 
+                            className={`player-slot ${position} ${isCurrentPlayer ? 'active-player' : ''} ${isActiveTurn ? 'current-turn' : ''}`} 
+                            key={player.memberId}
+                        >
+                            <span className="name">{player.name}</span>
+                            <span className="balance">${player.balance}</span>
+                            <span className="score">{score}</span>
+                            {player.bet > 0 && <span className="bet">Ставка: ${player.bet}</span>}
+                        </div>
+                    );
+                })}
             </div>
              {/* дилер */}
              <div className='diller-slot'>
@@ -169,17 +219,24 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                 <span className="your-cards-label">Ваши карты:</span>
             </div>
             <div className="my-cards">
-                <div className="card">
-                    <img src={cardJH}/>
-                </div>
-                <div className="card">
-                    <img src={cardKH}/>
-                </div>
+                {myCards.length > 0 ? (
+                    myCards.map((card, index) => (
+                        <div className="card" key={index}>
+                            <span>{card}</span>
+                        </div>
+                    ))
+                ) : (
+                    <div className="card">
+                        <span>Нет карт</span>
+                    </div>
+                )}
             </div>
 
         <div className='timer-div'>
             <span className='timer-span'>Таймер хода:</span>
-            <span className='timer-count'>⏱ 15</span>
+            <span className='timer-count'>
+                ⏱ {timer && timer.timeLeft !== null ? timer.timeLeft : '—'}
+            </span>
         </div>
 
         <div className='game-controls vertical'>
@@ -200,12 +257,14 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
 
         <div className='count-div'>
             <span className='count-span'>Ваши очки:</span>
-            <span className='count-number'>17</span>
+            <span className='count-number'>{myCards.length * 5}</span>
         </div>
 
         <button className="back-to-lobby-button" onClick={handleBackToLobby} />
             <div className="top-right-controls">
-            <span className="room-id">Комната AD12F </span>
+            <span className="room-id">
+                Комната {roomId ? `#${roomId}` : '—'}
+            </span>
                 <button className="chat-button" onClick={handleChatToggle}>
                     <img src={chatIcon} alt="Chat" className="chat-icon" />
                 </button>

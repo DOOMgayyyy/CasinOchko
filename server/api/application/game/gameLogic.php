@@ -23,7 +23,7 @@ class GameLogic
     {
         // Получаем текущий hash комнаты
         $room = $this->db->getRoom($roomId);
-        
+        $currentMemberId = $this->db->getCurrentMemberId($roomId);
         if (!$room) {
             return ['error' => 901]; // Комната не найдена
         }
@@ -37,6 +37,7 @@ class GameLogic
                 'myCards' => [],
                 'timer' => null,
                 'hash' => $clientHash,
+                'currentPlayerId' => $currentMemberId,
                 'changed' => false
             ];
         }
@@ -57,6 +58,7 @@ class GameLogic
             'myCards' => $myCards,
             'timer' => $timer,
             'hash' => $currentHash,
+            'currentPlayerId' => $currentMemberId,
             'changed' => true
         ];
     }

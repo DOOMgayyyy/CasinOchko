@@ -283,7 +283,7 @@ class DB
     }
     
     /**
-     * Обновить статус игрока (active, folded, waiting)
+     * Обновить статус игрока (player, spectator)
      */
     public function updateMemberStatus($roomId, $userId, $status) {
         return $this->execute(
@@ -300,6 +300,16 @@ class DB
             "UPDATE rooms SET current_member_id = ?, turn_start_time = NOW() WHERE id = ?",
             [$memberId, $roomId]
         );
+    }
+    /**
+     * Получить ID текущего ходящего игрока
+     */
+    public function getCurrentMemberId($roomId) {
+        $result = $this->query(
+            "SELECT current_member_id FROM rooms WHERE id = ?",
+            [$roomId]
+        );
+        return $result ? $result->current_member_id : null;
     }
 
 }

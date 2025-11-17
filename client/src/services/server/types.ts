@@ -77,3 +77,31 @@ export type TRawUserStats = {
     total_balance: string;
     total_hours?: string;
 };
+
+// Игрок в комнате
+export type TPlayer = {
+    memberId: number;
+    userId: number;
+    name: string;
+    balance: number;
+    bet: number;
+    cards: string[];
+    status: 'spectator' | 'player' ;
+};
+
+// Таймер хода
+export type TTimer = {
+    currentPlayerId: number;
+    timeLeft: number | null;
+    totalTime: number | null;
+};
+
+// Ответ getInfoRoom
+export type TRoomInfoResponse = {
+    players: TPlayer[];
+    myCards: string[];
+    timer: TTimer | null;
+    hash: string;
+    currentPlayerId: number | null;
+    changed: boolean;
+};
