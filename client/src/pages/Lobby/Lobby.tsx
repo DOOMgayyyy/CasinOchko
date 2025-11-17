@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import './Lobby.scss';
 import SideMenu from './SideMenu/SideMenu';
 import PrivateRoom from './PrivateRoom/PrivateRoom';
@@ -59,21 +59,6 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                 code: result.private_code,
                 room_id: result.id 
             });
-        }
-    };
-
-    const handleJoinRoom = async (code: string) => {
-        try {
-            const roomData = await server.joinPrivateRoom(code);
-
-            if (roomData) {
-                console.log('Successfully joined room:', roomData);
-                setPage(PAGES.GAME);
-            } else {
-                console.log('Failed to join room.');
-            }
-        } catch (error) {
-            console.error('Exception during joinPrivateRoom:', error);
         }
     };
 
@@ -153,11 +138,12 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     player={player}
                     onBack={() => setShowPrivateRoomPage(false)}
                     onCreateRoom={handleCreateRoom}
-                    onJoinRoom={handleJoinRoom}
+                    //onJoinRoom={handleJoinRoom}
                     onShowSideMenu={() => setShowSideMenu(true)}
                     onShowAdModal={() => setShowAdModal(true)}
                     roomCreated={roomCreated}
                     onCloseRoomMessage={() => setRoomCreated(null)}
+                    setPage={setPage} 
                 />
                 {sideMenuComponent}
                 {adModalComponent}

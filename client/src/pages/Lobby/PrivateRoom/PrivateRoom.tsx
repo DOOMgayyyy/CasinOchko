@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import './PrivateRoom.scss';
 import MenuIcon from '../../../assets/img/toppanel/sidebarmenu.png';
 import PlusIcon from '../../../assets/img/toppanel/topupthebalance.png';
+import { ServerContext } from '../../../App';
+import { PAGES } from '../../PageManager';
 
 export interface PrivateRoomProps {
     player: {
@@ -10,30 +12,49 @@ export interface PrivateRoomProps {
     };
     onBack: () => void;
     onCreateRoom: () => void;
-    onJoinRoom: (code: string) => void;
     onShowSideMenu: () => void;
     onShowAdModal: () => void;
     roomCreated?: {code: string, room_id: number} | null;
     onCloseRoomMessage?: () => void;
+    setPage: (page: PAGES) => void; 
 }
 
 const PrivateRoom: React.FC<PrivateRoomProps> = ({ 
     player,              // Данные игрока (имя и баланс) для отображения в заголовке
     onBack,              // Callback для возврата к основному лобби
     onCreateRoom,        // Callback для создания новой приватной комнаты
-    onJoinRoom,          // Callback для присоединения к существующей комнате по коду
+    //onJoinRoom,          // Callback для присоединения к существующей комнате по коду
     onShowSideMenu,      // Callback для открытия бокового меню с настройками
     onShowAdModal,       // Callback для открытия модального окна с рекламой (пополнение баланса)
     roomCreated,         // Данные созданной комнаты (код и ID) для отображения уведомления
-    onCloseRoomMessage   // Callback для закрытия уведомления о созданной комнате
+    onCloseRoomMessage,   // Callback для закрытия уведомления о созданной комнате
+    setPage
 }) => {
     const [joinCode, setJoinCode] = useState('');
     const [showJoinInput, setShowJoinInput] = useState(false);
     const [copySuccess, setCopySuccess] = useState(false);
 
+    const server = useContext(ServerContext);
+
+    const handleJoinRoom = async (code: string) => {
+    try {
+        const roomData = await server.joinPrivateRoom(code);
+        console.log('Room data:', roomData);
+
+        if (roomData) {
+            console.log('Successfully joined room:', roomData);
+            setPage(PAGES.GAME);
+        } else {
+            console.log('Failed to join room.');
+        }
+    } catch (error) {
+        console.error('Exception during joinPrivateRoom:', error);
+    }
+};
+    
     const handleJoinClick = () => {
         if (showJoinInput && joinCode.trim()) {
-            onJoinRoom(joinCode.toUpperCase());
+            handleJoinRoom(joinCode.toUpperCase());
             setJoinCode('');
             setShowJoinInput(false);
         } else {
