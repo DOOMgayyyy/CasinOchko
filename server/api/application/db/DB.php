@@ -155,7 +155,7 @@ class DB
      */
     public function getPlayingMembersCount($roomId)
     {
-        // Считаем всех, кто не 'spectator' (т.е. 'player', 'active', 'folded', 'waiting' и т.д.)
+        // Считаем всех, кто не 'spectator' (т.е. 'player', )
         return $this->query("SELECT COUNT(*) AS count FROM room_members WHERE room_id = ? AND status != 'spectator'", [$roomId]);
     }
 
