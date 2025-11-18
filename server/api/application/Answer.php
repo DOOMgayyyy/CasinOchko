@@ -74,10 +74,9 @@ class Answer
 
         if ($data) {
             
-            // 🚨 ИСПРАВЛЕНИЕ ТИПА: Преобразуем объект stdClass в массив для проверки ключей
+
             $processed_data = is_object($data) ? (array) $data : $data;
 
-            // Теперь проверяем ключ 'error' в массиве $processed_data
             if (!is_bool($processed_data) && array_key_exists('error', $processed_data)) {
                 $code = $processed_data['error'];
                 return [
@@ -89,7 +88,7 @@ class Answer
                 ];
             }
             
-            // Возвращаем данные. JSON-кодирование обработает объект ($data) или массив.
+        
             return [
                 'result' => 'ok',
                 'data' => $data
