@@ -65,11 +65,13 @@ class DB
     {
         $this->execute("UPDATE users SET token=? WHERE id=?", [$token, $userId]);
     }
-    public function getUserStat($userId) {
+    public function getUserStat($userId)
+    {
         return $this->query("SELECT total_played, total_win, total_balance FROM users WHERE id=?", [$userId]);
     }
 
-    public function updateUserName($userId, $newName) {
+    public function updateUserName($userId, $newName)
+    {
         return $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
     }
     public function isNameUnique($name, $excludingUserId = null)
@@ -118,7 +120,7 @@ class DB
                                 LEFT JOIN users as u on u.id = m.user_id 
                                 WHERE m.room_id = ?
                                 ORDER BY m.created DESC",
-                                [$roomId]
+            [$roomId]
         );
     }
 
@@ -148,13 +150,15 @@ class DB
         );
     }
 
-    public function isPrivateCodeUnique($code) {
+    public function isPrivateCodeUnique($code)
+    {
         $sql = "SELECT COUNT(*) FROM rooms WHERE private_code = ?";
         $count = $this->query($sql, [$code])->{'COUNT(*)'};
         return $count == 0;
     }
 
-    public function createRoom($type, $status, $privateCode, $hash) {
+    public function createRoom($type, $status, $privateCode, $hash)
+    {
         $this->execute(
             "INSERT INTO rooms (type, status, private_code, hash) VALUES (?, ?, ?, ?)",
             [$type, $status, $privateCode, $hash]
@@ -163,22 +167,25 @@ class DB
         return $this->pdo->lastInsertId();
     }
 
-    public function removeUserFromAllRooms($userId) {
+    public function removeUserFromAllRooms($userId)
+    {
         return $this->execute(
             "DELETE FROM room_members WHERE user_id = ?",
             [$userId]
         );
     }
 
-    public function removeUserFromRoom($roomId, $userId) {
-            return $this->execute(
-                "DELETE FROM room_members WHERE room_id = ? AND user_id = ?",
-                [$roomId, $userId]
-            );
-        }
+    public function removeUserFromRoom($roomId, $userId)
+    {
+        return $this->execute(
+            "DELETE FROM room_members WHERE room_id = ? AND user_id = ?",
+            [$roomId, $userId]
+        );
+    }
 
-    public function addRoomMember($roomId, $userId, $bet = 0) { 
-        $this->removeUserFromAllRooms($userId); 
+    public function addRoomMember($roomId, $userId, $bet = 0)
+    {
+        $this->removeUserFromAllRooms($userId);
         try {
             return $this->execute(
                 "INSERT INTO room_members (room_id, user_id, bet) VALUES (?, ?, ?)",
@@ -190,11 +197,13 @@ class DB
         }
     }
 
-    public function getRoomByPrivateCode($code) {
+    public function getRoomByPrivateCode($code)
+    {
         return $this->query("SELECT * FROM rooms WHERE private_code=?", [$code]);
     }
 
-    public function getRoomMembers($roomId) {
+    public function getRoomMembers($roomId)
+    {
         return $this->queryAll(
             "SELECT u.id, u.name, u.balance 
              FROM room_members rm 
@@ -216,11 +225,12 @@ class DB
             LIMIT 100
     ");
     }
-    public function updateBalance($userId, $amount) {
-    // Используем SQL-функцию ADD для прибавления или вычитания.
-    // Если $amount положительный, произойдет прибавление.
-    // Если $amount отрицательный, произойдет вычитание.
-    // Выражение 'balance + ?' гарантирует, что мы не перезаписываем, а обновляем баланс.
+    public function updateBalance($userId, $amount)
+    {
+        // Используем SQL-функцию ADD для прибавления или вычитания.
+        // Если $amount положительный, произойдет прибавление.
+        // Если $amount отрицательный, произойдет вычитание.
+        // Выражение 'balance + ?' гарантирует, что мы не перезаписываем, а обновляем баланс.
         return $this->execute(
             "UPDATE users SET balance = balance + ? WHERE id = ?",
             [$amount, $userId]
@@ -228,8 +238,14 @@ class DB
     }
     public function saveDeck($roomId, $deck)
     {
-        $json = json_encode($deck);
-        return $this->execute("UPDATE rooms SET deckOfCards = ? WHERE id = ?", [$json, $roomId]);
+        $str = implode(',', $deck);
+        $hex = bin2hex($str);
+        return $this->execute("UPDATE rooms SET deckOfCards = ? WHERE id = ?", [$hex, $roomId]);
     }
-
+    public function loadDeck($roomId)
+    {
+        $hex = $this->query("SELECT deckOfCards FROM rooms WHERE id = ?", [$roomId])->fetchColumn();
+        $str = hex2bin($hex);
+        return explode(',', $str);
+    }
 }
