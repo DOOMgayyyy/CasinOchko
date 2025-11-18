@@ -39,6 +39,8 @@ function result($params) {
             // game
             case 'getInfoRoom': return $app->getInfoRoom($params);
             case 'leaveRoom': return $app->leaveRoom($params);
+
+            case 'connectRoom': return $app->connectRoom($params);
         
             default: return ['error' => 102];
         }

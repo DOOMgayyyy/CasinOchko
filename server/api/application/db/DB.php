@@ -5,9 +5,9 @@ class DB
     function __construct()
     {
         $host = '127.0.0.1';// ip для подключения к бд
-        $port = '3306';// порт 
+        $port = '8889';// порт 
         $user = 'root';// логин для входа в бд
-        $pass = ''; // пароль для бд
+        $pass = 'root'; // пароль для бд
         $db = 'casinochko';// название базы данных 
         $connect = "mysql:host=$host;port=$port;dbname=$db;charset=utf8";// формирование команды для подключения к базе данных
         // cоздаем объект PDO для работы с БД
@@ -331,6 +331,12 @@ class DB
      */
     public function resetCurrentMember($roomId) {
         return $this->execute("UPDATE rooms SET current_member_id = NULL WHERE id = ?", [$roomId]);
+    }
+
+    public function getRoomHash($roomId) {
+        $result = $this->query("SELECT hash FROM rooms WHERE id =?", [$roomId]);
+        return $result ? $result->hash : null;
+
     }
 
 }

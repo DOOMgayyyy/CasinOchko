@@ -46,9 +46,40 @@ class Answer
 
     static function response($data)
     {
+        // if ($data) {
+            
+        //     if (!is_bool($data) && array_key_exists('error', $data)) {
+        //         $code = $data['error'];
+        //         return [
+        //             'result' => 'error',
+        //             'error' => [
+        //                 'code' => $code,
+        //                 'text' => self::$CODES[$code]
+        //             ]
+        //         ];
+        //     }
+        //     return [
+        //         'result' => 'ok',
+        //         'data' => $data
+        //     ];
+        // }
+        // $code = 9000;
+        // return [
+        //     'result' => 'error',
+        //     'error' => [
+        //         'code' => $code,
+        //         'text' => self::$CODES[$code]
+        //     ]
+        // ];
+
         if ($data) {
-            if (!is_bool($data) && array_key_exists('error', $data)) {
-                $code = $data['error'];
+            
+            // 🚨 ИСПРАВЛЕНИЕ ТИПА: Преобразуем объект stdClass в массив для проверки ключей
+            $processed_data = is_object($data) ? (array) $data : $data;
+
+            // Теперь проверяем ключ 'error' в массиве $processed_data
+            if (!is_bool($processed_data) && array_key_exists('error', $processed_data)) {
+                $code = $processed_data['error'];
                 return [
                     'result' => 'error',
                     'error' => [
@@ -57,18 +88,12 @@ class Answer
                     ]
                 ];
             }
+            
+            // Возвращаем данные. JSON-кодирование обработает объект ($data) или массив.
             return [
                 'result' => 'ok',
                 'data' => $data
             ];
         }
-        $code = 9000;
-        return [
-            'result' => 'error',
-            'error' => [
-                'code' => $code,
-                'text' => self::$CODES[$code]
-            ]
-        ];
     }
 }
