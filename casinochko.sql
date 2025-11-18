@@ -60,15 +60,20 @@ CREATE TABLE `rooms` (
   `current_member_id` bigint UNSIGNED DEFAULT NULL,
   `private_code` varchar(4) DEFAULT NULL,
   `hash` varchar(255) DEFAULT NULL,
-  `deckOfCards` text COMMENT 'JSON-массив карт: ["AH","KD",...]'
+  `deckOfCards` varchar(255) COMMENT 'HEX строка: QS,5C,2D,...'
 ) ;
 
 --
 -- Дамп данных таблицы `rooms`
 --
 
-INSERT INTO `rooms` (`id`, `type`, `status`, `current_member_id`, `private_code`, `hash`, `deckOfCards`) VALUES
-(9, 'private', 'playing', NULL, 'YKYN', '30ee435595786e81cf8f32e80b49b786', '[\"QS\",\"5C\",\"2D\",\"7S\",\"KH\",\"8S\",\"AH\",\"9D\",\"9H\",\"JD\",\"3S\",\"3C\",\"4H\",\"KC\",\"KS\",\"QC\",\"10D\",\"8D\",\"2C\",\"2S\",\"8C\",\"6S\",\"6C\",\"7C\",\"AC\",\"8H\",\"10H\",\"9S\",\"7D\",\"AD\",\"4S\",\"KD\",\"4C\",\"10C\",\"QH\",\"6D\",\"6H\",\"AS\",\"2H\",\"10S\",\"3D\",\"QD\",\"JS\",\"5D\",\"4D\",\"7H\",\"JC\",\"5S\",\"9C\",\"JH\",\"5H\",\"3H\"]');
+INSERT INTO `rooms` 
+(`id`, `type`, `status`, `current_member_id`, `private_code`, `hash`, `deckOfCards`) 
+VALUES
+(9, 'private', 'playing', NULL, 'YKYN', '30ee435595786e81cf8f32e80b49b786',
+ '51532c35432c32442c37532c4b482c38532c41482c39442c39482c4a442c33532c33432c34482c4b432c4b532c51432c3130442c38442c32432c32532c38432c36532c36432c37432c41432c38482c3130482c39532c37442c41442c34532c4b442c34432c3130432c51482c36442c36482c41532c32482c3130532c33442c51442c4a532c35442c34442c37482c4a432c35532c39432c4a482c35482c3348'
+);
+
 
 -- --------------------------------------------------------
 
@@ -82,7 +87,7 @@ CREATE TABLE `room_members` (
   `user_id` bigint UNSIGNED NOT NULL,
   `bet` int DEFAULT '0',
   `types` tinyint(1) DEFAULT '0',
-  `cards` text NOT NULL COMMENT 'Карты игрока в формате JSON: ["AH","KD",...]'
+  `cards` varchar(255) NOT NULL COMMENT 'HEX строка: AH,7D ->  hex'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица членов комнат';
 
 --
