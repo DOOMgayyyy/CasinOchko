@@ -376,3 +376,121 @@
     box-shadow: 0 0 40px #FFC300;
   }
 }
+
+.room-created-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  border: 2px solid #4CAF50;
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 350px;
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.3);
+  animation: slideDown 0.3s ease-out;
+  z-index: 1000;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.room-created-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.success-icon {
+  font-size: 1.2rem;
+  margin-right: 8px;
+}
+
+.success-text {
+  color: white;
+  font-family: 'Handjet', monospace;
+  font-size: 1.3rem;
+  font-weight: bold;
+  flex: 1;
+}
+
+.close-message-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.close-message-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.room-code-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.room-code-label {
+  color: white;
+  font-family: 'Handjet', monospace;
+  font-size: 1.1rem;
+}
+
+.room-code-value {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-family: 'Handjet', monospace;
+  font-size: 1.4rem;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 8px;
+  letter-spacing: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.room-code-value:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.room-code-value.clickable {
+  cursor: pointer;
+}
+
+.copy-success {
+  color: white;
+  font-family: 'Handjet', monospace;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 8px 16px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.room-instruction {
+  color: white;
+  font-family: 'Handjet', monospace;
+  font-size: 1rem;
+  text-align: center;
+  font-style: italic;
+}

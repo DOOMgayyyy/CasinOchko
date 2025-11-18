@@ -36,6 +36,8 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const [players, setPlayers] = useState<TPlayer[]>([]);
     const [timer, setTimer] = useState<TTimer | null>(null);
     const [myMemberId, setMyMemberId] = useState<number | null>(null);
+    const [roomCode, setRoomCode] = useState<string | null>(null);
+    const [copySuccess, setCopySuccess] = useState(false);
     
     // Получаем roomId из store
     const roomId = store.getCurrentRoomId();
@@ -144,6 +146,22 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         img.src = tableImgSrc;
         img.onload = () => setTableImage(img);
     }, []);
+
+    useEffect(() => {
+        const code = sessionStorage.getItem('roomCode');
+        if (code) {
+            setRoomCode(code);
+            sessionStorage.removeItem('roomCode');
+        }
+    }, []);
+
+    const handleCopyCode = async () => {
+        if (roomCode) {
+            await navigator.clipboard.writeText(roomCode);
+            setCopySuccess(true);
+            setTimeout(() => setCopySuccess(false), 2000);
+        }
+    };
 
     // Game loop - каждую секунду запрашиваем обновления состояния игры
     useEffect(() => {
@@ -271,6 +289,28 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
             </div>
         </div>
         </div>
+
+        {roomCode && (
+            <div className="room-created-message">
+                <div className="room-created-header">
+                    <span className="success-icon">✅</span>
+                    <span className="success-text">Комната создана!</span>
+                    <button className="close-message-btn" onClick={() => setRoomCode(null)}>×</button>
+                </div>
+                <div className="room-code-display">
+                    <div className="room-code-label">Код комнаты:</div>
+                    <div 
+                        className="room-code-value clickable" 
+                        onClick={handleCopyCode}
+                        title="Нажмите, чтобы скопировать код">
+                        {roomCode}
+                    </div>
+                </div>
+                {copySuccess && (
+                    <div className="copy-success">Код скопирован!</div>
+                )}
+            </div>
+        )}
     </div>)
 }
 

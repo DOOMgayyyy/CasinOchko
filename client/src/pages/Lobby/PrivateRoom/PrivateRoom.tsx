@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import './PrivateRoom.scss';
 import MenuIcon from '../../../assets/img/toppanel/sidebarmenu.png';
 import PlusIcon from '../../../assets/img/toppanel/topupthebalance.png';
-import { ServerContext } from '../../../App';
+import { ServerContext, StoreContext } from '../../../App';
 import { PAGES } from '../../PageManager';
 
 export interface PrivateRoomProps {
@@ -14,8 +14,6 @@ export interface PrivateRoomProps {
     onCreateRoom: () => void;
     onShowSideMenu: () => void;
     onShowAdModal: () => void;
-    roomCreated?: {code: string, room_id: number} | null;
-    onCloseRoomMessage?: () => void;
     setPage: (page: PAGES) => void; 
 }
 
@@ -26,31 +24,30 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
     //onJoinRoom,          // Callback для присоединения к существующей комнате по коду
     onShowSideMenu,      // Callback для открытия бокового меню с настройками
     onShowAdModal,       // Callback для открытия модального окна с рекламой (пополнение баланса)
-    roomCreated,         // Данные созданной комнаты (код и ID) для отображения уведомления
-    onCloseRoomMessage,   // Callback для закрытия уведомления о созданной комнате
     setPage
 }) => {
     const [joinCode, setJoinCode] = useState('');
     const [showJoinInput, setShowJoinInput] = useState(false);
-    const [copySuccess, setCopySuccess] = useState(false);
 
     const server = useContext(ServerContext);
+    const store = useContext(StoreContext);
 
     const handleJoinRoom = async (code: string) => {
-    try {
-        const roomData = await server.joinPrivateRoom(code);
-        console.log('Room data:', roomData);
+        try {
+            const roomData = await server.joinPrivateRoom(code);
+            console.log('Room data:', roomData);
 
-        if (roomData) {
-            console.log('Successfully joined room:', roomData);
-            setPage(PAGES.GAME);
-        } else {
-            console.log('Failed to join room.');
+            if (roomData && roomData.id) {
+                console.log('Successfully joined room:', roomData);
+                store.setCurrentRoomId(roomData.id);
+                setPage(PAGES.GAME);
+            } else {
+                console.log('Failed to join room.');
+            }
+        } catch (error) {
+            console.error('Exception during joinPrivateRoom:', error);
         }
-    } catch (error) {
-        console.error('Exception during joinPrivateRoom:', error);
-    }
-};
+    };
     
     const handleJoinClick = () => {
         if (showJoinInput && joinCode.trim()) {
@@ -71,14 +68,6 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
         const value = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
         if (value.length <= 4) {
             setJoinCode(value);
-        }
-    };
-    // Ручка для копирования кода комнаты (при клике на код комнаты))
-    const handleCopyCode = async () => {
-        if (roomCreated?.code) {
-            await navigator.clipboard.writeText(roomCreated.code);
-            setCopySuccess(true);
-            setTimeout(() => setCopySuccess(false), 2000);
         }
     };
 
@@ -109,31 +98,6 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
                         <button className="private-room-btn create-btn" onClick={onCreateRoom}>
                             Создать 
                         </button>
-                        
-                        {roomCreated && (
-                            <div className="room-created-message">
-                                <div className="room-created-header">
-                                    <span className="success-icon">✅</span>
-                                    <span className="success-text">Комната создана!</span>
-                                    {onCloseRoomMessage && (
-                                        <button className="close-message-btn" onClick={onCloseRoomMessage}>×</button>
-                                    )}
-                                </div>
-                                <div className="room-code-display">
-                                    <div className="room-code-label">Код комнаты:</div>
-                                    <div 
-                                        className="room-code-value clickable" 
-                                        onClick={handleCopyCode}
-                                        title="Нажмите, чтобы скопировать код">
-                                        {roomCreated.code}
-                                    </div>
-                                </div>
-                                <div className="room-id">ID: {roomCreated.room_id}</div>
-                                {copySuccess && (
-                                    <div className="copy-success">Код скопирован!</div>
-                                )}
-                            </div>
-                        )}
                     </div>
                     
                     <div className="join-room-section">

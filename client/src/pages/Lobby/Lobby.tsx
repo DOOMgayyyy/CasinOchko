@@ -45,8 +45,6 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
 
     const [showSideMenu, setShowSideMenu] = useState(false);
     const [showPrivateRoomPage, setShowPrivateRoomPage] = useState(false);
-    const [roomCreated, setRoomCreated] = useState<{code: string, room_id: number} | null>(null);
-    
     const [showAdModal, setShowAdModal] = useState(false);
 
     
@@ -55,10 +53,9 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         const result = await server.createPrivateRoom();
         
         if (result && result.private_code) {
-            setRoomCreated({ 
-                code: result.private_code,
-                room_id: result.id 
-            });
+            sessionStorage.setItem('roomCode', result.private_code);
+            store.setCurrentRoomId(result.id);
+            setPage(PAGES.GAME);
         }
     };
 
@@ -142,8 +139,6 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     //onJoinRoom={handleJoinRoom}
                     onShowSideMenu={() => setShowSideMenu(true)}
                     onShowAdModal={() => setShowAdModal(true)}
-                    roomCreated={roomCreated}
-                    onCloseRoomMessage={() => setRoomCreated(null)}
                     setPage={setPage} 
                 />
                 {sideMenuComponent}
