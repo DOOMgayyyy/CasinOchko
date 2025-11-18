@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import './Lobby.scss';
 import SideMenu from './SideMenu/SideMenu';
 import PrivateRoom from './PrivateRoom/PrivateRoom';
@@ -61,39 +61,6 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
             });
         }
     };
-
-    const handleJoinRoom = async (code: string) => {
-    // try {
-    //     const result = await server.joinPrivateRoom(code);
-        
-    //     if (result && result.private) {
-    //         const { code: roomCode, room_id } = result.private;
-            
-    //         // Успешное подключение к приватной комнате
-    //         console.log('Успешно подключились к комнате:', roomCode, room_id);
-            
-    //         // Можно перейти на страницу игры или показать сообщение об успехе
-    //         server.showErrorCb({
-    //             code: 0,
-    //             text: `Успешно подключились к комнате ${roomCode}`
-    //         });
-            
-    //         // TODO: Переход на страницу игры с приватной комнатой
-    //         // setPage(PAGES.GAME);
-            
-    //     } else {
-    //         server.showErrorCb({
-    //             code: 9004,
-    //             text: 'Не удалось подключиться к комнате. Проверьте код.'
-    //         });
-    //     }
-    // } catch (error) {
-    //     server.showErrorCb({
-    //         code: 9005,
-    //         text: 'Произошла ошибка при подключении к комнате.'
-    //     });
-    // }
-};
 
     const handleQuickStart = async () => {
         try {
@@ -172,11 +139,12 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     player={player}
                     onBack={() => setShowPrivateRoomPage(false)}
                     onCreateRoom={handleCreateRoom}
-                    onJoinRoom={handleJoinRoom}
+                    //onJoinRoom={handleJoinRoom}
                     onShowSideMenu={() => setShowSideMenu(true)}
                     onShowAdModal={() => setShowAdModal(true)}
                     roomCreated={roomCreated}
                     onCloseRoomMessage={() => setRoomCreated(null)}
+                    setPage={setPage} 
                 />
                 {sideMenuComponent}
                 {adModalComponent}

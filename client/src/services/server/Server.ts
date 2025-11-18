@@ -1,8 +1,7 @@
 import md5 from 'md5';
 import CONFIG from "../../config";
 import Store from "../store/Store";
-import { TAnswer, TError, TPrivateRoomResponse, TMessagesResponse, TUser, TUserStats, TRawUserStats, TQuickStartResponse, TRoomInfoResponse } from "./types";
-
+import { TAnswer, TError, TPrivateRoomResponse, TMessagesResponse, TUser, TUserStats, TRawUserStats, TQuickStartResponse, TRoomInfoResponse, TJoinPrivateRoomResponse } from "./types";
 
 const { CHAT_TIMESTAMP, HOST } = CONFIG;
 const GAME_TIMESTAMP = 1000; // 1 секунда для игрового loop
@@ -142,9 +141,8 @@ class Server {
     }
     
     async joinPrivateRoom(code: string): Promise<TPrivateRoomResponse | null> {
-        return await this.request<TPrivateRoomResponse>('joinPrivateRoom', { code });
-    }
-
+    return await this.request<TPrivateRoomResponse>('joinPrivateRoom', { code });
+}
     async quickStart(): Promise<TQuickStartResponse | null> {
         return await this.request<TQuickStartResponse>('quickStart');
     }
