@@ -11,22 +11,26 @@ const Login: React.FC<IBasePage> = (props) => {
   const loginRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
+    const loginClickHandler = async () => {
+        if (loginRef.current && passwordRef.current) {
+          const email = loginRef.current.value;
+          const password = passwordRef.current.value;
+          if (email && password && await server.login(email, password)) {
+              console.log("Успешный вход");
+              setPage(PAGES.LOBBY);
+          } else {
+              console.error("Ошибка входа: проверьте email или пароль");
+              // Здесь можно показать ошибку пользователю
+          }
+        }
+    }
+
+    //=================DEV-ЗАГЛУШКА======================
     // const loginClickHandler = async () => {
-    //     if (loginRef.current && passwordRef.current) {
-    //       const email = loginRef.current.value;
-    //       const password = passwordRef.current.value;
-    //       if (email && password && await server.login(email, password)) {
-    //           console.log("Успешный вход");
-    //           setPage(PAGES.LOBBY);
-    //       } else {
-    //           console.error("Ошибка входа: проверьте email или пароль");
-    //           // Здесь можно показать ошибку пользователю
-    //       }
-    //     }
-    // }
-    //===================DEV- Заглушка=================================================
-    const loginClickHandler = async () => {setPage(PAGES.LOBBY);}
-    //=================================================================================
+    //   setPage(PAGES.LOBBY);
+    // };
+    //===================================================
+
 
     const setRegisterPage = async () => {
       setPage(PAGES.REGISTER);
@@ -95,10 +99,10 @@ const Login: React.FC<IBasePage> = (props) => {
 
         <div className="foot">
           Впервые здесь?
-          <a className="foot-link" href="#Register">
+          <button className="foot-link" onClick={setRegisterPage}>
             <span className="arrow">&gt;</span>
-            <span onClick={setRegisterPage}>зарегистрироваться</span>
-          </a>
+            <span>зарегистрироваться</span>
+          </button>
         </div>
       </main>
     </div>

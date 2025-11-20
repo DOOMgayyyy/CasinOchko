@@ -6,6 +6,8 @@ class Store {
     user: TUser | null = null;
     messages: TMessages = [];
     chatHash: string = 'empty chat hash';
+    roomHash: string = 'empty room hash';
+    currentRoomId: number | null = null;
 
     setToken(token: string): void {
         localStorage.setItem(TOKEN, token);
@@ -59,6 +61,30 @@ class Store {
         if (this.user) {
             this.user.name = newName;
         }
+    }
+
+    getRoomHash(): string {
+        return this.roomHash;
+    }
+
+    setRoomHash(hash: string): void {
+        this.roomHash = hash;
+    }
+
+    clearRoomHash(): void {
+        this.roomHash = 'empty room hash';
+    }
+
+    setCurrentRoomId(roomId: number | null): void {
+        this.currentRoomId = roomId;
+    }
+
+    getCurrentRoomId(): number | null {
+        return this.currentRoomId;
+    }
+
+    clearCurrentRoomId(): void {
+        this.currentRoomId = null;
     }
 }
 

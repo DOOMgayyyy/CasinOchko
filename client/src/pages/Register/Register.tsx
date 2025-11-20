@@ -135,10 +135,10 @@ const Register: React.FC<IBasePage> = (props) => {
         </div>
 
         <div className="actions actions-split">
-          <a className="btn-link" href="#Login" onClick={(e) => { e.preventDefault(); setLoginPage(); }}>
+          <button className="btn-link" onClick={setLoginPage}>
             <span className="arrow">&lt;</span>
             <span>авторизация</span>
-          </a>
+          </button>
 
           <button className="btn-link" type="button" onClick={registerClickHandler}>
             <span className="arrow">&gt;</span>

@@ -10,6 +10,7 @@ class Player
     public $currentBet = 0;
     public $splitHands = []; //для сплита рука
     public $activeHandIndex = 0; //индекс активной руки
+    public $status;
 
     public function __construct($id, $balance = 1000) //заглушка 1000 баланс 
     {
@@ -18,7 +19,25 @@ class Player
         $this->cards = [];
         $this->splitHands = [];
         $this->activeHandIndex = 0;
+        $this->status = 'player';
     }
+
+    //устанавливаем статус
+    public function setStatus($newStatus)
+    {
+        $validStatuses = ['player', 'spectator'];
+        if (in_array($newStatus, $validStatuses)) {
+            $this->status = $newStatus;
+            return true;
+        }
+        return false;
+    }
+
+    public function isSpectator()
+    {
+        return $this->status === 'spectator';
+    }
+
 
     //получение текущую активную руку
     private function getCurrentHand()

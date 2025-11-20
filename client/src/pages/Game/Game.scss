@@ -1,8 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Handjet:wght@100..900&display=swap');
-
 .game-page {
-  font-family: 'Handjet', monospace;
-
 
   .room-id{
     text-align: center;
@@ -31,14 +27,11 @@
 
       .game-button {
         background-color: #202020;
-        color: #ffffff;
-        border: 1px solid #ffffff;
-        border-radius: 8px;
+        border-radius: 16px;
         padding: 20px 40px;
         font-family: 'Handjet', monospace;
         font-size: 22px;
         font-weight: 600;
-        cursor: pointer;
         transition: all 0.3s ease;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -49,42 +42,56 @@
         align-items: center;
         justify-content: center;
 
-      &:hover {
-        background-color: #ffffff;
-        color: #202020;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3);
-      }
-
       &:active {
         transform: translateY(0);
         box-shadow: 0 2px 6px rgba(255, 255, 255, 0.2);
       }
 
-      // Специфичные стили для разных кнопок
       &.hit-button {
-        &:hover {
-          background-color: #28a745;
-          border-color: #28a745;
-          color: #ffffff;
-        }
-      }
+        border: 1px solid #27C213;
+        color: #27C213;
+        cursor: pointer;
 
-      &.stand-button {
-        &:hover {
-          background-color: #dc3545;
-          border-color: #dc3545;
-          color: #ffffff;
-        }
       }
 
       &.split-button {
+        border: 1px solid #8F8F8F;
+        color: #8F8F8F;
+      }
+
+      &.stand-button {
+        border: 1px solid #FF2220;
+        color: #FF2220;
+        cursor: pointer;
+      }
+
+      // Специфичные стили для разных кнопо
+      &.stand-button {
         &:hover {
-          background-color: #17a2b8;
-          border-color: #17a2b8;
+          background-color: #FF2220;
+          border-color: #FF2220;
           color: #ffffff;
+          transform: translateY(-2px);
         }
       }
+
+      &.hit-button {
+        &:hover {
+          background-color: #27C213;
+          border-color: #27C213;
+          color: #ffffff;
+          transform: translateY(-2px);
+        }
+      }
+
+      // &.split-button {
+      //   &:hover {
+      //     background-color: #17a2b8;
+      //     border-color: #17a2b8;
+      //     color: #ffffff;
+      //   }
+      // }
+
     }
   }
 
@@ -136,123 +143,81 @@
 
     
   }
-  $arrow-url: "/assets/img/icons/back-arrow.png";
-
   .back-to-lobby-button {
     position: fixed;
-    top: 10px;
-    left: 10px;
-    width: 38px;
-    height: 38px;
-    background-color: rgba(32,32,32,0.9);
-    border: 1px solid rgba(255,255,255,0.5);
+    top: 20px;
+    left: 20px;
+    width: 50px !important;
+    height: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    background-color: rgba(32, 32, 32, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 8px;
     cursor: pointer;
-    transition: all .3s ease;
+    transition: all 0.3s ease;
     z-index: 10;
     backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 !important;
+    font-family: 'Handjet', monospace;
+    color: #ffffff;
+    box-sizing: border-box;
   
     &::before {
-      content: "";
-      width: 65px;
-      background: url($arrow-url) no-repeat center / contain;
-      position: absolute;
-      inset: 0;
-      margin: auto;
+      content: "←";
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 1;
     }
   
-    &:hover { background-color: rgba(255,255,255,0.1); border-color: #fff; transform: translateX(-2px); }
-    &:active { transform: translateX(0); }
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: #ffffff;
+      transform: translateX(-2px);
+    }
+  
+    &:active {
+      transform: translateX(0);
+    }
   }
-  
-  
+
 }
 
-// Адаптивность для мобильных устройств
-// @media (max-width: 768px) {
-//   .game-page {
-//     .game-controls {
-//       gap: 15px;
-      
-//       &.horizontal {
-//         bottom: 20px;
-//         padding: 0 10px;
-//         flex-wrap: wrap;
-//         justify-content: center;
-//       }
+.bet-button{
+  background-color: #202020;
+  border: 1px solid #FFC300;
+  color: #FFC300;
+  cursor: pointer;
+  border-radius: 16px;
+  padding: 15px 32px;
+  font-family: 'Handjet', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  // min-width: 180px;
+  white-space: nowrap;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  left: 18%;
+  bottom: 5%;
+}
 
-//       &.vertical {
-//         bottom: 20px;
-//         left: 20px;
-//         padding: 15px 0;
-//       }
-
-//       .game-button {
-//         padding: 18px 35px;
-//         font-size: 20px;
-//         min-width: 150px;
-//       }
-//     }
-
-//     .top-right-controls {
-//       top: 15px;
-//       right: 15px;
-//       gap: 8px;
-//     }
-
-//     .chat-button {
-//       width: 45px;
-//       height: 45px;
-//       font-size: 20px;
-//     }
-
-//     .chat-button .chat-icon {
-//       width: 26px;
-//       height: 26px;
-//     }
-//   }
-// }
-
-// @media (max-width: 480px) {
-//   .game-page {
-//     .game-controls {
-//       gap: 10px;
-
-//       &.horizontal {
-//         bottom: 15px;
-//       }
-
-//       &.vertical {
-//         bottom: 15px;
-//         left: 15px;
-//         padding: 10px 0;
-//       }
-
-//       .game-button {
-//         padding: 15px 25px;
-//         font-size: 18px;
-//         min-width: 120px;
-//       }
-//     }
-
-//     .top-right-controls {
-//       top: 10px;
-//       right: 10px;
-//       gap: 6px;
-//     }
-
-//     .chat-button {
-//       width: 40px;
-//       height: 40px;
-//       font-size: 18px;
-//     }
-
-//     .chat-button .chat-icon {
-//       width: 22px;
-//       height: 22px;
-//     }
-//   }
-// }
+.bet-button {
+  &:hover {
+    background-color: #FFC300;
+    border-color: #FFC300;
+    color: #ffffff;
+    transform: translateY(-2px);
+  }
+}
 
 // Анимации появления
 @keyframes fadeIn {
@@ -297,14 +262,6 @@
 .players .right-middle { top: 61%; right: 22%; }
 .players .right-bottom { top: 72%; right: 31%; }
 .players .balance { color: #FFC300; padding-left: 30px; padding-right: 30px;}
-
-.left-span {
-  position: absolute;
-  display: flex;
-  top: 33%;
-  left: 3%;
-  font-size: 24px;
-}
 
 .diller-slot  { top: 1.5%; left: 47%; }
 .diller-name  { padding-right: 20px;}
@@ -373,4 +330,286 @@
   display: block;
   width: 100%;
   height: 100%;
+}
+
+.timer-div {
+  position: fixed;
+  bottom: 35%;
+  left: 2%;
+}
+
+.timer-span{
+  font-size: 25px;
+}
+
+.timer-count {
+  display: block;
+  font-size: 60px;
+  color: #FFC300;
+  font-weight: 700;
+}
+
+.count-div {
+  position: fixed;
+  bottom: 35%;
+  right: 2%;
+}
+
+.count-span {
+  font-size: 25px;
+}
+
+.count-number {
+  display: block;
+  font-size: 60px;
+  text-align: right;
+  color: #27C213;
+  font-weight: 700;
+}
+
+.player-slot.active-player {
+  border: 2px solid #27C213;
+  box-shadow: 0 0 20px #27C213; /* эффект свечения */
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.player-slot.current-turn {
+  border: 2px solid #FFC300;
+  box-shadow: 0 0 25px #FFC300; /* эффект свечения для активного хода */
+  animation: pulse-turn 1.5s infinite;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+@keyframes pulse-turn {
+  0%, 100% {
+    box-shadow: 0 0 25px #FFC300;
+  }
+  50% {
+    box-shadow: 0 0 40px #FFC300;
+  }
+}
+
+.room-created-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  border: 2px solid #4CAF50;
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 350px;
+  box-shadow: 0 8px 24px rgba(76, 175, 80, 0.3);
+  animation: slideDown 0.3s ease-out;
+  z-index: 1000;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.room-created-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.success-icon {
+  font-size: 1.2rem;
+  margin-right: 8px;
+}
+
+.success-text {
+  color: white;
+  font-family: 'Handjet', monospace;
+  font-size: 1.3rem;
+  font-weight: bold;
+  flex: 1;
+}
+
+.close-message-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.close-message-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.room-code-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.room-code-label {
+  color: white;
+  font-family: 'Handjet', monospace;
+  font-size: 1.1rem;
+}
+
+.room-code-value {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-family: 'Handjet', monospace;
+  font-size: 1.4rem;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 8px;
+  letter-spacing: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.room-code-value:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.room-code-value.clickable {
+  cursor: pointer;
+}
+
+.copy-success {
+  color: white;
+  font-family: 'Handjet', monospace;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 8px 16px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.room-instruction {
+  color: white;
+  font-family: 'Handjet', monospace;
+  font-size: 1rem;
+  text-align: center;
+  font-style: italic;
+}
+
+// Модальное окно подтверждения выхода
+.leave-room-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.leave-room-modal {
+  background: rgba(32, 32, 32, 0.95);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  padding: 40px;
+  min-width: 400px;
+  max-width: 500px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: slideDown 0.3s ease-out;
+  backdrop-filter: blur(10px);
+}
+
+.leave-room-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.leave-room-modal-title {
+  color: #ffffff;
+  font-family: 'Handjet', monospace;
+  font-size: 36px;
+  font-weight: 600;
+  text-align: center;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.leave-room-modal-buttons {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  justify-content: center;
+}
+
+.leave-room-button {
+  flex: 1;
+  padding: 18px 32px;
+  border-radius: 12px;
+  font-family: 'Handjet', monospace;
+  font-size: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 2px solid;
+  min-width: 140px;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.leave-room-button.leave-button {
+  background-color: rgba(255, 34, 32, 0.2);
+  border-color: #FF2220;
+  color: #FF2220;
+
+  &:hover {
+    background-color: #FF2220;
+    color: #ffffff;
+  }
+}
+
+.leave-room-button.stay-button {
+  background-color: rgba(39, 194, 19, 0.2);
+  border-color: #27C213;
+  color: #27C213;
+
+  &:hover {
+    background-color: #27C213;
+    color: #ffffff;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

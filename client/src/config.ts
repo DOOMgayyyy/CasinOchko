@@ -22,6 +22,8 @@ const CONFIG = {
     //HOST: 'http://casinochko.local/api', 
     // Для open server 
     HOST: 'http://casinochko/api',
+    // Для ПРАКТИКИ
+    //HOST: 'http://casinochko:81/api',
     // Для MAMP 
     // HOST: 'http://localhost:8888/server/api'
 

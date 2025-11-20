@@ -1,18 +1,14 @@
-import React, { useState } from 'react';
-import './SideMenu.css';
+import React, { useState, useEffect, useContext } from 'react';
+import './SideMenu.scss';
 import ChangeName from '../ChangeName/ChangeName';
+import { ServerContext } from '../../../App';
+import { TUserStats } from '../../../services/server/types';
+
 
 export interface SideMenuProps {
     player: {
         name: string;
         balance: number;
-    };
-    stats: {
-        totalGames: number;
-        totalWins: number;
-        totalMoney: number;
-        totalHours: number;
-        
     };
     onClose: () => void;
     onEditName: () => void;
@@ -23,14 +19,47 @@ export interface SideMenuProps {
 
 const SideMenu: React.FC<SideMenuProps> = ({ 
     player, 
-    stats, 
     onClose, 
     onEditName,
     onShowRules, 
     onShowAuthors, 
     onLogout 
 }) => {
+    const server = useContext(ServerContext);
     const [showChangeName, setShowChangeName] = useState(false);
+    const [stats, setStats] = useState<TUserStats>({
+        totalGames: 0,
+        totalWins: 0,
+        totalMoney: 0,
+        totalHours: 0
+    });
+
+    // Загрузка статистики при открытии меню
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadStats = async () => {
+            try {
+                const stats = await server.getUserStat();
+                if (!cancelled && stats) {
+                    console.log(stats);
+                    setStats(stats);
+                }
+            } catch (e) {
+                // ошибки обрабатываются внутри Server
+                console.error(e);
+            }
+        };
+
+        // вызываем только если пользователь авторизован
+        if (player) {
+            loadStats();
+        }
+
+        return () => {
+            cancelled = true;
+        };
+    }, [server, player]);
 
     const handleEditNameClick = () => {
         setShowChangeName(true);
