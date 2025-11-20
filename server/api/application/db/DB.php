@@ -228,10 +228,16 @@ class DB
     }
     public function saveDeck($roomId, $deck)
     {
-        $json = json_encode($deck);
-        return $this->execute("UPDATE rooms SET deckOfCards = ? WHERE id = ?", [$json, $roomId]);
+        $str = implode(',', $deck);
+        $hex = bin2hex($str);
+        return $this->execute("UPDATE rooms SET deckOfCards = ? WHERE id = ?", [$hex, $roomId]);
     }
-    
+    public function loadDeck($roomId)
+    {
+        $hex = $this->query("SELECT deckOfCards FROM rooms WHERE id = ?", [$roomId])->fetchColumn();
+        $str = hex2bin($hex);
+        return explode(',', $str);
+    }
     /**
      * Получить информацию об участнике комнаты
      */
