@@ -9,6 +9,7 @@ import NotFound from './NotFound/NotFound';
 import Register from './Register/Register';
 import Lobby from './Lobby/Lobby';
 import Rules from './Rules/Rules';
+import Leaderboard from './Leaderboard/Leaderboard';
 export enum PAGES {
     PRELOADER,
     LOGIN,
@@ -32,12 +33,6 @@ export interface IBasePage {
 const PageManager: React.FC = () => {
     const [page, setPage] = useState<PAGES>(PAGES.LOGIN); 
 
-    // Здесь можно будет добавить обработку для новых страниц
-    // Например, отображение компонента таблицы лидеров
-    // if (page === PAGES.LEADERBOARD) {
-    //     return <Leaderboard setPage={setPage} />;
-    // }
-
     return (
         <>
             {page === PAGES.PRELOADER && <Preloader setPage={setPage} />}
@@ -48,6 +43,7 @@ const PageManager: React.FC = () => {
             {page === PAGES.GAME && <GamePage setPage={setPage} />}
             {page === PAGES.AUTHORS && <Authors setPage={setPage} />}
             {page === PAGES.RULES && <Rules setPage={setPage} />}
+            {page === PAGES.LEADERBOARD && <Leaderboard setPage={setPage} />}
             {page === PAGES.NOT_FOUND && <NotFound setPage={setPage} />}
         </>
     );
