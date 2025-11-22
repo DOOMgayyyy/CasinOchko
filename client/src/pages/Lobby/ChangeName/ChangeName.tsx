@@ -17,8 +17,7 @@ const ChangeName: React.FC<ChangeNameProps> = ({ currentName, onClose, onSuccess
 
     const ERROR_CODES = {
       EMPTY_NAME: 1001,
-      SAME_NAME: 1002,
-      UPDATE_FAILED: 1003
+      SAME_NAME: 1002
     };
 
     if (newNameRef.current) {
@@ -44,12 +43,8 @@ const ChangeName: React.FC<ChangeNameProps> = ({ currentName, onClose, onSuccess
       if (success) {
         onSuccess(); 
         onClose();  
-      } else {
-        server.showErrorCb({
-          code: ERROR_CODES.UPDATE_FAILED,
-          text: "Ошибка обновления имени"
-        });
       }
+
     }
   };
 
