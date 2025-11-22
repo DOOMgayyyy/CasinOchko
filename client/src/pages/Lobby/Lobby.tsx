@@ -162,11 +162,20 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     <span className="balance-text">Ваш баланс: </span>
                     <span className="balance-amount">${player.balance}</span>
                     
-                    <button 
-                        className="add-money-btn" 
-                        onClick={() => setShowAdModal(true)}
-                    >
-                    </button>
+                <button
+                className="add-money-btn"
+                onClick={() => {
+                    if (player.balance < 1000) {
+                        setShowAdModal(true);
+                    } else {
+                        server.showErrorCb?.({
+                            code: 2001,
+                            text: 'Ваш баланс ≥ 1000. Просмотр рекламы недоступен.',
+                        });
+                    }
+                }}
+                >
+                </button>
                 </div>
             </header>
 

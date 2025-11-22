@@ -86,7 +86,6 @@ const AdReward: React.FC<Props> = ({ onClose, onSuccess, videoUrl }) => {
     lastTimeRef.current = 0;
     v.muted = muted;
     v.volume = volume;
-    v.play().catch(() => {});
   };
 
   const onTimeUpdate = () => {
@@ -205,13 +204,8 @@ const AdReward: React.FC<Props> = ({ onClose, onSuccess, videoUrl }) => {
             className="ad-video"
             src={videoUrl}
             playsInline
-            controls={false}
             muted={muted}
             autoPlay
-            onLoadedMetadata={onLoadedMetadata}
-            onTimeUpdate={onTimeUpdate}
-            onSeeking={onSeeking}
-            onPause={onPause}
             onEnded={onEnded}
           />
           <div className="custom-controls">

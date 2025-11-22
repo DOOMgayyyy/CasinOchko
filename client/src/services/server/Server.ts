@@ -165,18 +165,20 @@ class Server {
 }
 
 
-
     async addBalance(amount: number): Promise<{ ok: boolean; newBalance?: number }> {
-        const result = await this.request<{ balance: number }>('addBalance', { amount: String(amount) });
-
-        if (result && typeof result.balance === 'number') {
-            const user = this.store.getUser();
-            if (user) {
-                this.store.setUser({ ...user, balance: result.balance });
+        const result = await this.request<{ balance: number | string }>('addBalance', {
+            amount: String(amount),
+        });
+        if (result && (typeof result.balance === 'number' || typeof result.balance === 'string')) {
+            const numericBalance = Number(result.balance);
+            if (!isNaN(numericBalance)) {
+                const user = this.store.getUser();
+                if (user) {
+                    this.store.setUser({ ...user, balance: numericBalance });
+                }
+                return { ok: true, newBalance: numericBalance };
             }
-            return { ok: true, newBalance: result.balance };
         }
-
         return { ok: false };
     }
 
