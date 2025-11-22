@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Ноя 10 2025 г., 01:10
+-- Время создания: Ноя 16 2025 г., 00:00
 -- Версия сервера: 8.0.30
 -- Версия PHP: 7.2.34
 
@@ -61,7 +61,7 @@ CREATE TABLE `rooms` (
   `private_code` varchar(4) DEFAULT NULL,
   `hash` varchar(255) DEFAULT NULL,
   `deckOfCards` varchar(255) COMMENT 'HEX строка: QS,5C,2D,...'
-) ;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Дамп данных таблицы `rooms`
@@ -85,6 +85,7 @@ CREATE TABLE `room_members` (
   `id` bigint UNSIGNED NOT NULL,
   `room_id` bigint UNSIGNED NOT NULL,
   `user_id` bigint UNSIGNED NOT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'spectator',
   `bet` int DEFAULT '0',
   `types` tinyint(1) DEFAULT '0',
   `cards` varchar(255) NOT NULL COMMENT 'HEX строка: AH,7D ->  hex'
@@ -94,9 +95,9 @@ CREATE TABLE `room_members` (
 -- Дамп данных таблицы `room_members`
 --
 
-INSERT INTO `room_members` (`id`, `room_id`, `user_id`, `bet`, `types`, `cards`) VALUES
-(10, 9, 2, 0, 0, ''),
-(11, 9, 3, 0, 0, '');
+INSERT INTO `room_members` (`id`, `room_id`, `user_id`, `status`, `bet`, `types`, `cards`) VALUES
+(10, 9, 2, 'spectator', 0, 0, ''),
+(11, 9, 3, 'spectator', 0, 0, '');
 
 -- --------------------------------------------------------
 
@@ -186,7 +187,7 @@ ALTER TABLE `message_hashes`
 -- AUTO_INCREMENT для таблицы `rooms`
 --
 ALTER TABLE `rooms`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT для таблицы `room_members`

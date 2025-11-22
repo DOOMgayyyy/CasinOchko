@@ -1,0 +1,211 @@
+.lobby {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Arial', sans-serif;
+  background: #181818;
+}
+
+.lobby-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  filter: blur(10px) brightness(0.7);
+  transform: scale(1.1);
+  
+  &::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+  }
+}
+
+.lobby-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 40px;
+  background: rgba(24, 24, 24, 1);
+  border-bottom: 1px solid #333;
+  height: 70px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Handjet', monospace;
+}
+
+.player-name {
+  margin-right: auto;
+  color: #e0e0e0;
+  font-family: 'Handjet', monospace;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.balance-text {
+  color: #ffffff;
+  font-family: 'Handjet', monospace;
+  font-size: 32px;
+}
+
+.balance-amount {
+  color: #2196F3;
+  font-size: 1.3rem;
+  font-weight: bold;
+  font-family: 'Handjet', monospace;
+}
+
+.menu-btn, .add-money-btn {
+  background: #333;
+  color: #ffffff;
+  border: 1px solid #555;
+  border-radius: 8px;
+  width: 45px;
+  height: 45px;
+  font-size: 1rem;
+  cursor: pointer;
+  padding-left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+  
+  &:hover {
+    background: #444;
+    border-color: #666;
+  }
+  
+  &:active {
+    background: #555;
+    border-color: #777;
+    transform: scale(0.98);
+  }
+}
+
+.add-money-btn {
+  position: relative;
+  background: transparent;
+  border: 2px solid #ffffff;
+  border-radius: 12px;
+  width: 70px;
+  height: 40px;
+  padding: 0;
+  transition: all 0.25s ease;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    background-color: #ffffff;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: background-color 0.25s ease;
+  }
+
+  &::before {
+    width: 18px;
+    height: 2.5px;
+  }
+
+  &::after {
+    width: 2.5px;
+    height: 18px;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: scale(0.95);
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+}
+
+.lobby-main {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+  height: calc(100vh - 70px);
+  padding: 40px 0;
+  gap: 60px;
+}
+
+.logo {
+  font-family: 'Jersey 10', sans-serif;
+  font-size: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.logo-casino {
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.logo-ochko {
+  color: #FFD700;
+}
+
+.lobby-btn {
+  width: 400px;
+  height: 100px;
+  background: #2A2A2A;
+  color: #ffffff;
+  border: 1px solid #2A2A2A;
+  border-radius: 12px;
+  font-family: 'Handjet', monospace;
+  font-size: 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: -10px 0;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: #3A3A3A;
+    border-color: #4A4A4A;
+  }
+  
+  &:active {
+    background: #4A4A4A;
+    border-color: #5A5A5A;
+    transform: scale(0.98);
+  }
+}
+
+.blackjack-btn {
+  background: #353535;
+  
+  &:hover {
+    background: #353535;
+  }
+}

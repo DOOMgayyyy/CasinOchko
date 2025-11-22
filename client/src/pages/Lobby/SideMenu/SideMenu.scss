@@ -1,40 +1,44 @@
-.side-menu-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    z-index: 1000;
-}
-
 .side-menu {
-    width: 400px;
-    height: 100vh;
-    background: linear-gradient(rgba(24, 24, 24, 1));
-   
-    display: flex;
-    flex-direction: column;
-    animation: slideIn 0.3s ease;
-    border: 1px solid #3d3d3d;  
-    box-sizing: border-box;
+    &-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    & {
+        width: 400px;
+        height: 100vh;
+        background: #212121;
+        display: flex;
+        flex-direction: column;
+        animation: slideIn 0.3s ease;
+        border: 1px solid #3d3d3d;  
+        box-sizing: border-box;
+    }
 }
 
 @keyframes slideIn {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(0); }
+    from { 
+        transform: translateX(-100%); 
+    }
+    to { 
+        transform: translateX(0); 
+    }
 }
 
-
-
-.side-menu-header h2 {
-    color: #FFD700;
-    font-family: 'Handjet', monospace;
-    font-size: 1.8rem;
-    margin: 0;
+.side-menu-header {
+    h2 {
+        color: #FFD700;
+        font-family: 'Handjet', monospace;
+        font-size: 1.8rem;
+        margin: 0;
+    }
 }
 
 .close-btn {
@@ -48,18 +52,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-}
 
-.close-btn:hover {
-    color: #FFD700;
+    &:hover {
+        color: #FFD700;
+    }
 }
 
 .player-info-section {
-    
     padding: 20px 5px 15px 5px;
     border-bottom: 1px solid #555;
     margin-left: 20px; 
-    margin-right:22px; 
+    margin-right: 22px; 
     margin-bottom: 15px;
 }
 
@@ -67,11 +70,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    
 }
 
 .player-name-label {
-  
     font-family: 'Handjet', monospace;
     font-size: 1.1rem;
 }
@@ -84,30 +85,22 @@
 }
 
 .edit-name-btn {
-    
     color: #8F8F8F;
     cursor: pointer;
-   
     font-size: 0.9rem;
     font-family: 'Handjet', monospace;
-    
 }
-
-
 
 .stats-section {
-   
-   
     padding: 20px;
-    
-}
 
-.stats-section h3 {
-    color: #555555;
-    font-family: 'Handjet', monospace;
-    font-size: 1.5rem;
-    text-align: left; 
-    margin-bottom: 27px;
+    h3 {
+        color: #555555;
+        font-family: 'Handjet', monospace;
+        font-size: 1.5rem;
+        text-align: left; 
+        margin-bottom: 27px;
+    }
 }
 
 .stats-grid {
@@ -120,7 +113,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-   
 }
 
 .stat-label {
@@ -153,23 +145,21 @@
     cursor: pointer;
     width: 100%;
     position: absolute;
+
+    &:hover {
+        background: #444;
+    }
 }
 
-.menu-close-btn:hover {
-    background: #444;
-}
 .menu-links {
- 
-     margin-top: auto; /* Прижимаем к низу */
+    margin-top: auto;
     padding: 20px;
     width: 100%;
     box-sizing: border-box;
 }
 
-
-
 .menu-link {
-     background: transparent;
+    background: transparent;
     color: white;
     cursor: pointer;
     font: 1.3rem 'Handjet', monospace;
@@ -184,12 +174,8 @@
 }
 
 .menu-divider {
-     height: 1px;
+    height: 1px;
     background-color: #555;
     margin: 0 0 15px 0;
     width: 100%; 
 }
-
-
-
-

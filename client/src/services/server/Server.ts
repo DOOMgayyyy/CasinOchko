@@ -1,15 +1,16 @@
 import md5 from 'md5';
 import CONFIG from "../../config";
 import Store from "../store/Store";
-import { TAnswer, TError, TPrivateRoomResponse, TMessagesResponse, TUser, TUserStats, TRawUserStats } from "./types";
-
+import { TAnswer, TError, TPrivateRoomResponse, TMessagesResponse, TUser, TUserStats, TRawUserStats, TQuickStartResponse, TRoomInfoResponse, TJoinPrivateRoomResponse, TLeaderboardResponse, TGetLeaveRoomResponse} from "./types";
 
 const { CHAT_TIMESTAMP, HOST } = CONFIG;
+const GAME_TIMESTAMP = 1000; // 1 секунда для игрового loop
 
 class Server {
     HOST = HOST;
     store: Store;
     chatInterval: NodeJS.Timeout | null = null;
+    gameInterval: NodeJS.Timeout | null = null;
     showErrorCb: (error: TError) => void = () => {};
 
     constructor(store: Store) {
@@ -138,6 +139,13 @@ class Server {
     async createPrivateRoom(): Promise<TPrivateRoomResponse | null> {
         return await this.request<TPrivateRoomResponse>('createPrivateRoom');
     }
+    
+    async joinPrivateRoom(code: string): Promise<TPrivateRoomResponse | null> {
+    return await this.request<TPrivateRoomResponse>('joinPrivateRoom', { code });
+}
+    async quickStart(): Promise<TQuickStartResponse | null> {
+        return await this.request<TQuickStartResponse>('quickStart');
+    }
 
     async getUserStat(): Promise<TUserStats | null> {
     const result = await this.request<{ stats: TRawUserStats }>('getUserStat');
@@ -157,6 +165,95 @@ class Server {
 }
 
 
-}
+
+    async addBalance(amount: number): Promise<{ ok: boolean; newBalance?: number }> {
+        const result = await this.request<{ balance: number }>('addBalance', { amount: String(amount) });
+
+        if (result && typeof result.balance === 'number') {
+            const user = this.store.getUser();
+            if (user) {
+                this.store.setUser({ ...user, balance: result.balance });
+            }
+            return { ok: true, newBalance: result.balance };
+        }
+
+        return { ok: false };
+    }
+
+
+    async getUserBalance(): Promise<number | null> {
+        // 1. Изменяем ожидаемый тип: balance может быть строкой ИЛИ числом
+        const result = await this.request<{ balance: number | string }>('getUserBalance');
+
+        // 2. Проверяем, что balance существует (как строка или число)
+        if (result && (typeof result.balance === 'number' || typeof result.balance === 'string')) {
+
+            // 3. Принудительно конвертируем в число
+            const numericBalance = Number(result.balance);
+
+            // 4. Проверяем, что конвертация прошла успешно (не NaN)
+            if (!isNaN(numericBalance)) {
+                const user = this.store.getUser();
+                if (user) {
+                    // Сохраняем в store уже число
+                    this.store.setUser({ ...user, balance: numericBalance });
+                }
+                // 5. Возвращаем ЧИСЛО
+                return numericBalance;
+            }
+        }
+
+        // Если проверка не удалась, возвращаем null
+        return null;
+    }
+
+    // Получает информацию о комнате
+    async getInfoRoom(roomId: number): Promise<TRoomInfoResponse | null> {
+        const hash = this.store.getRoomHash();
+        const result = await this.request<TRoomInfoResponse>('getInfoRoom', { 
+            room_id: String(roomId), 
+            hash 
+        });
+        if (result) {
+            this.store.setRoomHash(result.hash);
+            return result;
+        }
+        return null;
+    }
+
+    // Запустить обновление состояния игры
+    startGameLoop(roomId: number, cb: (roomInfo: TRoomInfoResponse) => void): void {
+        this.stopGameLoop();
+
+        // Запускаем новый loop
+        this.gameInterval = setInterval(async () => {
+            const result = await this.getInfoRoom(roomId);
+            // Вызываем callback только если есть изменения
+            if (result && result.changed) {
+                cb(result);
+            }
+        }, GAME_TIMESTAMP);
+    }
+
+   
+    // Остановить game loop
+    stopGameLoop(): void {
+        if (this.gameInterval) {
+            clearInterval(this.gameInterval);
+            this.gameInterval = null;
+            this.store.clearRoomHash();
+        }
+    }
+
+    // Получить таблицу рейтинга
+    async getRatingTable(): Promise<TLeaderboardResponse | null> {
+        return await this.request<TLeaderboardResponse>('getRatingTable');
+    }
+
+    // Покинуть комнату
+    async leaveRoom(): Promise<TGetLeaveRoomResponse | null> {
+        return await this.request<TGetLeaveRoomResponse>('leaveRoom');
+    }
+} 
 
 export default Server;

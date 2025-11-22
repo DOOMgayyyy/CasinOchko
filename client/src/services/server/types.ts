@@ -31,10 +31,23 @@ export type TMessagesResponse = {
 }
 
 export type TPrivateRoomResponse = {
-    private: {
-        code: string;      // 4-буквенный код комнаты
-        room_id: number;   // ID комнаты
-    }
+    id: number;                          
+    type: 'private';                     
+    status: 'playing' | 'closed';        
+    current_member_id?: number | null;   // ID игрока, чей сейчас ход
+    private_code: string;                
+    hash: string;                        
+};
+
+export type TJoinPrivateRoomResponse = TPrivateRoomResponse;
+
+export type TQuickStartResponse = {
+    id: number;                          
+    type: 'open';                       
+    status: 'playing' | 'closed';       
+    current_member_id?: number | null;   // ID игрока, чей сейчас ход
+    private_code: null;                  
+    hash: string;                        
 };
 
 // используется в React
@@ -51,4 +64,49 @@ export type TRawUserStats = {
     total_win: string;
     total_balance: string;
     total_hours?: string;
+};
+
+// Игрок в комнате
+export type TPlayer = {
+    memberId: number;
+    userId: number;
+    name: string;
+    balance: number;
+    bet: number;
+    cards: string[];
+    status: 'spectator' | 'player' ;
+};
+
+// Таймер хода
+export type TTimer = {
+    currentPlayerId: number;
+    timeLeft: number | null;
+    totalTime: number | null;
+};
+
+// Ответ getInfoRoom
+export type TRoomInfoResponse = {
+    players: TPlayer[];
+    myCards: string[];
+    timer: TTimer | null;
+    hash: string;
+    currentPlayerId: number | null;
+    changed: boolean;
+};
+
+// Запись пользователя в рейтинг
+export type TUserRating = {
+    id: number;
+    name: string;
+    balance: number;
+};
+
+// Ответ getRatingTable
+export type TLeaderboardResponse = {
+    rating: TUserRating[];
+};
+
+export type TGetLeaveRoomResponse = {
+    success: boolean;
+    roomDeleted: boolean;
 };

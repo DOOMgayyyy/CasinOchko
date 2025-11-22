@@ -2,6 +2,7 @@
 require_once('db/DB.php');
 require_once('user/User.php');
 require_once('lobby/Lobby.php');
+require_once('game/GameLogic.php');
 // require_once('chat/Chat.php'); 
 
 class Application
@@ -10,6 +11,7 @@ class Application
     // private $chat; 
     private $lobby;
     private $db; 
+    private $gameLogic;
 
     function __construct()
     {
@@ -18,6 +20,7 @@ class Application
         $this->user = new User($db);
         // $this->chat = new Chat($db); 
         $this->lobby = new Lobby($db);
+        $this->gameLogic = new GameLogic($db);
     }
 
     public function login($params)
@@ -215,6 +218,18 @@ class Application
         return ['error' => 242];
     }
 
+    public function leaveRoom($params)
+    {
+        if ($params['token']) {
+            $user = $this->user->getUser($params['token']);
+            if ($user) {
+                return $this->lobby->leaveRoom($user->id);
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242];
+    }
+
     public function addBalance($params){
         if ($params['token'] && $params['amount']) { 
             
@@ -241,5 +256,23 @@ class Application
             return ['error' => 705]; 
         }
         return ['error' => 242];
+    }
+    public function getInfoRoom($params)
+    {
+        if ($params['token'] && $params['hash'] && $params['room_id']) {
+            $user = $this->user->getUser($params['token']);
+
+            if (!$user) {
+                return ['error' => 705]; // User not found
+            }
+
+            return $this->gameLogic->getInfoRoom(
+                $params['room_id'],
+                $user->id,
+                $params['hash']
+            );
+        }
+
+        return ['error' => 242]; // Params not set fully
     }
 }

@@ -39,8 +39,7 @@ class DB
     {
         $sth = $this->pdo->prepare($sql);
         $sth->execute($params);
-        return $sth->fetchAll(PDO::FETCH_ASSOC);
-    }
+        return $sth->fetchAll(PDO::FETCH_OBJ);    }
 
     /*public function getUserByLogin($name) {
         return $this->query("SELECT * FROM users WHERE login=?", [$name]);
@@ -134,12 +133,12 @@ class DB
 
     public function getRoom($roomId)
     {
-        return $this->query("SELECT * FROM rooms WHERE id=?", [$roomId]);
+        return $this->query("SELECT id, type, status, current_member_id, private_code, hash FROM rooms WHERE id=?", [$roomId]);
     }
 
     public function getOpenRooms()
     {
-        return $this->queryAll("SELECT * FROM rooms WHERE type='open' AND status='playing'");
+        return $this->queryAll("SELECT id, type, status, current_member_id, private_code, hash FROM rooms WHERE type='open' AND status='playing'");
     }
 
     public function getMembersCount($roomId)
@@ -148,6 +147,18 @@ class DB
             "SELECT count(*) AS count FROM room_members WHERE room_id=?",
             [$roomId]
         );
+    }
+
+    /**
+     * Получает количество участников, не являющихся наблюдателями (т.е. игроков) в комнате.
+     * Считает всех, чей статус не 'spectator'.
+     * @param int $roomId ID комнаты
+     * @return object Объект с полем 'count'
+     */
+    public function getPlayingMembersCount($roomId)
+    {
+        // Считаем всех, кто не 'spectator' (т.е. 'player', )
+        return $this->query("SELECT COUNT(*) AS count FROM room_members WHERE room_id = ? AND status != 'spectator'", [$roomId]);
     }
 
     public function isPrivateCodeUnique($code)
@@ -183,13 +194,13 @@ class DB
         );
     }
 
-    public function addRoomMember($roomId, $userId, $bet = 0)
+    public function addRoomMember($roomId, $userId, $status = 'spectator', $bet = 0)
     {
         $this->removeUserFromAllRooms($userId);
         try {
             return $this->execute(
-                "INSERT INTO room_members (room_id, user_id, bet) VALUES (?, ?, ?)",
-                [$roomId, $userId, $bet]
+                "INSERT INTO room_members (room_id, user_id, status, bet, cards) VALUES (?, ?, ?, ?, ?)",
+                [$roomId, $userId, $status, $bet, '']
             );
         } catch (PDOException $e) {
             error_log("Error while adding user to room: " . $e->getMessage());
@@ -202,14 +213,33 @@ class DB
         return $this->query("SELECT * FROM rooms WHERE private_code=?", [$code]);
     }
 
+    /**
+     * Получить информацию об участнике комнаты
+     */
+    public function getRoomMember($roomId, $userId)
+    {
+        return $this->query(
+            "SELECT rm.id as member_id, rm.user_id, rm.bet, rm.cards, rm.status,
+                    u.name, u.balance
+             FROM room_members rm
+             JOIN users u ON rm.user_id = u.id
+             WHERE rm.room_id = ? AND rm.user_id = ?",
+            [$roomId, $userId]
+        );
+    }
+
+    /**
+     * Получить всех участников комнаты с подробной информацией
+     */
     public function getRoomMembers($roomId)
     {
         return $this->queryAll(
-            "SELECT u.id, u.name, u.balance 
-             FROM room_members rm 
-             JOIN users u ON rm.user_id = u.id 
-             WHERE rm.room_id = ? 
-             ORDER BY u.id ASC",
+            "SELECT rm.id as member_id, rm.user_id, rm.bet, rm.cards, rm.status,
+                    u.id, u.name, u.balance
+             FROM room_members rm
+             JOIN users u ON rm.user_id = u.id
+             WHERE rm.room_id = ?
+             ORDER BY rm.id ASC",
             [$roomId]
         );
     }
@@ -244,8 +274,99 @@ class DB
     }
     public function loadDeck($roomId)
     {
-        $hex = $this->query("SELECT deckOfCards FROM rooms WHERE id = ?", [$roomId])->fetchColumn();
+        $result = $this->query("SELECT deckOfCards FROM rooms WHERE id = ?", [$roomId]);
+        if (!$result || !$result->deckOfCards) {
+            return [];
+        }
+        $hex = $result->deckOfCards;
         $str = hex2bin($hex);
         return explode(',', $str);
+    }
+
+    /**
+     * Обновить карты игрока в комнате (HEX формат для совместимости)
+     */
+    public function updateMemberCards($roomId, $userId, $cards)
+    {
+        // Сохраняем в HEX формате для совместимости с форматом колоды
+        if (is_array($cards)) {
+            $str = implode(',', $cards);
+            $hex = bin2hex($str);
+        } else {
+            $hex = $cards; // Если уже строка, предполагаем что это HEX
+        }
+        return $this->execute(
+            "UPDATE room_members SET cards = ? WHERE room_id = ? AND user_id = ?",
+            [$hex, $roomId, $userId]
+        );
+    }
+
+    /**
+     * Обновить ставку игрока
+     */
+    public function updateMemberBet($roomId, $userId, $bet)
+    {
+        return $this->execute(
+            "UPDATE room_members SET bet = ? WHERE room_id = ? AND user_id = ?",
+            [$bet, $roomId, $userId]
+        );
+    }
+
+    /**
+     * Обновить статус игрока (player, spectator)
+     */
+    public function updateMemberStatus($roomId, $userId, $status)
+    {
+        return $this->execute(
+            "UPDATE room_members SET status = ? WHERE room_id = ? AND user_id = ?",
+            [$status, $roomId, $userId]
+        );
+    }
+
+    /**
+     * Установить текущего игрока и время начала хода
+     */
+    public function setCurrentPlayer($roomId, $memberId)
+    {
+        return $this->execute(
+            "UPDATE rooms SET current_member_id = ?, turn_start_time = NOW() WHERE id = ?",
+            [$memberId, $roomId]
+        );
+    }
+
+    /**
+     * Получить ID текущего ходящего игрока
+     */
+    public function getCurrentMemberId($roomId)
+    {
+        $result = $this->query(
+            "SELECT current_member_id FROM rooms WHERE id = ?",
+            [$roomId]
+        );
+        return $result ? $result->current_member_id : null;
+    }
+
+    /**
+     * Удаление комнаты
+     */
+    public function deleteRoom($roomId)
+    {
+        return $this->execute("DELETE FROM rooms WHERE id = ?", [$roomId]);
+    }
+
+    /**
+     * Обновление хэша комнаты
+     */
+    public function updateRoomHash($roomId, $hash)
+    {
+        return $this->execute("UPDATE rooms SET hash = ? WHERE id = ?", [$hash, $roomId]);
+    }
+
+    /**
+     * Сброс текущего игрока в комнате
+     */
+    public function resetCurrentMember($roomId)
+    {
+        return $this->execute("UPDATE rooms SET current_member_id = NULL WHERE id = ?", [$roomId]);
     }
 }

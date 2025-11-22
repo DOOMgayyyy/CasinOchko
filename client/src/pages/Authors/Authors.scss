@@ -1,0 +1,151 @@
+.authors-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #181818;
+}
+
+.authors-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 40px;
+  background: rgba(24, 24, 24, 1);
+  border-bottom: 1px solid #333;
+  height: 70px;
+}
+
+.authors-header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.authors-player-name {
+  margin-right: auto;
+  color: #e0e0e0;
+  font-family: 'Handjet', sans-serif;
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.authors-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.authors-balance-text {
+  color: #ffffff;
+  font-family: 'Handjet', monospace;
+  font-size: 36px;
+}
+
+.authors-balance-amount {
+  color: #2196F3;
+  font-size: 1.3rem;
+  font-weight: bold;
+  font-family: 'Handjet', monospace;
+}
+
+.authors-menu-btn, .authors-add-money-btn {
+  background: #333;
+  
+  border-radius: 9px;
+  width: 45px;
+  height: 45px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.authors-main-content {
+  padding: 1rem 2rem;
+  height: calc(100vh - 70px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.authors-title-section {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.authors-page-title {
+  font-family: 'Handjet', sans-serif;
+  font-size: 36px;
+  color: #fff;
+  margin-bottom: -0.5rem;
+}
+
+.authors-logo {
+    font-family: 'Jersey 10', sans-serif;
+  font-size: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.authors-logo-casino {
+    color: #ffffff;
+}
+
+.authors-logo-ochko {
+    color: #FFD700;
+}
+
+.authors-columns-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: -1rem;
+}
+
+.authors-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 250px;
+}
+
+.authors-team-block {
+  text-align: left;
+}
+
+.authors-role-title, .authors-name {
+  font-family: 'Handjet', sans-serif;
+  font-size: 36px;
+  margin: 0 0 0.1rem 0;
+  color: #5B5B5B;
+}
+
+.authors-name {
+  color: #fff;
+}
+
+.authors-programmers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.authors-back-btn {
+  font-family: 'Handjet', sans-serif;
+  font-size: 38px;
+  color: #8F8F8F;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 6.5rem;
+  text-align: left;
+  transition: color 0.2s ease;
+}
