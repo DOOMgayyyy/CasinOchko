@@ -266,21 +266,29 @@ class DB
             [$amount, $userId]
         );
     }
+    /**
+     * Сохраняет строку колоды напрямую в БД
+     */
     public function saveDeck($roomId, $deck)
     {
-        $str = implode(',', $deck);
-        $hex = bin2hex($str);
-        return $this->execute("UPDATE rooms SET deckOfCards = ? WHERE id = ?", [$hex, $roomId]);
+        // $deck — это уже готовая строка "2H3D..."
+        // Просто пишем её в базу
+        return $this->execute("UPDATE rooms SET deckOfCards = ? WHERE id = ?", [$deck, $roomId]);
     }
+
+    /**
+     * Загружает строку колоды из БД
+     */
     public function loadDeck($roomId)
     {
         $result = $this->query("SELECT deckOfCards FROM rooms WHERE id = ?", [$roomId]);
-        if (!$result || !$result->deckOfCards) {
-            return [];
+        
+        if (!$result || empty($result->deckOfCards)) {
+            return ''; // Если пусто, возвращаем пустую строку
         }
-        $hex = $result->deckOfCards;
-        $str = hex2bin($hex);
-        return explode(',', $str);
+
+        // Возвращаем чистую строку "2H3D..." как есть
+        return $result->deckOfCards;
     }
 
     /**

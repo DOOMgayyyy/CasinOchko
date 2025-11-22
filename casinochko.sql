@@ -61,7 +61,7 @@ CREATE TABLE `rooms` (
   `private_code` varchar(4) DEFAULT NULL,
   `hash` varchar(255) DEFAULT NULL,
   `deckOfCards` varchar(255) COMMENT 'HEX строка: QS,5C,2D,...'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ;
 
 --
 -- Дамп данных таблицы `rooms`
@@ -85,7 +85,6 @@ CREATE TABLE `room_members` (
   `id` bigint UNSIGNED NOT NULL,
   `room_id` bigint UNSIGNED NOT NULL,
   `user_id` bigint UNSIGNED NOT NULL,
-  `status` varchar(50) NOT NULL DEFAULT 'spectator',
   `bet` int DEFAULT '0',
   `types` tinyint(1) DEFAULT '0',
   `cards` varchar(255) NOT NULL COMMENT 'HEX строка: AH,7D ->  hex'
@@ -95,9 +94,9 @@ CREATE TABLE `room_members` (
 -- Дамп данных таблицы `room_members`
 --
 
-INSERT INTO `room_members` (`id`, `room_id`, `user_id`, `status`, `bet`, `types`, `cards`) VALUES
-(10, 9, 2, 'spectator', 0, 0, ''),
-(11, 9, 3, 'spectator', 0, 0, '');
+INSERT INTO `room_members` (`id`, `room_id`, `user_id`, `bet`, `types`, `cards`) VALUES
+(10, 9, 2, 0, 0, ''),
+(11, 9, 3, 0, 0, '');
 
 -- --------------------------------------------------------
 
