@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Ноя 16 2025 г., 00:00
+-- Время создания: Ноя 22 2025 г., 18:13
 -- Версия сервера: 8.0.30
 -- Версия PHP: 7.2.34
 
@@ -60,20 +60,16 @@ CREATE TABLE `rooms` (
   `current_member_id` bigint UNSIGNED DEFAULT NULL,
   `private_code` varchar(4) DEFAULT NULL,
   `hash` varchar(255) DEFAULT NULL,
-  `deckOfCards` varchar(255) COMMENT 'HEX строка: QS,5C,2D,...'
-) ;
+  `deckOfCards` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'HEX строка: QS,5C,2D,...'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Дамп данных таблицы `rooms`
 --
 
-INSERT INTO `rooms` 
-(`id`, `type`, `status`, `current_member_id`, `private_code`, `hash`, `deckOfCards`) 
-VALUES
-(9, 'private', 'playing', NULL, 'YKYN', '30ee435595786e81cf8f32e80b49b786',
- '51532c35432c32442c37532c4b482c38532c41482c39442c39482c4a442c33532c33432c34482c4b432c4b532c51432c3130442c38442c32432c32532c38432c36532c36432c37432c41432c38482c3130482c39532c37442c41442c34532c4b442c34432c3130432c51482c36442c36482c41532c32482c3130532c33442c51442c4a532c35442c34442c37482c4a432c35532c39432c4a482c35482c3348'
-);
-
+INSERT INTO `rooms` (`id`, `type`, `status`, `current_member_id`, `private_code`, `hash`, `deckOfCards`) VALUES
+(23, 'private', 'playing', NULL, 'UJNZ', '40528c9847d3006b2f3ae443d49706c3', NULL),
+(24, 'open', 'playing', NULL, NULL, '95dc32487dc6fd7884e760e3cc626bac', 'CD9SDSEHBH5H8CAH8S8DCC8HBSASDH3C4SBC6SCSAD7C2D6H9C3HES6CBD4H5S7H3S2S6DDDEC9D4C5D7S3DED2CDC5C9HCH7D2HAC4D');
 
 -- --------------------------------------------------------
 
@@ -85,18 +81,18 @@ CREATE TABLE `room_members` (
   `id` bigint UNSIGNED NOT NULL,
   `room_id` bigint UNSIGNED NOT NULL,
   `user_id` bigint UNSIGNED NOT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'spectator',
   `bet` int DEFAULT '0',
   `types` tinyint(1) DEFAULT '0',
-  `cards` varchar(255) NOT NULL COMMENT 'HEX строка: AH,7D ->  hex'
+  `cards` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'HEX строка: AH,7D ->  hex'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица членов комнат';
 
 --
 -- Дамп данных таблицы `room_members`
 --
 
-INSERT INTO `room_members` (`id`, `room_id`, `user_id`, `bet`, `types`, `cards`) VALUES
-(10, 9, 2, 0, 0, ''),
-(11, 9, 3, 0, 0, '');
+INSERT INTO `room_members` (`id`, `room_id`, `user_id`, `status`, `bet`, `types`, `cards`) VALUES
+(31, 24, 4, 'spectator', 0, 0, '');
 
 -- --------------------------------------------------------
 
@@ -122,7 +118,9 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `email`, `password`, `name`, `balance`, `token`, `total_played`, `total_win`, `total_balance`) VALUES
 (2, 'yana@awsi.com', '$2y$10$yhQWfuyAW63mcy3ZksXBFOuv4Y4m2CuCoFOucVO768BAHMekzYooe', 'owerlord', 8000, '527ad0d366406ff3acf9d677ae9f72f2', 0, 0, 5000),
-(3, 'dev@dev.com', '$2y$10$hvDnmfqRDzCBShPSqWrm2.4YVxLBpS/.FKS.FG7DiBKCwjVnI0dpq', 'dev', 5000, '8a1954228142f4c6f15188d5649b560e', 0, 0, 5000);
+(3, 'dev@dev.com', '$2y$10$hvDnmfqRDzCBShPSqWrm2.4YVxLBpS/.FKS.FG7DiBKCwjVnI0dpq', 'dev', 5000, '8a1954228142f4c6f15188d5649b560e', 0, 0, 5000),
+(4, 'vibes@vibes.com', '25d55ad283aa400af464c76d713c07ad', 'bob', 5000, 'e7efc8b8649278e453a4deed287d8c1f', 0, 0, 5000),
+(5, 'vibhs@vibes.com', '25d55ad283aa400af464c76d713c07ad', 'vibe', 1000000, '80a756ce0f6712f0bf81441e93d30dc1', 0, 0, 1000000);
 
 --
 -- Индексы сохранённых таблиц
@@ -186,19 +184,19 @@ ALTER TABLE `message_hashes`
 -- AUTO_INCREMENT для таблицы `rooms`
 --
 ALTER TABLE `rooms`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT для таблицы `room_members`
 --
 ALTER TABLE `room_members`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
