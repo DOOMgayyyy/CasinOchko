@@ -11,59 +11,7 @@ class GameLogic
         $this->db = $db;
     }
 
-    /**
-     * Получить информацию о комнате (игроки, карты, таймер)
-     * Работает по принципу long polling с hash-проверкой
-     * * @param int $roomId ID комнаты
-     * @param int $userId ID пользователя (для получения его карт)
-     * @param string $clientHash Hash от клиента для проверки изменений
-     * @return array Информация о комнате или пустой массив если hash совпадает
-     */
-    public function getInfoRoom($roomId, $userId, $clientHash)
-    {
-        // Получаем текущий hash комнаты
-        $room = $this->db->getRoom($roomId);
-        $currentMemberId = $this->db->getCurrentMemberId($roomId);
-        if (!$room) {
-            return ['error' => 901]; // Комната не найдена
-        }
-
-        $currentHash = $room->hash;
-
-        // Если hash совпадает - изменений нет
-        if ($currentHash && $currentHash === $clientHash) {
-            return [
-                'players' => [],
-                'myCards' => [],
-                'timer' => null,
-                'hash' => $clientHash,
-                'currentPlayerId' => $currentMemberId,
-                'changed' => false
-            ];
-        }
-
-        // Hash не совпадает - отправляем полную информацию
-        
-        // 1. Получаем всех игроков комнаты
-        $players = $this->getPlayersInfo($roomId);
-
-        // 2. Получаем карты текущего пользователя
-        $myCards = $this->getUserCards($roomId, $userId);
-
-        // 3. Получаем информацию о таймере хода
-        $timer = $this->getTimer($room);
-
-        return [
-            'players' => $players,
-            'myCards' => $myCards,
-            'timer' => $timer,
-            'hash' => $currentHash,
-            'currentPlayerId' => $currentMemberId,
-            'changed' => true
-        ];
-    }
-
-    /**
+        /**
      * Получить информацию обо всех игроках в комнате
      * * @param int $roomId ID комнаты
      * @return array Массив с данными игроков
@@ -96,6 +44,53 @@ class GameLogic
 
         return $players;
     }
+
+    /**
+     * Получить информацию о комнате (игроки, карты, таймер)
+     * Работает по принципу long polling с hash-проверкой
+     * * @param int $roomId ID комнаты
+     * @param int $userId ID пользователя (для получения его карт)
+     * @param string $clientHash Hash от клиента для проверки изменений
+     * @return array Информация о комнате или пустой массив если hash совпадает
+     */
+    public function getInfoRoom($roomId, $userId, $clientHash)
+    {
+        // Получаем текущий hash комнаты
+        $room = $this->db->getRoom($roomId);
+        if (!$room) {
+            return ['error' => 901]; // Комната не найдена
+        }
+        $currentHash = $room->hash;
+
+        // Если hash совпадает - изменений нет
+        if ($currentHash === $clientHash) {
+            return true;
+        }
+
+        $currentMemberId = $this->db->getCurrentMemberId($roomId);
+        
+        // Hash не совпадает - отправляем полную информацию
+        
+        // 1. Получаем всех игроков комнаты
+        $players = $this->getPlayersInfo($roomId);
+
+        // 2. Получаем карты текущего пользователя
+        $myCards = $this->getUserCards($roomId, $userId);
+
+        // 3. Получаем информацию о таймере хода
+        $timer = $this->getTimer($room);
+
+        //...... <= 0
+
+        return [
+            'players' => $players,
+            'myCards' => $myCards,
+            'timer' => $timer,// это ЧИСЛО!!! мазафака
+            'hash' => $currentHash,
+            'currentPlayerId' => $currentMemberId,
+        ];
+    }
+
 
     /**
      * Получить карты конкретного пользователя

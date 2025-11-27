@@ -163,9 +163,9 @@ class DB
 
     public function isPrivateCodeUnique($code)
     {
-        $sql = "SELECT COUNT(*) FROM rooms WHERE private_code = ?";
-        $count = $this->query($sql, [$code])->{'COUNT(*)'};
-        return $count == 0;
+        $sql = "SELECT COUNT(*) AS count FROM rooms WHERE private_code = ?";
+        $count = $this->query($sql, [$code])->count;
+        return $count === 0;
     }
 
     public function createRoom($type, $status, $privateCode, $hash)
@@ -221,7 +221,7 @@ class DB
         return $this->query(
             "SELECT rm.id as member_id, rm.user_id, rm.bet, rm.cards, rm.status,
                     u.name, u.balance
-             FROM room_members rm
+             FROM room_members AS rm
              JOIN users u ON rm.user_id = u.id
              WHERE rm.room_id = ? AND rm.user_id = ?",
             [$roomId, $userId]
@@ -236,7 +236,7 @@ class DB
         return $this->queryAll(
             "SELECT rm.id as member_id, rm.user_id, rm.bet, rm.cards, rm.status,
                     u.id, u.name, u.balance
-             FROM room_members rm
+             FROM room_members AS rm
              JOIN users u ON rm.user_id = u.id
              WHERE rm.room_id = ?
              ORDER BY rm.id ASC",
