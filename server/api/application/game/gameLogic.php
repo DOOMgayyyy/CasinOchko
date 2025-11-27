@@ -38,7 +38,7 @@ class GameLogic
                 'balance' => (int)$member->balance,
                 'bet' => (int)$member->bet,
                 'cards' => $cards,
-                'status' => $member->status ?? 'active' // active, folded, waiting
+                'status' => $member->status ?? 'spectator' // player status (player, spectator)
             ];
         }
 
