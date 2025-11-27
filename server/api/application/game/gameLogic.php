@@ -77,12 +77,11 @@ class GameLogic
 
         // Если есть timestamp начала хода
         if (isset($room->turn_start_time)) {
-            $turnDuration = 30; // Длительность хода в секундах
+            const turnDuration = 30; // Длительность хода в секундах
             $timeElapsed = time() - strtotime($room->turn_start_time);
             $timeLeft = max(0, $turnDuration - $timeElapsed);
 
             return [
-                'currentPlayerId' => $room->current_member_id,
                 'timeLeft' => $timeLeft,
                 'totalTime' => $turnDuration
             ];
@@ -90,7 +89,6 @@ class GameLogic
 
         // Если timestamp не установлен, просто возвращаем ID текущего игрока
         return [
-            'currentPlayerId' => $room->current_member_id,
             'timeLeft' => null,
             'totalTime' => null
         ];

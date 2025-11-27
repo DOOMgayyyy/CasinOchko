@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Ноя 22 2025 г., 18:13
+-- Время создания: Ноя 27 2025 г., 20:46
 -- Версия сервера: 8.0.30
 -- Версия PHP: 7.2.34
 
@@ -68,9 +68,9 @@ CREATE TABLE `rooms` (
 -- Дамп данных таблицы `rooms`
 --
 
-INSERT INTO `rooms` (`id`, `type`, `status`, `current_member_id`, `private_code`, `hash`, `deckOfCards`) VALUES
-(23, 'private', 'playing', NULL, 'UJNZ', '40528c9847d3006b2f3ae443d49706c3', NULL),
-(24, 'open', 'playing', NULL, NULL, '95dc32487dc6fd7884e760e3cc626bac', 'CD9SDSEHBH5H8CAH8S8DCC8HBSASDH3C4SBC6SCSAD7C2D6H9C3HES6CBD4H5S7H3S2S6DDDEC9D4C5D7S3DED2CDC5C9HCH7D2HAC4D');
+INSERT INTO `rooms` (`id`, `type`, `status`, `current_member_id`, `private_code`, `hash`, `deckOfCards`, `dealerCards`) VALUES
+(23, 'private', 'playing', NULL, 'UJNZ', '40528c9847d3006b2f3ae443d49706c3', NULL, NULL),
+(24, 'open', 'playing', NULL, NULL, '95dc32487dc6fd7884e760e3cc626bac', 'CD9SDSEHBH5H8CAH8S8DCC8HBSASDH3C4SBC6SCSAD7C2D6H9C3HES6CBD4H5S7H3S2S6DDDEC9D4C5D7S3DED2CDC5C9HCH7D2HAC4D', NULL);
 
 -- --------------------------------------------------------
 
@@ -87,13 +87,6 @@ CREATE TABLE `room_members` (
   `types` tinyint(1) DEFAULT '0',
   `cards` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'HEX строка: AH,7D ->  hex'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица членов комнат';
-
---
--- Дамп данных таблицы `room_members`
---
-
-INSERT INTO `room_members` (`id`, `room_id`, `user_id`, `status`, `bet`, `types`, `cards`) VALUES
-(31, 24, 4, 'spectator', 0, 0, '');
 
 -- --------------------------------------------------------
 
