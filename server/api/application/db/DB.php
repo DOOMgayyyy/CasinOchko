@@ -39,7 +39,8 @@ class DB
     {
         $sth = $this->pdo->prepare($sql);
         $sth->execute($params);
-        return $sth->fetchAll(PDO::FETCH_OBJ);    }
+        return $sth->fetchAll(PDO::FETCH_OBJ);    
+    }
 
     /*public function getUserByLogin($name) {
         return $this->query("SELECT * FROM users WHERE login=?", [$name]);
@@ -73,6 +74,7 @@ class DB
     {
         return $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
     }
+
     public function isNameUnique($name, $excludingUserId = null)
     {
         $sql = "SELECT COUNT(*) FROM users WHERE name = ?";
@@ -252,9 +254,9 @@ class DB
                 balance
             FROM users
             ORDER BY balance DESC
-            LIMIT 100
-    ");
+            LIMIT 100");
     }
+
     public function updateBalance($userId, $amount)
     {
         // Используем SQL-функцию ADD для прибавления или вычитания.
@@ -266,6 +268,7 @@ class DB
             [$amount, $userId]
         );
     }
+
     /**
      * Сохраняет строку колоды напрямую в БД
      */

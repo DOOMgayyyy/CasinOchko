@@ -11,7 +11,7 @@ class GameLogic
         $this->db = $db;
     }
 
-        /**
+    /**
      * Получить информацию обо всех игроках в комнате
      * * @param int $roomId ID комнаты
      * @return array Массив с данными игроков

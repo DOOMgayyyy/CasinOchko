@@ -3,6 +3,8 @@ require_once('db/DB.php');
 require_once('user/User.php');
 require_once('lobby/Lobby.php');
 require_once('game/GameLogic.php');
+require_once('game/Deck.php');
+
 // require_once('chat/Chat.php'); 
 
 class Application
@@ -21,6 +23,7 @@ class Application
         // $this->chat = new Chat($db); 
         $this->lobby = new Lobby($db);
         $this->gameLogic = new GameLogic($db);
+        $this->deck = new Deck($db);
     }
 
     public function login($params)

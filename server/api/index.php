@@ -42,7 +42,6 @@ function result($params) {
             // bet
             // getCard
             // pass
-            // split (?)
         
             default: return ['error' => 102];
         }
