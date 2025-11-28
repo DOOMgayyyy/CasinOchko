@@ -1,7 +1,6 @@
 import React, { useState, useContext } from 'react';
 import './Lobby.scss';
 import SideMenu from './SideMenu/SideMenu';
-import PrivateRoom from './PrivateRoom/PrivateRoom';
 import { IBasePage, PAGES } from '../PageManager';
 import { StoreContext, ServerContext } from '../../App';
 
@@ -44,23 +43,9 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     //===================================================
 
     const [showSideMenu, setShowSideMenu] = useState(false);
-    const [showPrivateRoomPage, setShowPrivateRoomPage] = useState(false);
-    const [roomCreated, setRoomCreated] = useState<{code: string, room_id: number} | null>(null);
-    
     const [showAdModal, setShowAdModal] = useState(false);
 
     
-
-    const handleCreateRoom = async () => {
-        const result = await server.createPrivateRoom();
-        
-        if (result && result.private_code) {
-            setRoomCreated({ 
-                code: result.private_code,
-                room_id: result.id 
-            });
-        }
-    };
 
     const handleQuickStart = async () => {
         try {
@@ -131,27 +116,6 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         />
     );
 
-    // Если показываем страницу приватной комнаты
-    if (showPrivateRoomPage) {
-        return (
-            <>
-                <PrivateRoom
-                    player={player}
-                    onBack={() => setShowPrivateRoomPage(false)}
-                    onCreateRoom={handleCreateRoom}
-                    //onJoinRoom={handleJoinRoom}
-                    onShowSideMenu={() => setShowSideMenu(true)}
-                    onShowAdModal={() => setShowAdModal(true)}
-                    roomCreated={roomCreated}
-                    onCloseRoomMessage={() => setRoomCreated(null)}
-                    setPage={setPage} 
-                />
-                {sideMenuComponent}
-                {adModalComponent}
-            </>
-        );
-    }
-
     return (
         <div className="lobby">
             <div className="lobby-background"></div>
@@ -185,7 +149,7 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     Быстрая игра
                 </button>
 
-                <button className="lobby-btn private-room-btn" onClick={() => setShowPrivateRoomPage(true)}>
+                <button className="lobby-btn private-room-btn" onClick={() => setPage(PAGES.PRIVATE_ROOM)}>
                     Приватная комната
                 </button>
 

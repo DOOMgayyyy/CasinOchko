@@ -46,53 +46,48 @@ class Answer
 
     static function response($data)
     {
-        // if ($data) {
-            
-        //     if (!is_bool($data) && array_key_exists('error', $data)) {
-        //         $code = $data['error'];
-        //         return [
-        //             'result' => 'error',
-        //             'error' => [
-        //                 'code' => $code,
-        //                 'text' => self::$CODES[$code]
-        //             ]
-        //         ];
-        //     }
-        //     return [
-        //         'result' => 'ok',
-        //         'data' => $data
-        //     ];
-        // }
-        // $code = 9000;
-        // return [
-        //     'result' => 'error',
-        //     'error' => [
-        //         'code' => $code,
-        //         'text' => self::$CODES[$code]
-        //     ]
-        // ];
-
         if ($data) {
+            // Проверяем, является ли $data массивом или объектом с ошибкой
+            $isError = false;
+            $errorCode = null;
             
-
-            $processed_data = is_object($data) ? (array) $data : $data;
-
-            if (!is_bool($processed_data) && array_key_exists('error', $processed_data)) {
-                $code = $processed_data['error'];
+            if (is_array($data) && array_key_exists('error', $data)) {
+                $isError = true;
+                $errorCode = $data['error'];
+            } elseif (is_object($data) && property_exists($data, 'error')) {
+                $isError = true;
+                $errorCode = $data->error;
+            }
+            
+            if ($isError && !is_bool($data)) {
                 return [
                     'result' => 'error',
                     'error' => [
-                        'code' => $code,
-                        'text' => self::$CODES[$code]
+                        'code' => $errorCode,
+                        'text' => self::$CODES[$errorCode] ?? 'Unknown error'
                     ]
                 ];
             }
             
-        
+            // Преобразуем объект в массив для единообразного формата ответа
+            if (is_object($data)) {
+                $data = (array)$data;
+            }
+            
             return [
                 'result' => 'ok',
                 'data' => $data
             ];
         }
+        
+        // Если $data пусто или false, возвращаем ошибку
+        $code = 9000;
+        return [
+            'result' => 'error',
+            'error' => [
+                'code' => $code,
+                'text' => self::$CODES[$code]
+            ]
+        ];
     }
 }

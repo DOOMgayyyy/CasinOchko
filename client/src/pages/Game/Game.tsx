@@ -36,6 +36,9 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const [players, setPlayers] = useState<TPlayer[]>([]);
     const [timer, setTimer] = useState<TTimer | null>(null);
     const [myMemberId, setMyMemberId] = useState<number | null>(null);
+    const [roomCode, setRoomCode] = useState<string | null>(null);
+    const [copySuccess, setCopySuccess] = useState(false);
+    const [showLeaveModal, setShowLeaveModal] = useState(false);
     
     // Получаем roomId из store
     const roomId = store.getCurrentRoomId();
@@ -101,10 +104,22 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
       };
     
       const handleBackToLobby = () => {
+        setShowLeaveModal(true);
+      };
+
+      const handleLeaveRoom = async () => {
         // Останавливаем game loop при выходе
         server.stopGameLoop();
-        store.clearCurrentRoomId();
-        setPage(PAGES.LOBBY);
+        const result = await server.leaveRoom();
+        if (result) {
+          store.clearCurrentRoomId();
+          setPage(PAGES.LOBBY);
+        }
+        setShowLeaveModal(false);
+      };
+
+      const handleStayInRoom = () => {
+        setShowLeaveModal(false);
       };
         
       const handleChatToggle = () => {
@@ -144,6 +159,22 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         img.src = tableImgSrc;
         img.onload = () => setTableImage(img);
     }, []);
+
+    useEffect(() => {
+        const code = sessionStorage.getItem('roomCode');
+        if (code) {
+            setRoomCode(code);
+            sessionStorage.removeItem('roomCode');
+        }
+    }, []);
+
+    const handleCopyCode = async () => {
+        if (roomCode) {
+            await navigator.clipboard.writeText(roomCode);
+            setCopySuccess(true);
+            setTimeout(() => setCopySuccess(false), 2000);
+        }
+    };
 
     // Game loop - каждую секунду запрашиваем обновления состояния игры
     useEffect(() => {
@@ -271,6 +302,52 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
             </div>
         </div>
         </div>
+
+        {roomCode && (
+            <div className="room-created-message">
+                <div className="room-created-header">
+                    <span className="success-icon">✅</span>
+                    <span className="success-text">Комната создана!</span>
+                    <button className="close-message-btn" onClick={() => setRoomCode(null)}>×</button>
+                </div>
+                <div className="room-code-display">
+                    <div className="room-code-label">Код комнаты:</div>
+                    <div 
+                        className="room-code-value clickable" 
+                        onClick={handleCopyCode}
+                        title="Нажмите, чтобы скопировать код">
+                        {roomCode}
+                    </div>
+                </div>
+                {copySuccess && (
+                    <div className="copy-success">Код скопирован!</div>
+                )}
+            </div>
+        )}
+
+        {showLeaveModal && (
+            <div className="leave-room-modal-overlay" onClick={handleStayInRoom}>
+                <div className="leave-room-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="leave-room-modal-content">
+                        <h2 className="leave-room-modal-title">Покинуть комнату?</h2>
+                        <div className="leave-room-modal-buttons">
+                            <button 
+                                className="leave-room-button leave-button" 
+                                onClick={handleLeaveRoom}
+                            >
+                                Покинуть
+                            </button>
+                            <button 
+                                className="leave-room-button stay-button" 
+                                onClick={handleStayInRoom}
+                            >
+                                Остаться
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )}
     </div>)
 }
 

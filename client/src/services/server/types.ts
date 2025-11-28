@@ -93,3 +93,20 @@ export type TRoomInfoResponse = {
     currentPlayerId: number | null;
     changed: boolean;
 };
+
+// Запись пользователя в рейтинг
+export type TUserRating = {
+    id: number;
+    name: string;
+    balance: number;
+};
+
+// Ответ getRatingTable
+export type TLeaderboardResponse = {
+    rating: TUserRating[];
+};
+
+export type TGetLeaveRoomResponse = {
+    success: boolean;
+    roomDeleted: boolean;
+};
