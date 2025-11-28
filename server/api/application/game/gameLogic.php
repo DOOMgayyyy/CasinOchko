@@ -5,6 +5,8 @@
 class GameLogic
 {
     private $db;
+    
+    const BETTING_DURATION = 30;
 
     function __construct($db)
     {
@@ -37,8 +39,7 @@ class GameLogic
                 'myCards' => [],
                 'timer' => null,
                 'hash' => $clientHash,
-                'currentPlayerId' => $currentMemberId,
-                'changed' => false
+                'timer' => $this->getTimeLeft($room)
             ];
         }
 
@@ -49,17 +50,17 @@ class GameLogic
 
         // 2. Получаем карты текущего пользователя
         $myCards = $this->getUserCards($roomId, $userId);
-
+        
         // 3. Получаем информацию о таймере хода
-        $timer = $this->getTimer($room);
+        // таймер возвращается как число
+        $timer = $this->getTimeLeft($room);
 
         return [
             'players' => $players,
             'myCards' => $myCards,
             'timer' => $timer,
             'hash' => $currentHash,
-            'currentPlayerId' => $currentMemberId,
-            'changed' => true
+            'currentPlayerId' => $room->current_member_id
         ];
     }
 
@@ -116,35 +117,100 @@ class GameLogic
         return is_array($cards) ? $cards : [];
     }
 
-    /**
-     * Получить информацию о таймере хода
-     * * @param object $room Объект комнаты
-     * @return array|null Информация о таймере или null
-     */
-    private function getTimer($room)
+    // возвращает время в секундах (int) или 0
+    private function getTimeLeft($room)
     {
-        if (!$room->current_member_id) {
-            return null;
+        if (isset($room->betting_end_time) && $room->betting_end_time > time()) {
+            return max(0, $room->betting_end_time - time());
+        }
+        return 0;
+    }
+
+    public function bet($roomId, $userId, $amount)
+    {
+        // 1. проверка таймера
+        $deadline = $this->db->getBettingEndTime($roomId);
+        $timeLeft = max(0, $deadline - time());
+        
+        if ($deadline > 0 && $timeLeft === 0) { 
+             return ['error' => 'Time is up']; 
         }
 
-        // Если есть timestamp начала хода
-        if (isset($room->turn_start_time)) {
-            $turnDuration = 30; // Длительность хода в секундах
-            $timeElapsed = time() - strtotime($room->turn_start_time);
-            $timeLeft = max(0, $turnDuration - $timeElapsed);
+        if (!is_numeric($amount) || $amount <= 0) return ['error' => 242];
 
-            return [
-                'currentPlayerId' => $room->current_member_id,
-                'timeLeft' => $timeLeft,
-                'totalTime' => $turnDuration
-            ];
+        // 2. подготовка карт
+        $member = $this->db->getRoomMember($roomId, $userId);
+        if (!$member) return ['error' => 705];
+
+        // проверяем, есть ли уже карты (первая ставка или повышение)
+        $isFirstBet = empty($member->cards) || $member->cards === '""' || $member->cards === '[]';
+        $cardsArray = [];
+
+        if ($isFirstBet) {
+            $deckStr = $this->db->loadDeck($roomId);
+            if (strlen($deckStr) < 4) return ['error' => 'Deck is empty'];
+
+            // берем 2 карты с конца строки
+            $cardsToGive = substr($deckStr, -4); 
+            $newDeckStr = substr($deckStr, 0, -4); 
+            $cardsArray = str_split($cardsToGive, 2); 
+            
+            $this->db->saveDeck($roomId, $newDeckStr);
+        } else {
+            $cardsArray = json_decode($member->cards, true);
         }
 
-        // Если timestamp не установлен, просто возвращаем ID текущего игрока
+        // 3. транзакция (списание + ставка + статус)
+        if (!$this->db->makeBetTransaction($userId, $roomId, $amount)) {
+            return ['error' => 804];
+        }
+        
+        // 4. сохранение карт
+        if ($isFirstBet) {
+            $this->db->updateMemberCards($roomId, $userId, $cardsArray);
+        }
+
+        // 5. обновление хэша
+        $this->db->updateRoomHash($roomId, md5(microtime()));
+
+        $updatedMember = $this->db->getRoomMember($roomId, $userId);
+
         return [
-            'currentPlayerId' => $room->current_member_id,
-            'timeLeft' => null,
-            'totalTime' => null
+            'success' => true,
+            'balance' => $updatedMember->balance,
+            'bet' => (int)$updatedMember->bet,
+            'cards' => $cardsArray,
+            'status' => 'player'
         ];
     }
+
+    public function startBettingRound($roomId) {
+        $endTime = time() + self::BETTING_DURATION;
+        $this->db->setBettingEndTime($roomId, $endTime);
+        $this->db->updateRoomHash($roomId, md5(microtime()));
+    }
+
+    public static function calculateHandScore($hand) {
+        $score = 0;
+        $aceCount = 0;
+        foreach ($hand as $card) {
+            $value = 0;
+            $rank = is_string($card) ? substr($card, 0, -1) : (isset($card->rank) ? $card->rank : 0);
+            
+            switch ($rank) {
+                case 'A': $value = 11; break;
+                case 'K': case 'Q': case 'J': case '10': $value = 10; break;
+                default: $value = (int)$rank; break;
+            }
+            
+            $score += $value;
+            if ($value === 11) $aceCount++;
+        }
+        while ($score > 21 && $aceCount > 0) {
+            $score -= 10;
+            $aceCount--;
+        }
+        return $score;
+    }
 }
+?>
