@@ -87,22 +87,7 @@ class Player
         return $this->getScore();
     }
 
-    //делаем ставку если хватает денег. amount - сумма ставки 
-    public function makeBet($amount)
-    {
-        //минимальная ставка 100
-        if ($amount < 100) {
-            return 0;
-        }
 
-        if ($this->balance >= $amount) {
-            $this->balance -= $amount;
-            $this->currentBet = $amount;
-            return $amount;
-        }
-
-        return 0;
-    }
 
     //сплит
     public function split($deck)
@@ -187,3 +172,4 @@ function isBust($hand)
     }
     return false;
 }
+

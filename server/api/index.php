@@ -39,6 +39,9 @@ function result($params) {
             // game
             case 'getInfoRoom': return $app->getInfoRoom($params);
             case 'leaveRoom': return $app->leaveRoom($params);
+            
+            // добавлена обработка ставки
+            case 'bet': return $app->bet($params);
         
             default: return ['error' => 102];
         }
@@ -54,3 +57,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $params = $_GET;
 }
 echo json_encode(Answer::response(result($params)), JSON_UNESCAPED_UNICODE);
+?>

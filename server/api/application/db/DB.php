@@ -39,7 +39,8 @@ class DB
     {
         $sth = $this->pdo->prepare($sql);
         $sth->execute($params);
-        return $sth->fetchAll(PDO::FETCH_OBJ);    }
+        return $sth->fetchAll(PDO::FETCH_OBJ);
+    }
 
     /*public function getUserByLogin($name) {
         return $this->query("SELECT * FROM users WHERE login=?", [$name]);
@@ -64,6 +65,7 @@ class DB
     {
         $this->execute("UPDATE users SET token=? WHERE id=?", [$token, $userId]);
     }
+
     public function getUserStat($userId)
     {
         return $this->query("SELECT total_played, total_win, total_balance FROM users WHERE id=?", [$userId]);
@@ -73,6 +75,7 @@ class DB
     {
         return $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
     }
+
     public function isNameUnique($name, $excludingUserId = null)
     {
         $sql = "SELECT COUNT(*) FROM users WHERE name = ?";
@@ -131,9 +134,10 @@ class DB
         );
     }
 
+    // добавлено betting_end_time и deckOfCards
     public function getRoom($roomId)
     {
-        return $this->query("SELECT id, type, status, current_member_id, private_code, hash FROM rooms WHERE id=?", [$roomId]);
+        return $this->query("SELECT id, type, status, current_member_id, private_code, hash, betting_end_time, deckOfCards FROM rooms WHERE id=?", [$roomId]);
     }
 
     public function getOpenRooms()
@@ -198,9 +202,10 @@ class DB
     {
         $this->removeUserFromAllRooms($userId);
         try {
+            // инициализация карт как пустой json массив
             return $this->execute(
                 "INSERT INTO room_members (room_id, user_id, status, bet, cards) VALUES (?, ?, ?, ?, ?)",
-                [$roomId, $userId, $status, $bet, '']
+                [$roomId, $userId, $status, $bet, '[]']
             );
         } catch (PDOException $e) {
             error_log("Error while adding user to room: " . $e->getMessage());
@@ -255,6 +260,7 @@ class DB
             LIMIT 100
     ");
     }
+
     public function updateBalance($userId, $amount)
     {
         // Используем SQL-функцию ADD для прибавления или вычитания.
@@ -266,6 +272,7 @@ class DB
             [$amount, $userId]
         );
     }
+
     /**
      * Сохраняет строку колоды напрямую в БД
      */
@@ -291,22 +298,11 @@ class DB
         return $result->deckOfCards;
     }
 
-    /**
-     * Обновить карты игрока в комнате (HEX формат для совместимости)
-     */
+    // методы для карт
     public function updateMemberCards($roomId, $userId, $cards)
     {
-        // Сохраняем в HEX формате для совместимости с форматом колоды
-        if (is_array($cards)) {
-            $str = implode(',', $cards);
-            $hex = bin2hex($str);
-        } else {
-            $hex = $cards; // Если уже строка, предполагаем что это HEX
-        }
-        return $this->execute(
-            "UPDATE room_members SET cards = ? WHERE room_id = ? AND user_id = ?",
-            [$hex, $roomId, $userId]
-        );
+        $str = is_array($cards) ? json_encode($cards) : $cards;
+        return $this->execute("UPDATE room_members SET cards = ? WHERE room_id = ? AND user_id = ?", [$str, $roomId, $userId]);
     }
 
     /**
@@ -377,4 +373,39 @@ class DB
     {
         return $this->execute("UPDATE rooms SET current_member_id = NULL WHERE id = ?", [$roomId]);
     }
+
+    // методы для таймера ставок
+    public function getBettingEndTime($roomId)
+    {
+        $res = $this->query("SELECT betting_end_time FROM rooms WHERE id = ?", [$roomId]);
+        return $res ? (int)$res->betting_end_time : 0;
+    }
+
+    public function setBettingEndTime($roomId, $timestamp)
+    {
+        return $this->execute("UPDATE rooms SET betting_end_time = ? WHERE id = ?", [$timestamp, $roomId]);
+    }
+
+    // атомарная транзакция ставки
+    public function makeBetTransaction($userId, $roomId, $amount)
+    {
+        try {
+            $this->pdo->beginTransaction();
+            $stmt = $this->pdo->prepare("UPDATE users SET balance = balance - ? WHERE id = ? AND balance >= ?");
+            $stmt->execute([$amount, $userId, $amount]);
+            if ($stmt->rowCount() === 0) {
+                $this->pdo->rollBack();
+                return false;
+            }
+            $stmt = $this->pdo->prepare("UPDATE room_members SET bet = bet + ?, status = 'player' WHERE user_id = ? AND room_id = ?");
+            $stmt->execute([$amount, $userId, $roomId]);
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            return false;
+        }
+    }
 }
+?>
+

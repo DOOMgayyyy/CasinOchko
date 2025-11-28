@@ -257,6 +257,7 @@ class Application
         }
         return ['error' => 242];
     }
+    
     public function getInfoRoom($params)
     {
         if ($params['token'] && $params['hash'] && $params['room_id']) {
@@ -275,4 +276,22 @@ class Application
 
         return ['error' => 242]; // Params not set fully
     }
+
+    // метод для ставки
+    public function bet($params) {
+        if ($params['token'] && $params['room_id'] && $params['amount']) {
+            $user = $this->user->getUser($params['token']);
+            if (!$user) return ['error' => 705];
+
+            return $this->gameLogic->bet(
+                $params['room_id'],
+                $user->id,
+                (int)$params['amount']
+            );
+        }
+        return ['error' => 242];
+    }
 }
+?>
+
+

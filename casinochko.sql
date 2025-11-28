@@ -28,11 +28,11 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `messages` (
-  `id` bigint UNSIGNED NOT NULL,
-  `room_id` bigint UNSIGNED NOT NULL,
-  `user_id` bigint UNSIGNED NOT NULL,
-  `message` text NOT NULL,
-  `created` datetime DEFAULT CURRENT_TIMESTAMP
+  `id` bigint UNSIGNED NOT NULL,
+  `room_id` bigint UNSIGNED NOT NULL,
+  `user_id` bigint UNSIGNED NOT NULL,
+  `message` text NOT NULL,
+  `created` datetime DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица сообщений в чате';
 
 -- --------------------------------------------------------
@@ -42,9 +42,9 @@ CREATE TABLE `messages` (
 --
 
 CREATE TABLE `message_hashes` (
-  `id` bigint UNSIGNED NOT NULL,
-  `room_id` bigint UNSIGNED NOT NULL,
-  `hash` varchar(255) NOT NULL
+  `id` bigint UNSIGNED NOT NULL,
+  `room_id` bigint UNSIGNED NOT NULL,
+  `hash` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица хэшей сообщений';
 
 -- --------------------------------------------------------
@@ -54,13 +54,15 @@ CREATE TABLE `message_hashes` (
 --
 
 CREATE TABLE `rooms` (
-  `id` bigint UNSIGNED NOT NULL,
-  `type` enum('open','private') NOT NULL,
-  `status` enum('playing','closed') NOT NULL,
-  `current_member_id` bigint UNSIGNED DEFAULT NULL,
-  `private_code` varchar(4) DEFAULT NULL,
-  `hash` varchar(255) DEFAULT NULL,
-  `deckOfCards` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'HEX строка: QS,5C,2D,...'
+  `id` bigint UNSIGNED NOT NULL,
+  `type` enum('open','private') NOT NULL,
+  `status` enum('waiting','playing','closed') NOT NULL, -- ИЗМЕНЕНИЕ 1: Добавлен статус 'waiting' для логики лобби
+  `current_member_id` bigint UNSIGNED DEFAULT NULL,
+  `turn_start_time` datetime DEFAULT NULL COMMENT 'Время начала текущего хода (для таймера хода)', -- ИЗМЕНЕНИЕ 2
+  `betting_end_time` INT DEFAULT 0 COMMENT 'Время окончания фазы ставок (Unix timestamp)', -- ИЗМЕНЕНИЕ 3
+  `private_code` varchar(4) DEFAULT NULL,
+  `hash` varchar(255) DEFAULT NULL,
+  `deckOfCards` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'HEX строка: QS,5C,2D,...'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -78,13 +80,13 @@ INSERT INTO `rooms` (`id`, `type`, `status`, `current_member_id`, `private_code`
 --
 
 CREATE TABLE `room_members` (
-  `id` bigint UNSIGNED NOT NULL,
-  `room_id` bigint UNSIGNED NOT NULL,
-  `user_id` bigint UNSIGNED NOT NULL,
-  `status` varchar(50) NOT NULL DEFAULT 'spectator',
-  `bet` int DEFAULT '0',
-  `types` tinyint(1) DEFAULT '0',
-  `cards` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'HEX строка: AH,7D ->  hex'
+  `id` bigint UNSIGNED NOT NULL,
+  `room_id` bigint UNSIGNED NOT NULL,
+  `user_id` bigint UNSIGNED NOT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'spectator',
+  `bet` int DEFAULT '0', -- Колонка 'bet' уже была в вашей схеме
+  `types` tinyint(1) DEFAULT '0',
+  `cards` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'HEX строка: AH,7D ->  hex'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица членов комнат';
 
 --
@@ -101,15 +103,15 @@ INSERT INTO `room_members` (`id`, `room_id`, `user_id`, `status`, `bet`, `types`
 --
 
 CREATE TABLE `users` (
-  `id` bigint UNSIGNED NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `balance` int DEFAULT '5000',
-  `token` varchar(255) DEFAULT NULL,
-  `total_played` int DEFAULT '0',
-  `total_win` int DEFAULT '0',
-  `total_balance` int DEFAULT '5000'
+  `id` bigint UNSIGNED NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `balance` int DEFAULT '5000',
+  `token` varchar(255) DEFAULT NULL,
+  `total_played` int DEFAULT '0',
+  `total_win` int DEFAULT '0',
+  `total_balance` int DEFAULT '5000'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
@@ -130,39 +132,39 @@ INSERT INTO `users` (`id`, `email`, `password`, `name`, `balance`, `token`, `tot
 -- Индексы таблицы `messages`
 --
 ALTER TABLE `messages`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `room_id` (`room_id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `room_id` (`room_id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Индексы таблицы `message_hashes`
 --
 ALTER TABLE `message_hashes`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `room_id` (`room_id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `room_id` (`room_id`);
 
 --
 -- Индексы таблицы `rooms`
 --
 ALTER TABLE `rooms`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uniq_private_code` (`private_code`),
-  ADD KEY `type_status` (`type`,`status`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uniq_private_code` (`private_code`),
+  ADD KEY `type_status` (`type`,`status`);
 
 --
 -- Индексы таблицы `room_members`
 --
 ALTER TABLE `room_members`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unique_user_in_room` (`room_id`,`user_id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_user_in_room` (`room_id`,`user_id`),
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- Индексы таблицы `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
 
 --
 -- AUTO_INCREMENT для сохранённых таблиц
@@ -172,31 +174,31 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблицы `message_hashes`
 --
 ALTER TABLE `message_hashes`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT для таблицы `rooms`
 --
 ALTER TABLE `rooms`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT для таблицы `room_members`
 --
 ALTER TABLE `room_members`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Ограничения внешнего ключа сохраненных таблиц
@@ -206,23 +208,27 @@ ALTER TABLE `users`
 -- Ограничения внешнего ключа таблицы `messages`
 --
 ALTER TABLE `messages`
-  ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Ограничения внешнего ключа таблицы `message_hashes`
 --
 ALTER TABLE `message_hashes`
-  ADD CONSTRAINT `message_hashes_ibfk_1` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `message_hashes_ibfk_1` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`) ON DELETE CASCADE;
 
 --
 -- Ограничения внешнего ключа таблицы `room_members`
 --
 ALTER TABLE `room_members`
-  ADD CONSTRAINT `room_members_ibfk_1` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `room_members_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `room_members_ibfk_1` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `room_members_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+
+
