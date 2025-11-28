@@ -77,7 +77,7 @@ class GameLogic
 
         // Если есть timestamp начала хода
         if (isset($room->turn_start_time)) {
-            const turnDuration = 30; // Длительность хода в секундах
+            $turnDuration = 30; // Длительность хода в секундах
             $timeElapsed = time() - strtotime($room->turn_start_time);
             $timeLeft = max(0, $turnDuration - $timeElapsed);
 

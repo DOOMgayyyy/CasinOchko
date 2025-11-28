@@ -106,7 +106,11 @@ class Lobby
             if (!$roomId)
                 return ['error' => 807];
 
-            $deck = $this->createShuffledDeck();
+            // Используем Deck.php для создания и перемешивания колоды
+            if (!isset($this->deck) || !method_exists($this->deck, 'createShuffledDeck')) {
+                return ['error' => 806];
+            }
+            $deck = $this->deck->createShuffledDeck();
             if (isset($deck['error']))
                 return $deck;
             if (!$this->db->saveDeck($roomId, $deck))
