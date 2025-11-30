@@ -39,8 +39,8 @@ function result($params) {
             // game
             case 'getInfoRoom': return $app->getInfoRoom($params); // loop
             case 'leaveRoom': return $app->leaveRoom($params);
+            case 'takeUserCard': return $app->takeUserCard($params);
             // bet
-            // getCard
             // pass
         
             default: return ['error' => 102];

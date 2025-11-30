@@ -335,6 +335,17 @@ class DB
     }
 
     /**
+     * Обновить карты дилера в комнате
+     */
+    public function updateDealerCards($roomId, $dealerCards)
+    {
+        return $this->execute(
+            "UPDATE rooms SET dealerCards = ? WHERE id = ?",
+            [$dealerCards, $roomId]
+        );
+    }
+
+    /**
      * Установить текущего игрока и время начала хода
      */
     public function setCurrentPlayer($roomId, $memberId)

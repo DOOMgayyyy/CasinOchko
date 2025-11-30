@@ -4,6 +4,7 @@ require_once('user/User.php');
 require_once('lobby/Lobby.php');
 require_once('game/gameLogic.php');
 require_once('game/Deck.php');
+require_once('game/Player.php');
 
 // require_once('chat/Chat.php'); 
 
@@ -14,6 +15,7 @@ class Application
     private $lobby;
     private $db; 
     private $gameLogic;
+    private $player;
 
     function __construct()
     {
@@ -24,6 +26,7 @@ class Application
         $this->lobby = new Lobby($db);
         $this->gameLogic = new GameLogic($db);
         $this->deck = new Deck($db);
+        $this->player = new Player($db);
     }
 
     public function login($params)
@@ -276,6 +279,24 @@ class Application
             );
         }
 
+        return ['error' => 242]; // Params not set fully
+    }
+
+    /**
+     * Взять карту игроку
+     */
+    public function takeUserCard($params)
+    {
+        if ($params['token']) {
+            $user = $this->user->getUser($params['token']);
+            
+            if (!$user) {
+                return ['error' => 705]; // User not found
+            }
+            
+            return $this->player->takeUserCard($user->id);
+        }
+        
         return ['error' => 242]; // Params not set fully
     }
 }
