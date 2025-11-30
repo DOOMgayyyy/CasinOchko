@@ -133,7 +133,7 @@ class DB
 
     public function getRoom($roomId)
     {
-        return $this->query("SELECT id, type, status, current_member_id, private_code, hash FROM rooms WHERE id=?", [$roomId]);
+        return $this->query("SELECT id, type, status, current_member_id, private_code, hash, deckOfCards, turn_start_time, last_update FROM rooms WHERE id=?", [$roomId]);
     }
 
     public function getOpenRooms()
@@ -352,6 +352,24 @@ class DB
             [$roomId]
         );
         return $result ? $result->current_member_id : null;
+    }
+
+    public function updateRoomAction($roomId)
+    {
+        $newHash = md5(time() . $roomId . rand(1, 10000)); 
+        return $this->execute("UPDATE rooms SET hash = ? WHERE id = ?", [$newHash, $roomId]);
+    }
+
+    public function updateRoomStatus($roomId, $status)
+    {
+        $newHash = md5(time() . $roomId . rand(1, 10000));
+        return $this->execute("UPDATE rooms SET status = ?, hash = ? WHERE id = ?", [$status, $newHash, $roomId]);
+    }
+
+    public function cleanRoom($roomId)
+    {
+        $this->execute("DELETE FROM room_members WHERE room_id = ?", [$roomId]);
+        return $this->deleteRoom($roomId);
     }
 
     /**
