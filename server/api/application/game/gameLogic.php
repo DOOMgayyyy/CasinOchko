@@ -25,9 +25,9 @@ class GameLogic
             // Декодируем карты игрока из JSON
             $cards = [];
             if (!empty($member->cards)) {
-                $decoded = json_decode($member->cards, true);
-                if (is_array($decoded)) {
-                    $cards = $decoded;
+                $cards = [];
+                if (!empty($member->cards)) {
+                    $cards = str_split($member->cards, 2); // Режем строку по 2 символа
                 }
             }
 
