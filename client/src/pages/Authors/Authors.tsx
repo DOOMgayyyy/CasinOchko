@@ -1,48 +1,40 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 import { IBasePage, PAGES } from '../PageManager';
-import { StoreContext, ServerContext } from '../../App';
+import { StoreContext } from '../../App';
 import './Authors.scss';
-
-
-
+import SnowEffect from '../Lobby/SnowEffect';
 const Authors: React.FC<IBasePage> = ({ setPage }) => {
     const store = useContext(StoreContext);
     const user = store.getUser();
-    const [player] = useState({    
-    name: user?.name || 'dev',
-    balance: user?.balance || 99999,
-  });
-    const handleBackToLobby = () => {
-        setPage(PAGES.LOBBY);
-    };
 
-    
+    const handleBackToLobby = () => setPage(PAGES.LOBBY);
 
     return (
-         <div className="authors-container">
-      <header className="authors-header">
-         <div className="authors-header-left">
-           <span className="authors-player-name">{player.name}</span>
-        </div>
-
-        <div className="authors-header-right">
-                    <span className="authors-balance-text">Ваш баланс:</span>
-                    <span className="authors-balance-amount">${player.balance}</span>
+        <div className="authors-container">
+            <SnowEffect />
+            {user && <header className="authors-header">
+                <div className="authors-header-left">
+                    <span className="authors-player-name">{user.name}</span>
                 </div>
-      </header> 
-       {/* Основной контент */}
-              <main className="authors-main-content">
+                <div className="authors-header-right">
+                    <span className="authors-balance-text">Ваш баланс:</span>
+                    <span className="authors-balance-amount">${user.balance}</span>
+                </div>
+            </header>}
+            
+            {/* Основной контент */}
+            <main className="authors-main-content">
                 <div className="authors-title-section">
                     {/* Заголовок Авторы */}
                     <h1 className="authors-page-title">Авторы</h1>
-                    
+
                     <div className="authors-logo">
-                    <span className="authors-logo-casino">CASIN</span>
-                    <span className="authors-logo-ochko">OCHKO</span>
+                        <span className="authors-logo-casino">CASIN</span>
+                        <span className="authors-logo-ochko">OCHKO</span>
                     </div>
                 </div>
 
-                  {/* Три столбика */}
+                {/* Три столбика */}
                 <div className="authors-columns-container">
                     {/* Первый столбик */}
                     <div className="authors-column">
@@ -61,9 +53,9 @@ const Authors: React.FC<IBasePage> = ({ setPage }) => {
                             <div className="authors-name">Уракова Юлия</div>
                         </div>
                         <button className="authors-back-btn" onClick={handleBackToLobby}>&lt;назад
-    </button>
+                        </button>
                     </div>
-                    
+
 
                     {/* Второй столбик */}
                     <div className="authors-column">
@@ -99,10 +91,10 @@ const Authors: React.FC<IBasePage> = ({ setPage }) => {
                         </div>
                     </div>
                 </div>
-                
-            </main>  
-                
-    </div>
+
+            </main>
+
+        </div>
     );
 };
 

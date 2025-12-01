@@ -30,23 +30,13 @@ export type TMessagesResponse = {
     hash: string;
 }
 
-export type TPrivateRoomResponse = {
+//Тип для ответов, связанных с комнатами
+export type TRoomResponse = {
     id: number;                          
-    type: 'private';                     
+    type: 'private' | 'open';                     
     status: 'playing' | 'closed';        
-    current_member_id?: number | null;   // ID игрока, чей сейчас ход
-    private_code: string;                
-    hash: string;                        
-};
-
-export type TJoinPrivateRoomResponse = TPrivateRoomResponse;
-
-export type TQuickStartResponse = {
-    id: number;                          
-    type: 'open';                       
-    status: 'playing' | 'closed';       
-    current_member_id?: number | null;   // ID игрока, чей сейчас ход
-    private_code: null;                  
+    current_member_id?: number | null;
+    private_code: string | null; 
     hash: string;                        
 };
 
@@ -77,20 +67,13 @@ export type TPlayer = {
     status: 'spectator' | 'player' ;
 };
 
-// Таймер хода
-export type TTimer = {
-    currentPlayerId: number;
-    timeLeft: number | null;
-    totalTime: number | null;
-};
-
 // Ответ getInfoRoom
 export type TRoomInfoResponse = {
     players: TPlayer[];
     myCards: string[];
-    timer: TTimer | null;
+    timer: number | null;  // Количество секунд, оставшихся на ход (или null)
     hash: string;
-    currentPlayerId: number | null;
+    currentPlayerId: number | null;  // ID игрока, чей сейчас ход
     changed: boolean;
 };
 

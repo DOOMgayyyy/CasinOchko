@@ -37,10 +37,12 @@ function result($params) {
             case 'getRatingTable': return $app->getRatingTable($params);
 
             // game
-            case 'getInfoRoom': return $app->getInfoRoom($params);
+            case 'getInfoRoom': return $app->getInfoRoom($params); // loop
             case 'leaveRoom': return $app->leaveRoom($params);
-
             case 'connectRoom': return $app->connectRoom($params);
+            // bet
+            // getCard
+            // pass
         
             default: return ['error' => 102];
         }

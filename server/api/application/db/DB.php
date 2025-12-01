@@ -39,7 +39,8 @@ class DB
     {
         $sth = $this->pdo->prepare($sql);
         $sth->execute($params);
-        return $sth->fetchAll(PDO::FETCH_OBJ);    }
+        return $sth->fetchAll(PDO::FETCH_OBJ);    
+    }
 
     /*public function getUserByLogin($name) {
         return $this->query("SELECT * FROM users WHERE login=?", [$name]);
@@ -73,6 +74,7 @@ class DB
     {
         return $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
     }
+
     public function isNameUnique($name, $excludingUserId = null)
     {
         $sql = "SELECT COUNT(*) FROM users WHERE name = ?";
@@ -163,9 +165,9 @@ class DB
 
     public function isPrivateCodeUnique($code)
     {
-        $sql = "SELECT COUNT(*) FROM rooms WHERE private_code = ?";
-        $count = $this->query($sql, [$code])->{'COUNT(*)'};
-        return $count == 0;
+        $sql = "SELECT COUNT(*) AS count FROM rooms WHERE private_code = ?";
+        $count = $this->query($sql, [$code])->count;
+        return $count === 0;
     }
 
     public function createRoom($type, $status, $privateCode, $hash)
@@ -221,7 +223,7 @@ class DB
         return $this->query(
             "SELECT rm.id as member_id, rm.user_id, rm.bet, rm.cards, rm.status,
                     u.name, u.balance
-             FROM room_members rm
+             FROM room_members AS rm
              JOIN users u ON rm.user_id = u.id
              WHERE rm.room_id = ? AND rm.user_id = ?",
             [$roomId, $userId]
@@ -236,7 +238,7 @@ class DB
         return $this->queryAll(
             "SELECT rm.id as member_id, rm.user_id, rm.bet, rm.cards, rm.status,
                     u.id, u.name, u.balance
-             FROM room_members rm
+             FROM room_members AS rm
              JOIN users u ON rm.user_id = u.id
              WHERE rm.room_id = ?
              ORDER BY rm.id ASC",
@@ -252,9 +254,9 @@ class DB
                 balance
             FROM users
             ORDER BY balance DESC
-            LIMIT 100
-    ");
+            LIMIT 100");
     }
+
     public function updateBalance($userId, $amount)
     {
         // Используем SQL-функцию ADD для прибавления или вычитания.
@@ -266,6 +268,7 @@ class DB
             [$amount, $userId]
         );
     }
+
     /**
      * Сохраняет строку колоды напрямую в БД
      */

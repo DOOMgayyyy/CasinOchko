@@ -613,3 +613,213 @@
     opacity: 1;
   }
 }
+
+// Модальное окно ставки
+.bet-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.bet-modal {
+  background: rgba(32, 32, 32, 0.95);
+  border: 3px solid #FFD700;
+  border-radius: 16px;
+  padding: 40px;
+  min-width: 450px;
+  max-width: 550px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: slideDown 0.3s ease-out;
+  backdrop-filter: blur(10px);
+}
+
+.bet-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.bet-modal-title {
+  color: #FFD700;
+  font-family: 'Handjet', monospace;
+  font-size: 36px;
+  font-weight: 600;
+  text-align: center;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.bet-balance {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Handjet', monospace;
+  font-size: 24px;
+}
+
+.bet-balance-label {
+  color: #ffffff;
+}
+
+.bet-balance-amount {
+  color: #2196F3;
+  font-weight: 600;
+}
+
+.bet-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  width: 100%;
+}
+
+.bet-control-button {
+  padding: 15px 30px;
+  border-radius: 12px;
+  font-family: 'Handjet', monospace;
+  font-size: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid;
+  min-width: 120px;
+  text-align: center;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.bet-decrease {
+  background-color: rgba(255, 34, 32, 0.2);
+  border-color: #FF2220;
+  color: #FF2220;
+
+  &:hover:not(:disabled) {
+    background-color: #FF2220;
+    color: #ffffff;
+  }
+}
+
+.bet-increase {
+  background-color: rgba(39, 194, 19, 0.2);
+  border-color: #27C213;
+  color: #27C213;
+
+  &:hover:not(:disabled) {
+    background-color: #27C213;
+    color: #ffffff;
+  }
+}
+
+.bet-amount-input {
+  color: #FFD700;
+  font-family: 'Handjet', monospace;
+  font-size: 32px;
+  font-weight: 600;
+  min-width: 100px;
+  max-width: 150px;
+  text-align: center;
+  background: rgba(32, 32, 32, 0.8);
+  border: 2px solid #FFD700;
+  border-radius: 12px;
+  padding: 10px 15px;
+  outline: none;
+  transition: all 0.3s ease;
+
+  &:focus {
+    border-color: #FFA500;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    background: rgba(40, 40, 40, 0.9);
+  }
+
+  &::placeholder {
+    color: rgba(255, 215, 0, 0.5);
+  }
+}
+
+.bet-modal-buttons {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.bet-action-button {
+  flex: 1;
+  padding: 18px 32px;
+  border-radius: 12px;
+  font-family: 'Handjet', monospace;
+  font-size: 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: lowercase;
+  letter-spacing: 1px;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.bet-cancel {
+  background-color: rgba(255, 34, 32, 0.2);
+  border-color: #FF2220;
+  color: #FF2220;
+
+  &:hover:not(:disabled) {
+    background-color: #FF2220;
+    color: #ffffff;
+  }
+}
+
+.bet-place {
+  background-color: rgba(39, 194, 19, 0.2);
+  border-color: #27C213;
+  color: #27C213;
+
+  &:hover:not(:disabled) {
+    background-color: #27C213;
+    color: #ffffff;
+  }
+}
+
+.bet-arrow {
+  font-size: 24px;
+}

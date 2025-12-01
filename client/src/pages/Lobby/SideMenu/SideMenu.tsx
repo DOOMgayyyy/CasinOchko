@@ -64,6 +64,7 @@ const SideMenu: React.FC<SideMenuProps> = ({
         onEditName();
         setShowChangeName(false);
     };
+
     return (
         <div className="side-menu-overlay" onClick={onClose}>
             <div className="side-menu" onClick={(e) => e.stopPropagation()}>
