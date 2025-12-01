@@ -39,16 +39,11 @@ const SideMenu: React.FC<SideMenuProps> = ({
         let cancelled = false;
 
         const loadStats = async () => {
-            try {
-                const stats = await server.getUserStat();
-                if (!cancelled && stats) {
-                    console.log(stats);
-                    setStats(stats);
-                }
-            } catch (e) {
-                // ошибки обрабатываются внутри Server
-                console.error(e);
+            const stats = await server.getUserStat();
+            if (!cancelled && stats) {
+                setStats(stats);
             }
+
         };
 
         // вызываем только если пользователь авторизован

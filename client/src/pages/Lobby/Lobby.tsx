@@ -48,15 +48,12 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     
 
     const handleQuickStart = async () => {
-        try {
-            const result = await server.quickStart();
-            if (result) {
-                store.setCurrentRoomId(result.id);
-                setPage(PAGES.GAME);
-            }
-        } catch (error) {
-            console.error('Ошибка быстрого старта:', error);
+        const result = await server.quickStart();
+        if (result) {
+            store.setCurrentRoomId(result.id);
+            setPage(PAGES.GAME);
         }
+
     };
     
     // 4. Функция выхода теперь вызывает метод сервера и очищает данные

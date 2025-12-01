@@ -16,11 +16,7 @@ const Login: React.FC<IBasePage> = (props) => {
           const email = loginRef.current.value;
           const password = passwordRef.current.value;
           if (email && password && await server.login(email, password)) {
-              console.log("Успешный вход");
               setPage(PAGES.LOBBY);
-          } else {
-              console.error("Ошибка входа: проверьте email или пароль");
-              // Здесь можно показать ошибку пользователю
           }
         }
     }
