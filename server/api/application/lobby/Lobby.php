@@ -5,14 +5,16 @@
 class Lobby
 {
     private $db;
+    private $deck;
 
     /**
      * Конструктор класса Lobby
      * @param DB $db Объект для работы с базой данных
      */
-    function __construct($db)
+    function __construct($db, $deck = null)
     {
         $this->db = $db;
+        $this->deck = $deck ?: new Deck($db);
     }
 
     /**
@@ -116,7 +118,7 @@ class Lobby
                 return ['error' => 807];
 
             // Используем Deck.php для создания и перемешивания колоды
-            if (!isset($this->deck) || !method_exists($this->deck, 'createShuffledDeck')) {
+            if (!$this->deck) {
                 return ['error' => 806];
             }
             $deck = $this->deck->createShuffledDeck();
@@ -180,7 +182,7 @@ class Lobby
 
         $this->refreshRoomHash($roomId);
 
-        $deck = $this->createShuffledDeck();
+        $deck = $this->deck->createShuffledDeck();
         $this->db->saveDeck($roomId, $deck);
 
         return $this->db->getRoom($roomId);
