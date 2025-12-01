@@ -29,23 +29,13 @@ const AdReward: React.FC<Props> = ({ onClose, onSuccess, videoUrl }) => {
   };
 
   const fetchUserBalance = async (): Promise<number | null> => {
-    try {
-      const balance = await server.getUserBalance();
-      return typeof balance === 'number' ? balance : null;
-    } catch (err) {
-      console.error('Ошибка при получении баланса:', err);
-      return null;
-    }
+    const balance = await server.getUserBalance();
+    return typeof balance === 'number' ? balance : null;
   };
 
   const topupByAd = async (): Promise<{ ok: boolean; newBalance?: number }> => {
-    try {
-      const resp = await server.addBalance(100);
-      return resp || { ok: false };
-    } catch (err) {
-      console.error('Ошибка при пополнении через рекламу:', err);
-      return { ok: false };
-    }
+    const resp = await server.addBalance(100);
+    return resp || { ok: false };
   };
 
   useEffect(() => {

@@ -4,6 +4,7 @@ import MenuIcon from '../../../assets/img/toppanel/sidebarmenu.png';
 import PlusIcon from '../../../assets/img/toppanel/topupthebalance.png';
 import { ServerContext, StoreContext } from '../../../App';
 import { PAGES } from '../../PageManager';
+import SnowEffect from '../SnowEffect';
 
 export interface PrivateRoomProps {
     player: {
@@ -33,19 +34,15 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
     const store = useContext(StoreContext);
 
     const handleJoinRoom = async (code: string) => {
-        try {
-            const roomData = await server.joinPrivateRoom(code);
-            console.log('Room data:', roomData);
+        const roomData = await server.joinPrivateRoom(code);
+        console.log('Room data:', roomData);
 
-            if (roomData && roomData.id) {
-                console.log('Successfully joined room:', roomData);
-                store.setCurrentRoomId(roomData.id);
-                setPage(PAGES.GAME);
-            } else {
-                console.log('Failed to join room.');
-            }
-        } catch (error) {
-            console.error('Exception during joinPrivateRoom:', error);
+        if (roomData && roomData.id) {
+            console.log('Successfully joined room:', roomData);
+            store.setCurrentRoomId(roomData.id);
+            setPage(PAGES.GAME);
+        } else {
+            console.log('Failed to join room.');
         }
     };
     
@@ -73,6 +70,7 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
 
     return (
         <div className="private-room">
+            <SnowEffect />
             <div className="private-room-background"></div>
             
             <header className="private-room-header">

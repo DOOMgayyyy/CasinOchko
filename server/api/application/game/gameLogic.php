@@ -134,7 +134,7 @@ class GameLogic
         return [
             'players' => $players,
             'myCards' => $myCards,
-            'timer' => $timer,// это ЧИСЛО!!! мазафака
+            'timer' => $timer,
             'hash' => $currentHash,
             'currentPlayerId' => $currentMemberId,
         ];

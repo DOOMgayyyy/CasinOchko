@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { IBasePage, PAGES } from '../PageManager';
 import { StoreContext } from '../../App';
 import './Authors.scss';
-
+import SnowEffect from '../Lobby/SnowEffect';
 const Authors: React.FC<IBasePage> = ({ setPage }) => {
     const store = useContext(StoreContext);
     const user = store.getUser();
@@ -11,6 +11,7 @@ const Authors: React.FC<IBasePage> = ({ setPage }) => {
 
     return (
         <div className="authors-container">
+            <SnowEffect />
             {user && <header className="authors-header">
                 <div className="authors-header-left">
                     <span className="authors-player-name">{user.name}</span>

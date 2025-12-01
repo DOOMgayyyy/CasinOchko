@@ -8,6 +8,10 @@ import { StoreContext, ServerContext } from '../../App';
 import AdReward from './AdReward/AdReward'; 
 import MenuIcon from '../../assets/img/toppanel/sidebarmenu.png';
 import PlusIcon from '../../assets/img/toppanel/topupthebalance.png';
+import SnowEffect from './SnowEffect';
+import garlandImg from '../../assets/img/HNY/garland.png';
+import snowman1 from '../../assets/img/HNY/snowman1.svg';
+import snowman2 from '../../assets/img/HNY/snowman2.svg';
 
 import video from '../../assets/ads/ad.mp4';
 
@@ -55,21 +59,17 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
         const result = await server.createPrivateRoom();
         
         if (result && result.private_code) {
-            sessionStorage.setItem('roomCode', result.private_code);
+            store.setRoomCode(result.private_code);
             store.setCurrentRoomId(result.id);
             setPage(PAGES.GAME);
         }
     };
 
     const handleQuickStart = async () => {
-        try {
-            const result = await server.quickStart();
-            if (result) {
-                store.setCurrentRoomId(result.id);
-                setPage(PAGES.GAME);
-            }
-        } catch (error) {
-            console.error('Ошибка быстрого старта:', error);
+        const result = await server.quickStart();
+        if (result) {
+            store.setCurrentRoomId(result.id);
+            setPage(PAGES.GAME);
         }
     };
     
@@ -152,6 +152,10 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     return (
         <div className="lobby">
             <div className="lobby-background"></div>
+            <SnowEffect />
+            <div className="lobby-garland">
+                <img src={garlandImg} alt="Гирлянда" className="garland-image" />
+            </div>
 
             <header className="lobby-header">
                 <div className="header-left">
@@ -190,6 +194,11 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     Таблица лидеров
                 </button>
             </main>
+
+            <div className="lobby-snowmen-container">
+                <img src={snowman1} alt="Snowman" className="lobby-snowman lobby-snowman-left" />
+                <img src={snowman2} alt="Snowman" className="lobby-snowman lobby-snowman-right" />
+            </div>
 
             {sideMenuComponent}
 
