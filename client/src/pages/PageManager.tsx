@@ -10,7 +10,6 @@ import Register from './Register/Register';
 import Lobby from './Lobby/Lobby';
 import Rules from './Rules/Rules';
 import Leaderboard from './Leaderboard/Leaderboard';
-import PrivateRoom from './Lobby/PrivateRoom/PrivateRoom';
 export enum PAGES {
     PRELOADER,
     LOGIN,
@@ -42,7 +41,6 @@ const PageManager: React.FC = () => {
             {page === PAGES.CHAT && <Chat setPage={setPage} />}
             {page === PAGES.LOBBY && <Lobby setPage={setPage} />}
             {page === PAGES.GAME && <GamePage setPage={setPage} />}
-            {page === PAGES.PRIVATE_ROOM && <PrivateRoom setPage={setPage} />}
             {page === PAGES.AUTHORS && <Authors setPage={setPage} />}
             {page === PAGES.RULES && <Rules setPage={setPage} />}
             {page === PAGES.LEADERBOARD && <Leaderboard setPage={setPage} />}

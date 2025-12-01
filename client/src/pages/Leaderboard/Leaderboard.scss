@@ -71,6 +71,7 @@
   padding: 1rem 2rem;
   height: calc(100vh - 70px);
   overflow-y: auto;
+  overflow-x: visible;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -105,6 +106,14 @@
   color: #FFD700;
 }
 
+.leaderboard-table-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
 .leaderboard-table-container {
   width: 100%;
   max-width: 900px;
@@ -113,6 +122,27 @@
   border-radius: 12px;
   padding: 20px;
   backdrop-filter: blur(10px);
+  position: relative;
+}
+
+.leaderboard-snowman {
+  position: absolute;
+  bottom: -20px;
+  height: 150px;
+  width: auto;
+  pointer-events: none;
+  display: block;
+  opacity: 1;
+  object-fit: contain;
+  z-index: 10;
+}
+
+.leaderboard-snowman-left {
+  left: -80px;
+}
+
+.leaderboard-snowman-right {
+  right: -80px;
 }
 
 .leaderboard-loading,
