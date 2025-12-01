@@ -231,6 +231,51 @@ class DB
     }
 
     /**
+     * Получить карты игрока (декодированные из HEX)
+     * @param int $roomId - ID комнаты
+     * @param int $userId - ID пользователя
+     * @return array - массив карт
+     */
+    public function getMemberCards($roomId, $userId)
+    {
+        $member = $this->getRoomMember($roomId, $userId);
+        
+        if (!$member || !$member->cards) {
+            return [];
+        }
+        
+        // Декодируем из HEX формата
+        $cardsString = hex2bin($member->cards);
+        
+        if (!$cardsString) {
+            return [];
+        }
+        
+        // Разбиваем строку карт по запятой
+        return explode(',', $cardsString);
+    }
+
+    /**
+     * Получить карты дилера (парсинг строки)
+     * @param int $roomId - ID комнаты
+     * @return array|null - массив карт или null если нет карт
+     */
+    public function getDealerCards($roomId)
+    {
+        $room = $this->getRoom($roomId);
+        
+        if (!$room || !$room->dealerCards) {
+            return null;
+        }
+        
+        // Парсим строку карт (каждые 2 символа - одна карта)
+        $cardLength = 2;
+        $cards = str_split($room->dealerCards, $cardLength);
+        
+        return empty($cards) ? null : $cards;
+    }
+
+    /**
      * Получить всех участников комнаты с подробной информацией
      */
     public function getRoomMembers($roomId)
@@ -292,6 +337,56 @@ class DB
 
         // Возвращаем чистую строку "2H3D..." как есть
         return $result->deckOfCards;
+    }
+
+    /**
+     * Атомарно взять карту из колоды (защита от race condition)
+     * Использует SELECT FOR UPDATE для блокировки строки на время транзакции
+     * 
+     * @param int $roomId - ID комнаты
+     * @param int $cardLength - Длина карты в символах (обычно 2)
+     * @return string|false - Карта или false если колода пуста
+     */
+    public function drawCardAtomic($roomId, $cardLength)
+    {
+        try {
+            // Начинаем транзакцию
+            $this->pdo->beginTransaction();
+            
+            // Блокируем строку для чтения/записи (SELECT FOR UPDATE)
+            $stmt = $this->pdo->prepare("SELECT deckOfCards FROM rooms WHERE id = ? FOR UPDATE");
+            $stmt->execute([$roomId]);
+            $result = $stmt->fetch(PDO::FETCH_OBJ);
+            
+            // Проверяем наличие колоды и карт в ней
+            if (!$result || empty($result->deckOfCards) || strlen($result->deckOfCards) < $cardLength) {
+                $this->pdo->rollBack();
+                return false; // Колода пуста
+            }
+            
+            $deck = $result->deckOfCards;
+            
+            // Берем первую карту
+            $card = substr($deck, 0, $cardLength);
+            
+            // Обновляем колоду (удаляем взятую карту)
+            $remainingDeck = substr($deck, $cardLength);
+            $updateStmt = $this->pdo->prepare("UPDATE rooms SET deckOfCards = ? WHERE id = ?");
+            $updateStmt->execute([$remainingDeck, $roomId]);
+            
+            // Фиксируем транзакцию
+            $this->pdo->commit();
+            
+            return $card;
+            
+        } catch (Exception $e) {
+            // В случае ошибки откатываем транзакцию
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            error_log("Error in drawCardAtomic: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
