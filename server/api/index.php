@@ -42,6 +42,8 @@ function result($params) {
             // bet
             // getCard
             // pass
+
+            case 'connectRoom': return $app->connectRoom($params);
         
             default: return ['error' => 102];
         }
