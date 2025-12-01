@@ -380,4 +380,9 @@ class DB
     {
         return $this->execute("UPDATE rooms SET current_member_id = NULL WHERE id = ?", [$roomId]);
     }
+
+    public function getRoomHash($roomId) {
+        $result = $this->query("SELECT hash FROM rooms WHERE id =?", [$roomId]);
+        return $result ? $result->hash : null;
+    }
 }

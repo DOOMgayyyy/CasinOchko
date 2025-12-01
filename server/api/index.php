@@ -39,6 +39,7 @@ function result($params) {
             // game
             case 'getInfoRoom': return $app->getInfoRoom($params); // loop
             case 'leaveRoom': return $app->leaveRoom($params);
+            case 'connectRoom': return $app->connectRoom($params);
             // bet
             // getCard
             // pass
