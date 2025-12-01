@@ -231,51 +231,6 @@ class DB
     }
 
     /**
-     * Получить карты игрока (декодированные из HEX)
-     * @param int $roomId - ID комнаты
-     * @param int $userId - ID пользователя
-     * @return array - массив карт
-     */
-    public function getMemberCards($roomId, $userId)
-    {
-        $member = $this->getRoomMember($roomId, $userId);
-        
-        if (!$member || !$member->cards) {
-            return [];
-        }
-        
-        // Декодируем из HEX формата
-        $cardsString = hex2bin($member->cards);
-        
-        if (!$cardsString) {
-            return [];
-        }
-        
-        // Разбиваем строку карт по запятой
-        return explode(',', $cardsString);
-    }
-
-    /**
-     * Получить карты дилера (парсинг строки)
-     * @param int $roomId - ID комнаты
-     * @return array|null - массив карт или null если нет карт
-     */
-    public function getDealerCards($roomId)
-    {
-        $room = $this->getRoom($roomId);
-        
-        if (!$room || !$room->dealerCards) {
-            return null;
-        }
-        
-        // Парсим строку карт (каждые 2 символа - одна карта)
-        $cardLength = 2;
-        $cards = str_split($room->dealerCards, $cardLength);
-        
-        return empty($cards) ? null : $cards;
-    }
-
-    /**
      * Получить всех участников комнаты с подробной информацией
      */
     public function getRoomMembers($roomId)

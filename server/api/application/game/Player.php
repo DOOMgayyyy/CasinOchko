@@ -54,7 +54,7 @@ class Player
             }
         }
         
-        // Оптимизация тузов: если перебор, считаем туз за 1 вместо 11
+        # Оптимизация тузов: если перебор, считаем туз за 1 вместо 11
         while ($sum > $this->maxHandValue && $countAces > 0) {
             $sum -= $this->aceAdjustment;
             $countAces--;
@@ -76,7 +76,19 @@ class Player
 
     private function getMemberCards($roomId, $userId)
     {
-        return $this->db->getMemberCards($roomId, $userId);
+        $member = $this->db->getRoomMember($roomId, $userId);
+        
+        if (!$member || !$member->cards) {
+            return [];
+        }
+        
+        $cardsString = hex2bin($member->cards);
+        
+        if (!$cardsString) {
+            return [];
+        }
+        
+        return explode(',', $cardsString);
     }
 
     private function refreshRoomHash($roomId)
@@ -137,7 +149,15 @@ class Player
 
     private function getDealerCards($roomId)
     {
-        return $this->db->getDealerCards($roomId);
+        $room = $this->db->getRoom($roomId);
+        
+        if (!$room || !$room->dealerCards) {
+            return null;
+        }
+        
+        $cards = str_split($room->dealerCards, $this->cardLength);
+        
+        return empty($cards) ? null : $cards;
     }
 
     private function dealerDrawCards($roomId, $dealerCards)
