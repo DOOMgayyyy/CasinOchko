@@ -5,16 +5,17 @@
 class Player
 {
     private $db;
-    
-    private $cardLength = 2;           # Длина карты в строке (2 символа)
-    private $maxHandValue = 21;        # Максимальная сумма без перебора
-    private $maxCards = 5;             # Максимум карт в руке
-    private $dealerMinValue = 17;      # Минимальная сумма для остановки дилера
-    private $aceAdjustment = 10;       # Разница между высоким и низким тузом (11-1)
-    private $aceSymbol = 'E';          # Символ туза в колоде
-    
-    private $statusPlayer = 'player';     
-    private $statusSpectator = 'spectator'; 
+
+    /* Важные настройки и статусы выносим в константы */
+    private const CARD_LENGTH      = 2;        # Длина карты в строке (2 символа)
+    private const MAX_HAND_VALUE   = 21;       # Максимальная сумма без перебора
+    private const MAX_CARDS        = 5;        # Максимум карт в руке
+    private const DEALER_MIN_VALUE = 17;       # Минимальная сумма для остановки дилера
+    private const ACE_ADJUSTMENT   = 10;       # Разница между высоким и низким тузом (11-1)
+    private const ACE_SYMBOL       = 'E';      # Символ туза в колоде
+
+    private const STATUS_PLAYER    = 'player';
+    private const STATUS_SPECTATOR = 'spectator';
 
     function __construct($db)
     {
@@ -49,14 +50,14 @@ class Player
         
         foreach ($cards as $card) {
             $sum += $this->getCardValue($card);
-            if ($card[0] === $this->aceSymbol) {
+            if ($card[0] === self::ACE_SYMBOL) {
                 $countAces++;
             }
         }
         
         # Оптимизация тузов: если перебор, считаем туз за 1 вместо 11
-        while ($sum > $this->maxHandValue && $countAces > 0) {
-            $sum -= $this->aceAdjustment;
+        while ($sum > self::MAX_HAND_VALUE && $countAces > 0) {
+            $sum -= self::ACE_ADJUSTMENT;
             $countAces--;
         }
         
@@ -65,7 +66,7 @@ class Player
 
     private function drawCardFromDeck($roomId)
     {
-        $card = $this->db->drawCardAtomic($roomId, $this->cardLength);
+        $card = $this->db->drawCardAtomic($roomId, self::CARD_LENGTH);
         
         if (!$card) {
             return ['error' => 810]; 
@@ -82,13 +83,14 @@ class Player
             return [];
         }
         
-        $cardsString = hex2bin($member->cards);
-        
-        if (!$cardsString) {
+        $cardsString = hex2bin($member->cards);   # В БД храним HEX
+
+        if ($cardsString === false || $cardsString === '') {
             return [];
         }
-        
-        return explode(',', $cardsString);
+
+        # Работаем везде со строкой карт без разделителей — режем по 2 символа
+        return str_split($cardsString, self::CARD_LENGTH);
     }
 
     private function refreshRoomHash($roomId)
@@ -103,7 +105,7 @@ class Player
         $players = [];
         
         foreach ($members as $member) {
-            if ($member->status === $this->statusPlayer) {
+            if ($member->status === self::STATUS_PLAYER) {
                 $players[] = $member;
             }
         }
@@ -155,7 +157,7 @@ class Player
             return null;
         }
         
-        $cards = str_split($room->dealerCards, $this->cardLength);
+        $cards = str_split($room->dealerCards, self::CARD_LENGTH);
         
         return empty($cards) ? null : $cards;
     }
@@ -164,7 +166,7 @@ class Player
     {
         $dealerValue = $this->calculateHandValue($dealerCards);
         
-        while ($dealerValue < $this->dealerMinValue) {
+        while ($dealerValue < self::DEALER_MIN_VALUE) {
             $newCard = $this->drawCardFromDeck($roomId);
             
             if (isset($newCard['error'])) {
@@ -207,7 +209,7 @@ class Player
 
     private function validatePlayerTurn($roomId, $userId, $member)
     {
-        if ($member->status === $this->statusSpectator) {
+        if ($member->status === self::STATUS_SPECTATOR) {
             return ['error' => 908]; 
         }
         
@@ -221,7 +223,7 @@ class Player
 
     private function validateCardsLimit($cards)
     {
-        if (count($cards) >= $this->maxCards) {
+        if (count($cards) >= self::MAX_CARDS) {
             return ['error' => 910]; 
         }
         
@@ -234,7 +236,7 @@ class Player
         
         $handValue = $this->calculateHandValue($cards);
         
-        if ($handValue > $this->maxHandValue) {
+        if ($handValue > self::MAX_HAND_VALUE) {
             $this->moveToNextPlayer($roomId);
         }
     }
@@ -281,6 +283,99 @@ class Player
         $this->refreshRoomHash($roomId);
         
         return true;
+    }
+
+    /**
+     * Вспомогательная функция раздачи ОДНОЙ карты конкретному участнику (без проверок хода).
+     * Используется для стартовой раздачи, когда нужно пройтись по всем игрокам.
+     */
+    private function giveCardToMember($roomId, $member)
+    {
+        $cards = $this->getMemberCards($roomId, $member->user_id);
+
+        $limitValidation = $this->validateCardsLimit($cards);
+        if (is_array($limitValidation)) {
+            return $limitValidation;
+        }
+
+        $newCard = $this->drawCardFromDeck($roomId);
+        if (isset($newCard['error'])) {
+            return $newCard;
+        }
+
+        $cards[] = $newCard;
+        $this->processCardTaken($roomId, $member->user_id, $cards);
+
+        return true;
+    }
+
+    /**
+     * Стартовая раздача: проходим по всем активным игрокам, начиная с current_member,
+     * и выдаём каждому по одной карте.
+     */
+    public function dealCardsToPlayers($roomId)
+    {
+        $players = $this->getActivePlayers($roomId);
+
+        if (empty($players)) {
+            return ['error' => 911]; // Нет активных игроков
+        }
+
+        $currentMemberId = $this->db->getCurrentMemberId($roomId);
+
+        // Если current_member не задан, начинаем с первого игрока в списке
+        $startIndex = 0;
+        foreach ($players as $index => $player) {
+            if ($player->member_id == $currentMemberId) {
+                $startIndex = $index;
+                break;
+            }
+        }
+
+        $playersCount = count($players);
+
+        for ($i = 0; $i < $playersCount; $i++) {
+            $idx = ($startIndex + $i) % $playersCount;
+            $result = $this->giveCardToMember($roomId, $players[$idx]);
+
+            if (is_array($result) && isset($result['error'])) {
+                return $result;
+            }
+        }
+
+        $this->refreshRoomHash($roomId);
+
+        return true;
+    }
+
+    /**
+     * Выдать одну карту дилеру и сразу посчитать значение его руки.
+     * Возвращаем флаг перебора и текущую сумму.
+     */
+    public function dealCardToDealer($roomId)
+    {
+        $dealerCards = $this->getDealerCards($roomId);
+        if (!$dealerCards) {
+            $dealerCards = [];
+        }
+
+        $newCard = $this->drawCardFromDeck($roomId);
+        if (isset($newCard['error'])) {
+            return $newCard;
+        }
+
+        $dealerCards[] = $newCard;
+
+        $this->db->updateDealerCards($roomId, implode('', $dealerCards));
+
+        $value = $this->calculateHandValue($dealerCards);
+
+        $this->refreshRoomHash($roomId);
+
+        return [
+            'bust'  => $value > self::MAX_HAND_VALUE,
+            'value' => $value,
+        ];
     }
 
     public function makeBet()

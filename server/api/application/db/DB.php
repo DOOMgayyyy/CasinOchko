@@ -135,7 +135,16 @@ class DB
 
     public function getRoom($roomId)
     {
-        return $this->query("SELECT id, type, status, current_member_id, private_code, hash FROM rooms WHERE id=?", [$roomId]);
+        // Забираем все нужные поля, которые используются в игровой логике:
+        // - current_member_id, hash          — для синхронизации и хода
+        // - turn_start_time                  — для таймера
+        // - dealerCards, deckOfCards         — для работы с картами
+        return $this->query(
+            "SELECT id, type, status, current_member_id, private_code, hash, turn_start_time, dealerCards, deckOfCards 
+             FROM rooms 
+             WHERE id = ?",
+            [$roomId]
+        );
     }
 
     public function getOpenRooms()
@@ -349,9 +358,10 @@ class DB
      */
     public function updateMemberCards($roomId, $userId, $cards)
     {
-        // Сохраняем в HEX формате для совместимости с форматом колоды
+        // Сохраняем в HEX формате строку карт БЕЗ разделителей.
+        // Везде работаем со строкой вида "2H3DAE..." и режем её по 2 символа.
         if (is_array($cards)) {
-            $str = implode(',', $cards);
+            $str = implode('', $cards);
             $hex = bin2hex($str);
         } else {
             $hex = $cards; // Если уже строка, предполагаем что это HEX

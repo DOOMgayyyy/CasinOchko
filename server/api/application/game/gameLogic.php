@@ -22,12 +22,12 @@ class GameLogic
         $players = [];
 
         foreach ($members as $member) {
-            // Декодируем карты игрока из JSON
             $cards = [];
             if (!empty($member->cards)) {
-                $cards = [];
-                if (!empty($member->cards)) {
-                    $cards = str_split($member->cards, 2); // Режем строку по 2 символа
+                // В room_members.cards храним HEX строки без разделителей
+                $cardsString = hex2bin($member->cards);
+                if ($cardsString !== false && $cardsString !== '') {
+                    $cards = str_split($cardsString, 2); // Режем строку по 2 символа
                 }
             }
 
@@ -53,15 +53,19 @@ class GameLogic
      */
     private function getUserCards($roomId, $userId)
     {
-        // Этот метод нужно добавить в DB.php
         $member = $this->db->getRoomMember($roomId, $userId); 
         
         if (!$member || empty($member->cards)) {
             return [];
         }
 
-        $cards = json_decode($member->cards, true);
-        return is_array($cards) ? $cards : [];
+        // Аналогично Player::getMemberCards — работаем со строкой из HEX
+        $cardsString = hex2bin($member->cards);
+        if ($cardsString === false || $cardsString === '') {
+            return [];
+        }
+
+        return str_split($cardsString, 2);
     }
 
     /**
