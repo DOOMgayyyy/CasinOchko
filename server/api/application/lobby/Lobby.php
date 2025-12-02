@@ -109,39 +109,60 @@ class Lobby
         }
 
         $room = $this->getOpenRoom();
+        $isNewRoom = false;
+        
         if ($room) {
             $roomId = $room->id;
         } else {
+            $isNewRoom = true;
             $initialHash = md5(random_int(0, PHP_INT_MAX));
             $roomId = $this->db->createRoom('open', 'playing', null, $initialHash);
-            if (!$roomId)
+            if (!$roomId) {
                 return ['error' => 807];
+            }
 
             // Используем Deck.php для создания и перемешивания колоды
             if (!$this->deck) {
+                $this->db->deleteRoom($roomId);
                 return ['error' => 806];
             }
+            
             $deck = $this->deck->createShuffledDeck();
-            if (isset($deck['error']))
+            if (isset($deck['error'])) {
+                $this->db->deleteRoom($roomId);
                 return $deck;
-            if (!$this->db->saveDeck($roomId, $deck))
+            }
+            
+            if (!$this->db->saveDeck($roomId, $deck)) {
+                $this->db->deleteRoom($roomId);
                 return ['error' => 805];
+            }
         }
     
-        if (!$this->db->addRoomMember($roomId, $userId, 'spectator', 0))
+        if (!$this->db->addRoomMember($roomId, $userId, 'spectator', 0)) {
+            // Если не удалось добавить пользователя и это новая комната, удаляем её
+            if ($isNewRoom) {
+                $this->db->deleteRoom($roomId);
+            }
             return ['error' => 900];
+        }
 
         $newHash = $this->refreshRoomHash($roomId);
         if ($newHash === false) {
+            // Если не удалось обновить хэш, удаляем пользователя
+            // Если это новая комната, удаляем и её
+            $this->db->removeUserFromRoom($roomId, $userId);
+            if ($isNewRoom) {
+                $this->db->deleteRoom($roomId);
+            }
             return ['error' => 808]; 
         }
 
         $roomData = $this->db->getRoom($roomId);
-
-        $roomData = $this->db->getRoom($roomId);
-        if(!$roomData){
-            return ['error'=> 811];
+        if (!$roomData) {
+            return ['error' => 811];
         }
+        
         return $roomData;
     }
 
@@ -169,23 +190,48 @@ class Lobby
 
         $initialHash = md5(random_int(0, PHP_INT_MAX));
         $roomId = $this->db->createRoom('private', 'playing', $privateCode, $initialHash);
+        
+        if (!$roomId) {
+            return ['error' => 807];
+        }
 
         $success = $this->db->addRoomMember($roomId, $userId, 'player', 0);
         if (!$success) {
+            // Если не удалось добавить пользователя, удаляем созданную комнату
+            $this->db->deleteRoom($roomId);
             return ['error' => 900];
         }
 
         $newHash = $this->refreshRoomHash($roomId);
         if ($newHash === false) {
+            // Если не удалось обновить хэш, удаляем пользователя и комнату
+            $this->db->removeUserFromRoom($roomId, $userId);
+            $this->db->deleteRoom($roomId);
             return ['error' => 808]; 
         }
 
-        $this->refreshRoomHash($roomId);
-
         $deck = $this->deck->createShuffledDeck();
-        $this->db->saveDeck($roomId, $deck);
+        if (isset($deck['error'])) {
+            // Если не удалось создать колоду, удаляем пользователя и комнату
+            $this->db->removeUserFromRoom($roomId, $userId);
+            $this->db->deleteRoom($roomId);
+            return $deck;
+        }
+        
+        $saveDeckResult = $this->db->saveDeck($roomId, $deck);
+        if (!$saveDeckResult) {
+            // Если не удалось сохранить колоду, удаляем пользователя и комнату
+            $this->db->removeUserFromRoom($roomId, $userId);
+            $this->db->deleteRoom($roomId);
+            return ['error' => 805];
+        }
 
-        return $this->db->getRoom($roomId);
+        $roomData = $this->db->getRoom($roomId);
+        if (!$roomData) {
+            return ['error' => 811];
+        }
+
+        return $roomData;
     }
 
     /**

@@ -182,7 +182,7 @@ class DB
     public function createRoom($type, $status, $privateCode, $hash)
     {
         $this->execute(
-            "INSERT INTO rooms (type, status, private_code, hash) VALUES (?, ?, ?, ?)",
+            "INSERT INTO rooms (type, status, private_code, hash, last_update) VALUES (?, ?, ?, ?, NOW())",
             [$type, $status, $privateCode, $hash]
         );
         // Возвращаем ID созданной комнаты
@@ -207,12 +207,23 @@ class DB
 
     public function addRoomMember($roomId, $userId, $status = 'spectator', $bet = 0)
     {
-        $this->removeUserFromAllRooms($userId);
         try {
-            return $this->execute(
+            // Сначала добавляем пользователя в новую комнату
+            $result = $this->execute(
                 "INSERT INTO room_members (room_id, user_id, status, bet, cards) VALUES (?, ?, ?, ?, ?)",
                 [$roomId, $userId, $status, $bet, '']
             );
+            
+            // Только если добавление успешно, удаляем пользователя из других комнат
+            if ($result) {
+                // Удаляем пользователя из других комнат (но не из текущей)
+                $this->execute(
+                    "DELETE FROM room_members WHERE user_id = ? AND room_id != ?",
+                    [$userId, $roomId]
+                );
+            }
+            
+            return $result;
         } catch (PDOException $e) {
             error_log("Error while adding user to room: " . $e->getMessage());
             return false;

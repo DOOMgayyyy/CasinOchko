@@ -85,7 +85,20 @@ class GameLogic
         $now = time();
         $members = $this->db->getRoomMembers($roomId);
         
+        // Проверяем, что last_update установлен и валиден
+        if (!$room->last_update) {
+            // Если last_update не установлен, обновляем его и выходим
+            $this->db->touchRoom($roomId);
+            return;
+        }
+        
         $lastUpdateTimestamp = strtotime($room->last_update);
+        if ($lastUpdateTimestamp === false) {
+            // Если не удалось распарсить дату, обновляем её и выходим
+            $this->db->touchRoom($roomId);
+            return;
+        }
+        
         $timePassedSinceLastUpdate = $now - $lastUpdateTimestamp;
 
         //проверка на 10мин
