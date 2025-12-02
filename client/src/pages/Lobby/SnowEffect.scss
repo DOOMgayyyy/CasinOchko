@@ -1,0 +1,54 @@
+.snow-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+
+.snowflake {
+  position: absolute;
+  top: -10px;
+  color: #ffffff;
+  font-size: inherit;
+  font-family: Arial, sans-serif;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  user-select: none;
+  animation: snowfall linear infinite;
+  will-change: transform;
+  // Отключаем аппаратное ускорение для слабых устройств через media query
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+@keyframes snowfall {
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateX(15px);
+  }
+  100% {
+    transform: translateY(100vh) translateX(-15px);
+  }
+}
+
+// Упрощенная анимация для слабых устройств
+@media (prefers-reduced-motion: reduce) {
+  .snowflake {
+    animation: snowfall-simple linear infinite;
+  }
+}
+
+@keyframes snowfall-simple {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+

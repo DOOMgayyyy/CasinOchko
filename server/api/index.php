@@ -40,10 +40,10 @@ function result($params) {
             case 'getInfoRoom': return $app->getInfoRoom($params); // loop
             case 'leaveRoom': return $app->leaveRoom($params);
             case 'takeUserCard': return $app->takeUserCard($params);
-            // bet
-            // pass
-
             case 'connectRoom': return $app->connectRoom($params);
+            // bet
+            // getCard
+            // pass
         
             default: return ['error' => 102];
         }

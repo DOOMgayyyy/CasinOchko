@@ -2,6 +2,7 @@ import './Login.scss';
 import { ServerContext } from '../../App';
 import React, { useState, useRef, useContext } from 'react';
 import { IBasePage, PAGES } from '../PageManager';
+import SnowEffect from '../Lobby/SnowEffect';
 
 
 const Login: React.FC<IBasePage> = (props) => {
@@ -16,11 +17,7 @@ const Login: React.FC<IBasePage> = (props) => {
           const email = loginRef.current.value;
           const password = passwordRef.current.value;
           if (email && password && await server.login(email, password)) {
-              console.log("Успешный вход");
               setPage(PAGES.LOBBY);
-          } else {
-              console.error("Ошибка входа: проверьте email или пароль");
-              // Здесь можно показать ошибку пользователю
           }
         }
     }
@@ -38,6 +35,7 @@ const Login: React.FC<IBasePage> = (props) => {
  
   return (
     <div className="main-login">
+      <SnowEffect />
       <main className="sign-wrap">
           {/* ЛОГОТИП */}
         <div className="brand-logo" aria-label="CASINOCHKO">

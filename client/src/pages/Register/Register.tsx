@@ -2,6 +2,7 @@ import './Register.scss';
 import React, { useState, useRef, useContext } from 'react'; 
 import { ServerContext } from '../../App';
 import { IBasePage, PAGES } from '../PageManager';
+import SnowEffect from '../Lobby/SnowEffect';
 
 
 const Register: React.FC<IBasePage> = (props) => {
@@ -42,6 +43,7 @@ const Register: React.FC<IBasePage> = (props) => {
 
   return (
     <div className="main-register">
+      <SnowEffect />
       <main className="sign-wrap">
         {/* ЛОГОТИП */}
         <div className="brand-logo" aria-label="CASINOCHKO">
