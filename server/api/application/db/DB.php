@@ -411,7 +411,7 @@ class DB
     public function setCurrentPlayer($roomId, $memberId)
     {
         return $this->execute(
-            "UPDATE rooms SET current_member_id = ?, turn_start_time = NOW() WHERE id = ?",
+            "UPDATE rooms SET current_member_id = ?, turn_start_time = NOW(), last_update = NOW() WHERE id = ?",
             [$memberId, $roomId]
         );
     }
@@ -428,6 +428,24 @@ class DB
         return $result ? $result->current_member_id : null;
     }
 
+    public function updateRoomAction($roomId)
+    {
+        $newHash = md5(time() . $roomId . rand(1, 10000)); 
+        return $this->execute("UPDATE rooms SET hash = ?, last_update = NOW() WHERE id = ?", [$newHash, $roomId]);
+    }
+
+    public function updateRoomStatus($roomId, $status)
+    {
+        $newHash = md5(time() . $roomId . rand(1, 10000));
+        return $this->execute("UPDATE rooms SET status = ?, hash = ?, last_update = NOW() WHERE id = ?", [$status, $newHash, $roomId]);
+    }
+
+    public function cleanRoom($roomId)
+    {
+        $this->execute("DELETE FROM room_members WHERE room_id = ?", [$roomId]);
+        return $this->deleteRoom($roomId);
+    }
+
     /**
      * Удаление комнаты
      */
@@ -441,7 +459,15 @@ class DB
      */
     public function updateRoomHash($roomId, $hash)
     {
-        return $this->execute("UPDATE rooms SET hash = ? WHERE id = ?", [$hash, $roomId]);
+        return $this->execute("UPDATE rooms SET hash = ?, last_update = NOW() WHERE id = ?", [$hash, $roomId]);
+    }
+
+    /**
+     * Обновляет только поле last_update, фиксируя активность комнаты
+     */
+    public function touchRoom($roomId)
+    {
+        return $this->execute("UPDATE rooms SET last_update = NOW() WHERE id = ?", [$roomId]);
     }
 
     /**
@@ -449,6 +475,11 @@ class DB
      */
     public function resetCurrentMember($roomId)
     {
-        return $this->execute("UPDATE rooms SET current_member_id = NULL WHERE id = ?", [$roomId]);
+        return $this->execute("UPDATE rooms SET current_member_id = NULL, last_update = NOW() WHERE id = ?", [$roomId]);
+    }
+
+    public function getRoomHash($roomId) {
+        $result = $this->query("SELECT hash FROM rooms WHERE id =?", [$roomId]);
+        return $result ? $result->hash : null;
     }
 }

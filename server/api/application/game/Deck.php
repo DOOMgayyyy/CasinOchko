@@ -3,10 +3,15 @@
 
 class Deck {
     /**
-     * Конструктор класса Lobby
+     * @var DB
+     */
+    private $db;
+
+    /**
+     * Конструктор класса Deck
      * @param DB $db Объект для работы с базой данных
      */
-    function __construct($db)
+    public function __construct($db)
     {
         $this->db = $db;
     }
@@ -16,7 +21,7 @@ class Deck {
      * Создает и перемешивает колоду (строка без разделителей)
      * Формат: ЗначениеМасть (например: 2H, AC, ED...)
      */
-    private function createShuffledDeck()
+    public function createShuffledDeck()
     {
         // Сразу используем нужные символы:
         // 10->A, 11->B (Валет), 12->C (Дама), 13->D (Король), 14->E (Туз)

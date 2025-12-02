@@ -5,14 +5,16 @@
 class Lobby
 {
     private $db;
+    private $deck;
 
     /**
      * Конструктор класса Lobby
      * @param DB $db Объект для работы с базой данных
      */
-    function __construct($db)
+    function __construct($db, $deck = null)
     {
         $this->db = $db;
+        $this->deck = $deck ?: new Deck($db);
     }
 
     /**
@@ -75,15 +77,24 @@ class Lobby
     }
 
     /**
+     * Возвращает текущий хэш комнаты (поле hash в таблице rooms)
+     * @param int $roomId ID комнаты
+     * @return string|null Текущий хэш или null
+     */
+    private function getRoomHash($roomId)
+    {
+        return $this->db->getRoomHash($roomId);
+    }
+
+    /**
      * Обновляет хэш комнаты (поле hash в таблице rooms)
      * @param int $roomId ID комнаты
      * @return string Новый хэш
      */
-    private function refreshRoomHash($roomId)
-    {
-        $newHash = md5(microtime() . random_int(0, PHP_INT_MAX));
-        $this->db->execute("UPDATE rooms SET hash = ? WHERE id = ?", [$newHash, $roomId]);
-        return $newHash;
+    private function refreshRoomHash($roomId) {
+        $newHash = md5(microtime(true) . rand(1000, 9999) . $roomId);
+        $success = $this->db->updateRoomHash($roomId, $newHash);
+        return $success ? $newHash : false;
     }
 
     /**
@@ -91,11 +102,11 @@ class Lobby
      * @param int $userId ID пользователя
      * @return array|object Данные комнаты или ошибка
      */
-    public function quickStart($userId)
-    {
-        // if ($this->isUserPlaying($userId)) {
-        //     return ['error' => 800];
-        // }
+    public function quickStart($userId) {
+        
+        if ($this->isUserPlaying($userId)) {
+            return ['error' => 800];
+        }
 
         $room = $this->getOpenRoom();
         if ($room) {
@@ -107,7 +118,7 @@ class Lobby
                 return ['error' => 807];
 
             // Используем Deck.php для создания и перемешивания колоды
-            if (!isset($this->deck) || !method_exists($this->deck, 'createShuffledDeck')) {
+            if (!$this->deck) {
                 return ['error' => 806];
             }
             $deck = $this->deck->createShuffledDeck();
@@ -120,7 +131,12 @@ class Lobby
         if (!$this->db->addRoomMember($roomId, $userId, 'spectator', 0))
             return ['error' => 900];
 
-        $this->refreshRoomHash($roomId);
+        $newHash = $this->refreshRoomHash($roomId);
+        if ($newHash === false) {
+            return ['error' => 808]; 
+        }
+
+        $roomData = $this->db->getRoom($roomId);
 
         $roomData = $this->db->getRoom($roomId);
         if(!$roomData){
@@ -136,9 +152,9 @@ class Lobby
      */
     public function createPrivateRoom($userId)
     {
-        // if ($this->isUserPlaying($userId)) {
-        //     return ['error' => 800];
-        // }
+        if ($this->isUserPlaying($userId)) {
+            return ['error' => 800];
+        }
 
         $attempts = 0;
         $privateCode = null;
@@ -159,9 +175,14 @@ class Lobby
             return ['error' => 900];
         }
 
+        $newHash = $this->refreshRoomHash($roomId);
+        if ($newHash === false) {
+            return ['error' => 808]; 
+        }
+
         $this->refreshRoomHash($roomId);
 
-        $deck = $this->createShuffledDeck();
+        $deck = $this->deck->createShuffledDeck();
         $this->db->saveDeck($roomId, $deck);
 
         return $this->db->getRoom($roomId);
@@ -194,9 +215,30 @@ class Lobby
             return ['error' => 900];
         }
 
+        $newHash = $this->refreshRoomHash($room->id);
+        if ($newHash === false) {
+            return ['error' => 808];
+        }
+
         $this->refreshRoomHash($room->id);
 
         return $this->db->getRoom($room->id);
+    }
+
+    public function connectRoom($roomId) {
+        $roomData = $this->db->getRoom($roomId);
+        if (!$roomData) {
+            return ['error' => 901]; 
+        }
+
+        $newHash = $this->refreshRoomHash($roomId);
+        if ($newHash === false) {
+            return ['error' => 808];
+        }
+
+        $this->refreshRoomHash($roomId);
+
+        return $this->db->getRoom($roomId);
     }
 
     # Выход пользователя из комнаты
@@ -233,6 +275,7 @@ class Lobby
             $this->db->deleteRoom($roomId);
             return ['success' => true, 'roomDeleted' => true];
         } else {
+            
             $this->refreshRoomHash($roomId);
             return ['success' => true, 'roomDeleted' => false];
         }
