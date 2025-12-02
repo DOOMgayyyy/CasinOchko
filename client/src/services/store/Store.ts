@@ -32,21 +32,48 @@ class Store {
         this.setToken('');
     }
 
-    addMessages(messages: TMessages): void {
-        // TODO сделать, чтобы работало вот так
-        //this.messages.concat(messages);
-        // а вот это - плохой код!
-        if (messages?.length) {
-            this.messages = messages;
+    private roomMessages: Map<number, TMessages> = new Map();
+
+addMessages(messages: TMessages, roomId?: number): void {
+    const targetRoomId = roomId || this.currentRoomId;
+    
+    if (!targetRoomId) {
+        console.error('No room ID for messages');
+        return;
+    }
+    
+    const existingMessages = this.roomMessages.get(targetRoomId) || [];
+    // Объединяем старые и новые сообщения, убираем дубликаты
+    const combinedMessages = [...existingMessages, ...messages];
+    
+    // Фильтруем дубликаты по автору, сообщению и времени
+    const uniqueMessages = combinedMessages.filter((message, index, self) =>
+        index === self.findIndex((m) => 
+            m.author === message.author && 
+            m.message === message.message && 
+            m.created === message.created
+        )
+    );
+    
+    this.roomMessages.set(targetRoomId, uniqueMessages);
+}
+
+    getMessages(roomId?: number | null): TMessages {
+        const targetRoomId = roomId || this.currentRoomId;
+        
+        if (!targetRoomId) {
+            return [];
         }
+        
+        return this.roomMessages.get(targetRoomId) || [];
     }
 
-    getMessages(): TMessages {
-        return this.messages;
-    }
-
-    clearMessages(): void {
-        this.messages = [];
+    clearMessages(roomId?: number): void {
+        if (roomId) {
+            this.roomMessages.delete(roomId);
+        } else if (this.currentRoomId) {
+            this.roomMessages.delete(this.currentRoomId);
+        }
     }
 
     getChatHash(): string {

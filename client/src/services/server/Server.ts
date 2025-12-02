@@ -102,31 +102,53 @@ class Server {
         return false;
     }
 
-    sendMessage(message: string): void {
-        this.request<boolean>('sendMessage', { message });
+    sendMessage(message: string, roomId?: number | null): void {
+    const currentRoomId = roomId || this.store.getCurrentRoomId();
+    if (currentRoomId) {
+        this.request<{ hash: string }>('sendMessage', { 
+            message, 
+            room_id: String(currentRoomId) 
+        });
     }
+}
 
-    async getMessages(): Promise<TMessagesResponse | null> {
-        const hash = this.store.getChatHash();
-        const result = await this.request<TMessagesResponse>('getMessages', { hash });
-        if (result) {
-            this.store.setChatHash(result.hash);
-            return result;
-        }
+async getMessages(roomId?: number | null): Promise<TMessagesResponse | null> {
+    const hash = this.store.getChatHash();
+    const currentRoomId = roomId || this.store.getCurrentRoomId();
+    
+    if (!currentRoomId) {
         return null;
     }
-
-    startChatMessages(cb: (hash: string) => void): void {
-        this.chatInterval = setInterval(async () => {
-            const result = await this.getMessages();
-            if (result) {
-                const { messages, hash } = result;
-                this.store.addMessages(messages);
-                cb(hash);
-            }
-        }, CHAT_TIMESTAMP);
-
+    
+    const result = await this.request<TMessagesResponse>('getMessages', { 
+        hash, 
+        room_id: String(currentRoomId) 
+    });
+    
+    if (result) {
+        this.store.setChatHash(result.hash);
+        return result;
     }
+    return null;
+}
+
+startChatMessages(cb: (hash: string) => void, roomId?: number | null): void {
+    const currentRoomId = roomId || this.store.getCurrentRoomId();
+    
+    if (!currentRoomId) {
+        console.error('No room ID for chat');
+        return;
+    }
+    
+    this.chatInterval = setInterval(async () => {
+        const result = await this.getMessages(currentRoomId);
+        if (result) {
+            const { messages, hash } = result;
+            this.store.addMessages(messages, currentRoomId);
+            cb(hash);
+        }
+    }, CHAT_TIMESTAMP);
+}
 
     stopChatMessages(): void {
         if (this.chatInterval) {

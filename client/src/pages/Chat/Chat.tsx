@@ -1,77 +1,192 @@
-import React, { useContext, useEffect, useState, useMemo, useRef } from 'react';
+import React, { useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { ServerContext, StoreContext } from '../../App';
 import { TMessages } from '../../services/server/types';
-import Button from '../../components/Button/Button';
-import { IBasePage, PAGES } from '../PageManager';
-
 import './Chat.scss';
 
-const Chat: React.FC<IBasePage> = (props: IBasePage) => {
-    const { setPage } = props;
+interface ChatPopupProps {
+    isOpen: boolean;
+    onClose: () => void;
+    roomId?: number | null;
+}
+
+const ChatPopup: React.FC<ChatPopupProps> = ({ isOpen, onClose, roomId }) => {
     const server = useContext(ServerContext);
     const store = useContext(StoreContext);
     const [messages, setMessages] = useState<TMessages>([]);
-    const [_, setHash] = useState<string>('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const messageRef = useRef<HTMLInputElement>(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
     const user = store.getUser();
 
-    useEffect(() => {
-        const newMessages = (hash: string) => {
-            const messages = store.getMessages();
-            if (messages?.length) {
-                setMessages(messages);
-                setHash(hash);
+    // Функция для загрузки сообщений
+    const loadMessages = useCallback(async () => {
+        if (!user || !roomId) {
+            setError("Невозможно загрузить чат: нет пользователя или комнаты");
+            return;
+        }
+        
+        setIsLoading(true);
+        setError(null);
+        try {
+            const result = await server.getMessages(roomId);
+            if (result) {
+                const storedMessages = store.getMessages(roomId);
+                setMessages(storedMessages);
             }
+        } catch (error) {
+            console.error('Error loading messages:', error);
+            setError("Ошибка при загрузке сообщений");
+        } finally {
+            setIsLoading(false);
+        }
+    }, [user, server, store, roomId]);
+
+    // Функция для отправки сообщения
+    const sendMessage = useCallback(async (message: string) => {
+        if (!user || !message.trim() || !roomId) {
+            setError("Невозможно отправить сообщение");
+            return;
+        }
+        
+        try {
+            await server.sendMessage(message, roomId);
+            await loadMessages();
+        } catch (error) {
+            console.error('Error sending message:', error);
+            setError("Ошибка при отправке сообщения");
+        }
+    }, [user, server, roomId, loadMessages]);
+
+    // Автопрокрутка к новым сообщениям
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
+    // Инициализация чата при открытии
+    useEffect(() => {
+        if (!isOpen || !user || !roomId) {
+            if (isOpen && (!user || !roomId)) {
+                setError(user ? "Нет доступа к чату комнаты" : "Войдите в систему");
+            }
+            return;
         }
 
-        if (user) {
-            server.startChatMessages(newMessages);
-        }
+        // Очищаем предыдущие сообщения
+        store.clearMessages(roomId);
+        setMessages([]);
+        setError(null);
+        
+        // Загружаем начальные сообщения
+        loadMessages();
 
+        // Обработчик новых сообщений
+        const handleNewMessages = (newHash: string) => {
+            const storedMessages = store.getMessages(roomId);
+            setMessages(storedMessages);
+        };
+
+        // Запускаем получение сообщений
+        server.startChatMessages(handleNewMessages, roomId);
+
+        // Очистка при закрытии
         return () => {
             server.stopChatMessages();
+        };
+    }, [isOpen, user, roomId, server, store, loadMessages]);
+
+    // Обработчик отправки сообщения
+    const handleSendMessage = async () => {
+        if (messageRef.current && messageRef.current.value.trim()) {
+            const message = messageRef.current.value.trim();
+            messageRef.current.value = '';
+            await sendMessage(message);
         }
-    });
+    };
 
-    const input = useMemo(() => <input ref={messageRef} placeholder='сообщение' />, []);
-
-    const sendClickHandler = () => {
-        if (messageRef.current) {
-            const message = messageRef.current.value;
-            if (message) {
-                server.sendMessage(message);
-                messageRef.current.value = '';
-            }
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
         }
-    }
-    const toGameClickHandler = () => setPage(PAGES.GAME);
-    const backClickHandler = () => setPage(PAGES.LOGIN);
+    };
 
-    if (!user) {
-        return (<div className='chat'>
-            <h1>Чат</h1>
-            <h1>Что-то пошло не так =(</h1>
-            <Button onClick={toGameClickHandler} text='В игру!' />
-            <Button onClick={backClickHandler} text='Назад' />
-        </div>)
-    }
+    const formatMessageTime = (timestamp: string) => {
+        try {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } catch {
+            return timestamp;
+        }
+    };
 
-    return (<div className='chat'>
-        <h1>Чат</h1>
-        <div className='chat-user-info'>
-            <span>Привет!</span>
-            <span>{user.name}</span>
-        </div>
-        <div className='chat-messages'>
-            {messages.reverse().map((message, index) => <div key={index}>{`${message.author} (${message.created}): ${message.message}`}</div>)}
-        </div>
-        {input}
-        <div className='chat-buttons'>
-            <Button onClick={sendClickHandler} text='Отправить' />
-            <Button onClick={toGameClickHandler} text='В игру!' />
-            <Button onClick={backClickHandler} text='Назад' />
-        </div>
-    </div>)
-}
+    if (!isOpen) return null;
 
-export default Chat;
+    return (
+        <div className="chat-popup-overlay" onClick={onClose}>
+            <div className="chat-popup-content" onClick={(e) => e.stopPropagation()}>
+                <div className="chat-popup-header">
+                    <span className="chat-title">
+                        Чат комнаты {roomId ? `#${roomId}` : ''}
+                    </span>
+                    <button className="chat-popup-close" onClick={onClose} aria-label="Закрыть чат">
+                        ×
+                    </button>
+                </div>
+                
+                <div className="chat-popup-messages">
+                    {error ? (
+                        <div className="chat-error">{error}</div>
+                    ) : isLoading ? (
+                        <div className="chat-loading">Загрузка сообщений...</div>
+                    ) : messages.length === 0 ? (
+                        <div className="chat-empty">Сообщений пока нет. Будьте первым!</div>
+                    ) : (
+                        messages.map((message, index) => {
+                            const isMyMessage = user && message.author === user.name;
+                            return (
+                                <div 
+                                    key={`${message.author}-${message.created}-${index}`} 
+                                    className={`chat-message ${isMyMessage ? 'my-message' : ''}`}
+                                >
+                                    <div className="message-header">
+                                        <span className="message-author">{message.author}</span>
+                                        <span className="message-time">
+                                            {formatMessageTime(message.created)}
+                                        </span>
+                                    </div>
+                                    <div className="message-text">{message.message}</div>
+                                </div>
+                            );
+                        })
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+                
+                <div className="chat-popup-input-container">
+                    <input 
+                        ref={messageRef} 
+                        placeholder={!roomId ? 'Чат недоступен' : 'Введите сообщение...'} 
+                        className="chat-popup-input"
+                        onKeyPress={handleKeyPress}
+                        disabled={!user || isLoading || !roomId}
+                        maxLength={500}
+                    />
+                    <button 
+                        className="send-chat-btn" 
+                        onClick={handleSendMessage}
+                        disabled={!user || isLoading || !roomId}
+                    >
+                        {isLoading ? '...' : 'Отправить'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default ChatPopup;

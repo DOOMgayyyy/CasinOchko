@@ -13,6 +13,7 @@ import cardKH from '../../assets/img/cards/KH.png';
 import tableImgSrc from '../../assets/img/Table/Table.png';
 import chatIcon from '../../assets/img/chat_bubble.svg';
 import './Game.scss';
+import Chat from '../Chat/Chat';
 
 const GAME_FIELD = 'game-field';
 
@@ -39,6 +40,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const [roomCode, setRoomCode] = useState<string | null>(null);
     const [copySuccess, setCopySuccess] = useState(false);
     const [showLeaveModal, setShowLeaveModal] = useState(false);
+    const [showChat, setShowChat] = useState(false);
     
     // Получаем roomId из store
     const roomId = store.getCurrentRoomId();
@@ -123,7 +125,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
       };
         
       const handleChatToggle = () => {
-        console.log('Chat toggle clicked');
+        setShowChat(!showChat);
         // Логика для открытия/закрытия чата
       };
 
@@ -348,6 +350,11 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                 </div>
             </div>
         )}
+        <Chat 
+            isOpen={showChat} 
+            onClose={() => setShowChat(false)}
+            roomId={roomId} // roomId уже объявлен в вашем компоненте
+        />
     </div>)
 }
 

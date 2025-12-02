@@ -14,7 +14,7 @@ import PrivateRoom from './Lobby/PrivateRoom/PrivateRoom';
 export enum PAGES {
     PRELOADER,
     LOGIN,
-    CHAT,
+    //CHAT,
     GAME,
     NOT_FOUND,
     REGISTER,
@@ -39,7 +39,7 @@ const PageManager: React.FC = () => {
             {page === PAGES.PRELOADER && <Preloader setPage={setPage} />}
             {page === PAGES.LOGIN && <Login setPage={setPage} />}
             {page === PAGES.REGISTER && <Register setPage={setPage} />}
-            {page === PAGES.CHAT && <Chat setPage={setPage} />}
+            {/*page === PAGES.CHAT && <Chat setPage={setPage} />*/}
             {page === PAGES.LOBBY && <Lobby setPage={setPage} />}
             {page === PAGES.GAME && <GamePage setPage={setPage} />}
             {page === PAGES.PRIVATE_ROOM && <PrivateRoom setPage={setPage} />}
