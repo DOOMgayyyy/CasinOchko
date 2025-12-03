@@ -6,6 +6,7 @@ import { IBasePage, PAGES } from '../PageManager';
 import { StoreContext, ServerContext } from '../../App';
 
 import AdReward from './AdReward/AdReward'; 
+import adVideo from '../../assets/ads/ad.mp4';
 import MenuIcon from '../../assets/img/toppanel/sidebarmenu.png';
 import PlusIcon from '../../assets/img/toppanel/topupthebalance.png';
 
@@ -122,7 +123,7 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     // Общий компонент AdReward для переиспользования
     const adModalComponent = showAdModal && (
         <AdReward
-            videoUrl={require('../../assets/ads/ad.mp4')}
+            videoUrl={adVideo}
             onClose={() => setShowAdModal(false)}
             onSuccess={handleAdSuccess}
         />
