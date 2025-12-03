@@ -1,12 +1,19 @@
 import React, { useState, useContext } from 'react';
 import './Lobby.scss';
 import SideMenu from './SideMenu/SideMenu';
+import PrivateRoom from './PrivateRoom/PrivateRoom';
 import { IBasePage, PAGES } from '../PageManager';
 import { StoreContext, ServerContext } from '../../App';
 
 import AdReward from './AdReward/AdReward'; 
 import MenuIcon from '../../assets/img/toppanel/sidebarmenu.png';
 import PlusIcon from '../../assets/img/toppanel/topupthebalance.png';
+import SnowEffect from './SnowEffect';
+import garlandImg from '../../assets/img/HNY/garland.png';
+import snowman1 from '../../assets/img/HNY/snowman1.svg';
+import snowman2 from '../../assets/img/HNY/snowman2.svg';
+
+import video from '../../assets/ads/ad.mp4';
 
 export interface LobbyProps extends IBasePage {}
 
@@ -43,20 +50,28 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     //===================================================
 
     const [showSideMenu, setShowSideMenu] = useState(false);
+    const [showPrivateRoomPage, setShowPrivateRoomPage] = useState(false);
     const [showAdModal, setShowAdModal] = useState(false);
 
     
 
-    const handleQuickStart = async () => {
-        try {
-            const result = await server.quickStart();
-            if (result) {
-                store.setCurrentRoomId(result.id);
-                setPage(PAGES.GAME);
-            }
-        } catch (error) {
-            console.error('Ошибка быстрого старта:', error);
+    const handleCreateRoom = async () => {
+        const result = await server.createPrivateRoom();
+        
+        if (result && result.private_code) {
+            store.setRoomCode(result.private_code);
+            store.setCurrentRoomId(result.id);
+            setPage(PAGES.GAME);
         }
+    };
+
+    const handleQuickStart = async () => {
+        const result = await server.quickStart();
+        if (result) {
+            store.setCurrentRoomId(result.id);
+            setPage(PAGES.GAME);
+        }
+
     };
     
     // 4. Функция выхода теперь вызывает метод сервера и очищает данные
@@ -110,15 +125,38 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     // Общий компонент AdReward для переиспользования
     const adModalComponent = showAdModal && (
         <AdReward
-            videoUrl={require('../../assets/ads/ad.mp4')}
+            videoUrl={video}
             onClose={() => setShowAdModal(false)}
             onSuccess={handleAdSuccess}
         />
     );
 
+    // Если показываем страницу приватной комнаты
+    if (showPrivateRoomPage) {
+        return (
+            <>
+                <PrivateRoom
+                    player={player}
+                    onBack={() => setShowPrivateRoomPage(false)}
+                    onCreateRoom={handleCreateRoom}
+                    //onJoinRoom={handleJoinRoom}
+                    onShowSideMenu={() => setShowSideMenu(true)}
+                    onShowAdModal={() => setShowAdModal(true)}
+                    setPage={setPage} 
+                />
+                {sideMenuComponent}
+                {adModalComponent}
+            </>
+        );
+    }
+
     return (
         <div className="lobby">
             <div className="lobby-background"></div>
+            <SnowEffect />
+            <div className="lobby-garland">
+                <img src={garlandImg} alt="Гирлянда" className="garland-image" />
+            </div>
 
             <header className="lobby-header">
                 <div className="header-left">
@@ -149,7 +187,7 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     Быстрая игра
                 </button>
 
-                <button className="lobby-btn private-room-btn" onClick={() => setPage(PAGES.PRIVATE_ROOM)}>
+                <button className="lobby-btn private-room-btn" onClick={() => setShowPrivateRoomPage(true)}>
                     Приватная комната
                 </button>
 
@@ -157,6 +195,11 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     Таблица лидеров
                 </button>
             </main>
+
+            <div className="lobby-snowmen-container">
+                <img src={snowman1} alt="Snowman" className="lobby-snowman lobby-snowman-left" />
+                <img src={snowman2} alt="Snowman" className="lobby-snowman lobby-snowman-right" />
+            </div>
 
             {sideMenuComponent}
 

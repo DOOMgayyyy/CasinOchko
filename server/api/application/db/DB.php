@@ -39,7 +39,8 @@ class DB
     {
         $sth = $this->pdo->prepare($sql);
         $sth->execute($params);
-        return $sth->fetchAll(PDO::FETCH_OBJ);    }
+        return $sth->fetchAll(PDO::FETCH_OBJ);    
+    }
 
     /*public function getUserByLogin($name) {
         return $this->query("SELECT * FROM users WHERE login=?", [$name]);
@@ -73,6 +74,7 @@ class DB
     {
         return $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
     }
+
     public function isNameUnique($name, $excludingUserId = null)
     {
         $sql = "SELECT COUNT(*) FROM users WHERE name = ?";
@@ -133,7 +135,16 @@ class DB
 
     public function getRoom($roomId)
     {
-        return $this->query("SELECT id, type, status, current_member_id, private_code, hash FROM rooms WHERE id=?", [$roomId]);
+        // Забираем все нужные поля, которые используются в игровой логике:
+        // - current_member_id, hash          — для синхронизации и хода
+        // - turn_start_time                  — для таймера
+        // - dealerCards, deckOfCards         — для работы с картами
+        return $this->query(
+            "SELECT id, type, status, current_member_id, private_code, hash, turn_start_time, dealerCards, deckOfCards 
+             FROM rooms 
+             WHERE id = ?",
+            [$roomId]
+        );
     }
 
     public function getOpenRooms()
@@ -163,15 +174,15 @@ class DB
 
     public function isPrivateCodeUnique($code)
     {
-        $sql = "SELECT COUNT(*) FROM rooms WHERE private_code = ?";
-        $count = $this->query($sql, [$code])->{'COUNT(*)'};
-        return $count == 0;
+        $sql = "SELECT COUNT(*) AS count FROM rooms WHERE private_code = ?";
+        $count = $this->query($sql, [$code])->count;
+        return $count === 0;
     }
 
     public function createRoom($type, $status, $privateCode, $hash)
     {
         $this->execute(
-            "INSERT INTO rooms (type, status, private_code, hash) VALUES (?, ?, ?, ?)",
+            "INSERT INTO rooms (type, status, private_code, hash, last_update) VALUES (?, ?, ?, ?, NOW())",
             [$type, $status, $privateCode, $hash]
         );
         // Возвращаем ID созданной комнаты
@@ -196,12 +207,23 @@ class DB
 
     public function addRoomMember($roomId, $userId, $status = 'spectator', $bet = 0)
     {
-        $this->removeUserFromAllRooms($userId);
         try {
-            return $this->execute(
+            // Сначала добавляем пользователя в новую комнату
+            $result = $this->execute(
                 "INSERT INTO room_members (room_id, user_id, status, bet, cards) VALUES (?, ?, ?, ?, ?)",
                 [$roomId, $userId, $status, $bet, '']
             );
+            
+            // Только если добавление успешно, удаляем пользователя из других комнат
+            if ($result) {
+                // Удаляем пользователя из других комнат (но не из текущей)
+                $this->execute(
+                    "DELETE FROM room_members WHERE user_id = ? AND room_id != ?",
+                    [$userId, $roomId]
+                );
+            }
+            
+            return $result;
         } catch (PDOException $e) {
             error_log("Error while adding user to room: " . $e->getMessage());
             return false;
@@ -221,7 +243,7 @@ class DB
         return $this->query(
             "SELECT rm.id as member_id, rm.user_id, rm.bet, rm.cards, rm.status,
                     u.name, u.balance
-             FROM room_members rm
+             FROM room_members AS rm
              JOIN users u ON rm.user_id = u.id
              WHERE rm.room_id = ? AND rm.user_id = ?",
             [$roomId, $userId]
@@ -236,7 +258,7 @@ class DB
         return $this->queryAll(
             "SELECT rm.id as member_id, rm.user_id, rm.bet, rm.cards, rm.status,
                     u.id, u.name, u.balance
-             FROM room_members rm
+             FROM room_members AS rm
              JOIN users u ON rm.user_id = u.id
              WHERE rm.room_id = ?
              ORDER BY rm.id ASC",
@@ -252,9 +274,9 @@ class DB
                 balance
             FROM users
             ORDER BY balance DESC
-            LIMIT 100
-    ");
+            LIMIT 100");
     }
+
     public function updateBalance($userId, $amount)
     {
         // Используем SQL-функцию ADD для прибавления или вычитания.
@@ -266,6 +288,7 @@ class DB
             [$amount, $userId]
         );
     }
+
     /**
      * Сохраняет строку колоды напрямую в БД
      */
@@ -292,13 +315,64 @@ class DB
     }
 
     /**
+     * Атомарно взять карту из колоды (защита от race condition)
+     * Использует SELECT FOR UPDATE для блокировки строки на время транзакции
+     * 
+     * @param int $roomId - ID комнаты
+     * @param int $cardLength - Длина карты в символах (обычно 2)
+     * @return string|false - Карта или false если колода пуста
+     */
+    public function drawCardAtomic($roomId, $cardLength)
+    {
+        try {
+            // Начинаем транзакцию
+            $this->pdo->beginTransaction();
+            
+            // Блокируем строку для чтения/записи (SELECT FOR UPDATE)
+            $stmt = $this->pdo->prepare("SELECT deckOfCards FROM rooms WHERE id = ? FOR UPDATE");
+            $stmt->execute([$roomId]);
+            $result = $stmt->fetch(PDO::FETCH_OBJ);
+            
+            // Проверяем наличие колоды и карт в ней
+            if (!$result || empty($result->deckOfCards) || strlen($result->deckOfCards) < $cardLength) {
+                $this->pdo->rollBack();
+                return false; // Колода пуста
+            }
+            
+            $deck = $result->deckOfCards;
+            
+            // Берем первую карту
+            $card = substr($deck, 0, $cardLength);
+            
+            // Обновляем колоду (удаляем взятую карту)
+            $remainingDeck = substr($deck, $cardLength);
+            $updateStmt = $this->pdo->prepare("UPDATE rooms SET deckOfCards = ? WHERE id = ?");
+            $updateStmt->execute([$remainingDeck, $roomId]);
+            
+            // Фиксируем транзакцию
+            $this->pdo->commit();
+            
+            return $card;
+            
+        } catch (Exception $e) {
+            // В случае ошибки откатываем транзакцию
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            error_log("Error in drawCardAtomic: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Обновить карты игрока в комнате (HEX формат для совместимости)
      */
     public function updateMemberCards($roomId, $userId, $cards)
     {
-        // Сохраняем в HEX формате для совместимости с форматом колоды
+        // Сохраняем в HEX формате строку карт БЕЗ разделителей.
+        // Везде работаем со строкой вида "2H3DAE..." и режем её по 2 символа.
         if (is_array($cards)) {
-            $str = implode(',', $cards);
+            $str = implode('', $cards);
             $hex = bin2hex($str);
         } else {
             $hex = $cards; // Если уже строка, предполагаем что это HEX
@@ -332,12 +406,23 @@ class DB
     }
 
     /**
+     * Обновить карты дилера в комнате
+     */
+    public function updateDealerCards($roomId, $dealerCards)
+    {
+        return $this->execute(
+            "UPDATE rooms SET dealerCards = ? WHERE id = ?",
+            [$dealerCards, $roomId]
+        );
+    }
+
+    /**
      * Установить текущего игрока и время начала хода
      */
     public function setCurrentPlayer($roomId, $memberId)
     {
         return $this->execute(
-            "UPDATE rooms SET current_member_id = ?, turn_start_time = NOW() WHERE id = ?",
+            "UPDATE rooms SET current_member_id = ?, turn_start_time = NOW(), last_update = NOW() WHERE id = ?",
             [$memberId, $roomId]
         );
     }
@@ -354,6 +439,24 @@ class DB
         return $result ? $result->current_member_id : null;
     }
 
+    public function updateRoomAction($roomId)
+    {
+        $newHash = md5(time() . $roomId . rand(1, 10000)); 
+        return $this->execute("UPDATE rooms SET hash = ?, last_update = NOW() WHERE id = ?", [$newHash, $roomId]);
+    }
+
+    public function updateRoomStatus($roomId, $status)
+    {
+        $newHash = md5(time() . $roomId . rand(1, 10000));
+        return $this->execute("UPDATE rooms SET status = ?, hash = ?, last_update = NOW() WHERE id = ?", [$status, $newHash, $roomId]);
+    }
+
+    public function cleanRoom($roomId)
+    {
+        $this->execute("DELETE FROM room_members WHERE room_id = ?", [$roomId]);
+        return $this->deleteRoom($roomId);
+    }
+
     /**
      * Удаление комнаты
      */
@@ -367,7 +470,15 @@ class DB
      */
     public function updateRoomHash($roomId, $hash)
     {
-        return $this->execute("UPDATE rooms SET hash = ? WHERE id = ?", [$hash, $roomId]);
+        return $this->execute("UPDATE rooms SET hash = ?, last_update = NOW() WHERE id = ?", [$hash, $roomId]);
+    }
+
+    /**
+     * Обновляет только поле last_update, фиксируя активность комнаты
+     */
+    public function touchRoom($roomId)
+    {
+        return $this->execute("UPDATE rooms SET last_update = NOW() WHERE id = ?", [$roomId]);
     }
 
     /**
@@ -375,7 +486,7 @@ class DB
      */
     public function resetCurrentMember($roomId)
     {
-        return $this->execute("UPDATE rooms SET current_member_id = NULL WHERE id = ?", [$roomId]);
+        return $this->execute("UPDATE rooms SET current_member_id = NULL, last_update = NOW() WHERE id = ?", [$roomId]);
     }
 
     public function getRoomHash($roomId) {

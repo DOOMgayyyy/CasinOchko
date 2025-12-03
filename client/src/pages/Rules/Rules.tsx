@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { IBasePage, PAGES } from '../PageManager';
 import './Rules.scss';
+import SnowEffect from '../Lobby/SnowEffect';
 
 const Rules: React.FC<IBasePage> = (props: IBasePage) => {
     const { setPage } = props;
@@ -11,6 +12,7 @@ const Rules: React.FC<IBasePage> = (props: IBasePage) => {
 
     return (
         <div className="rules">
+            <SnowEffect />
             <button className="back-to-lobby-button" onClick={handleBackToLobby}>
             <span className="arrow">&lt;</span> Назад в лобби
             </button>

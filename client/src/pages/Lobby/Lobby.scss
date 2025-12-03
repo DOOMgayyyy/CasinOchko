@@ -25,6 +25,32 @@
   }
 }
 
+.lobby-garland {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 25;
+  pointer-events: none;
+  display: block;
+  overflow: visible;
+  height: auto;
+}
+
+.garland-image {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: top center;
+  max-height: 300px;
+  min-height: 150px;
+  display: block;
+  opacity: 1;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+}
+
 .lobby-header {
   display: flex;
   align-items: center;
@@ -33,6 +59,8 @@
   background: rgba(24, 24, 24, 1);
   border-bottom: 1px solid #333;
   height: 70px;
+  position: relative;
+  z-index: 20;
 }
 
 .header-left {
@@ -161,6 +189,28 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 2rem;
+}
+
+.lobby-snowmen-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 40px 20px;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.lobby-snowman {
+  height: 150px;
+  width: auto;
+  pointer-events: none;
+  display: block;
+  opacity: 1;
+  object-fit: contain;
 }
 
 .logo-casino {

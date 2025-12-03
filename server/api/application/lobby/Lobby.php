@@ -5,14 +5,16 @@
 class Lobby
 {
     private $db;
+    private $deck;
 
     /**
      * Конструктор класса Lobby
      * @param DB $db Объект для работы с базой данных
      */
-    function __construct($db)
+    function __construct($db, $deck = null)
     {
         $this->db = $db;
+        $this->deck = $deck ?: new Deck($db);
     }
 
     /**
@@ -47,32 +49,6 @@ class Lobby
             }
         }
         return null;
-    }
-/**
-     * Создает и перемешивает колоду (строка без разделителей)
-     * Формат: ЗначениеМасть (например: 2H, AC, ED...)
-     */
-    private function createShuffledDeck()
-    {
-        // Сразу используем нужные символы:
-        // 10->A, 11->B (Валет), 12->C (Дама), 13->D (Король), 14->E (Туз)
-        $values = ['2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E'];
-        $suits = ['H', 'D', 'C', 'S']; 
-
-        $deck = [];
-        foreach ($suits as $suit) {
-            foreach ($values as $value) {
-                // Просто склеиваем значение и масть: "2H", "AE" и т.д.
-                $deck[] = $value . $suit;
-            }
-        }
-
-        if (!shuffle($deck)) {
-            return ['error' => 806];
-        }
-
-        // Возвращаем строку без разделителей: "2H3D4C...AE..."
-        return implode('', $deck);
     }
 
     /**
@@ -133,35 +109,60 @@ class Lobby
         }
 
         $room = $this->getOpenRoom();
+        $isNewRoom = false;
+        
         if ($room) {
             $roomId = $room->id;
         } else {
+            $isNewRoom = true;
             $initialHash = md5(random_int(0, PHP_INT_MAX));
             $roomId = $this->db->createRoom('open', 'playing', null, $initialHash);
-            if (!$roomId)
+            if (!$roomId) {
                 return ['error' => 807];
+            }
 
-            $deck = $this->createShuffledDeck();
-            if (isset($deck['error']))
+            // Используем Deck.php для создания и перемешивания колоды
+            if (!$this->deck) {
+                $this->db->deleteRoom($roomId);
+                return ['error' => 806];
+            }
+            
+            $deck = $this->deck->createShuffledDeck();
+            if (isset($deck['error'])) {
+                $this->db->deleteRoom($roomId);
                 return $deck;
-            if (!$this->db->saveDeck($roomId, $deck))
+            }
+            
+            if (!$this->db->saveDeck($roomId, $deck)) {
+                $this->db->deleteRoom($roomId);
                 return ['error' => 805];
+            }
         }
     
-        if (!$this->db->addRoomMember($roomId, $userId, 'spectator', 0))
+        if (!$this->db->addRoomMember($roomId, $userId, 'spectator', 0)) {
+            // Если не удалось добавить пользователя и это новая комната, удаляем её
+            if ($isNewRoom) {
+                $this->db->deleteRoom($roomId);
+            }
             return ['error' => 900];
+        }
 
         $newHash = $this->refreshRoomHash($roomId);
         if ($newHash === false) {
+            // Если не удалось обновить хэш, удаляем пользователя
+            // Если это новая комната, удаляем и её
+            $this->db->removeUserFromRoom($roomId, $userId);
+            if ($isNewRoom) {
+                $this->db->deleteRoom($roomId);
+            }
             return ['error' => 808]; 
         }
 
         $roomData = $this->db->getRoom($roomId);
-
-        $roomData = $this->db->getRoom($roomId);
-        if(!$roomData){
-            return ['error'=> 811];
+        if (!$roomData) {
+            return ['error' => 811];
         }
+        
         return $roomData;
     }
 
@@ -189,23 +190,48 @@ class Lobby
 
         $initialHash = md5(random_int(0, PHP_INT_MAX));
         $roomId = $this->db->createRoom('private', 'playing', $privateCode, $initialHash);
+        
+        if (!$roomId) {
+            return ['error' => 807];
+        }
 
         $success = $this->db->addRoomMember($roomId, $userId, 'player', 0);
         if (!$success) {
+            // Если не удалось добавить пользователя, удаляем созданную комнату
+            $this->db->deleteRoom($roomId);
             return ['error' => 900];
         }
 
         $newHash = $this->refreshRoomHash($roomId);
         if ($newHash === false) {
+            // Если не удалось обновить хэш, удаляем пользователя и комнату
+            $this->db->removeUserFromRoom($roomId, $userId);
+            $this->db->deleteRoom($roomId);
             return ['error' => 808]; 
         }
 
-        $this->refreshRoomHash($roomId);
+        $deck = $this->deck->createShuffledDeck();
+        if (isset($deck['error'])) {
+            // Если не удалось создать колоду, удаляем пользователя и комнату
+            $this->db->removeUserFromRoom($roomId, $userId);
+            $this->db->deleteRoom($roomId);
+            return $deck;
+        }
+        
+        $saveDeckResult = $this->db->saveDeck($roomId, $deck);
+        if (!$saveDeckResult) {
+            // Если не удалось сохранить колоду, удаляем пользователя и комнату
+            $this->db->removeUserFromRoom($roomId, $userId);
+            $this->db->deleteRoom($roomId);
+            return ['error' => 805];
+        }
 
-        $deck = $this->createShuffledDeck();
-        $this->db->saveDeck($roomId, $deck);
+        $roomData = $this->db->getRoom($roomId);
+        if (!$roomData) {
+            return ['error' => 811];
+        }
 
-        return $this->db->getRoom($roomId);
+        return $roomData;
     }
 
     /**

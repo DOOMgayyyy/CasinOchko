@@ -1,82 +1,46 @@
 <?php
 
-require_once('Card.php');
 
 class Deck {
-    private $cards = []; # Массив карт в колоде
-    
-     # Массив всех мастей в колоде
-    private $suits = [
-        'hearts',    # Черви
-        'diamonds',  # Бубны
-        'clubs',     # Трефы
-        'spades'     # Пики
-    ];
-    
-     # Массив всех рангов карт в колоде
-    private $ranks = [  
-        '2',   
-        '3',   
-        '4',   
-        '5',   
-        '6',   
-        '7',   
-        '8',   
-        '9',   
-        '10',  
-        'J',   # Валет
-        'Q',   # Дама
-        'K',   # Король
-        'A'    # Туз
-    ];
+    /**
+     * @var DB
+     */
+    private $db;
 
-    # Автоматически создает полную колоду из 52 карт при создании экземпляра класса
-    public function __construct() {
-        $this->createDeck();
+    /**
+     * Конструктор класса Deck
+     * @param DB $db Объект для работы с базой данных
+     */
+    public function __construct($db)
+    {
+        $this->db = $db;
     }
 
-    # Создает полную колоду из 52 карт
-    private function createDeck() {
-        $this->cards = [];
-        
-        # Создание карты для каждой масти
-        foreach ($this->suits as $suit) {
-            # Создание карты каждого ранга для текущей масти
-            foreach ($this->ranks as $rank) {
-                $this->cards[] = new Card($suit, $rank);
+    
+    /**
+     * Создает и перемешивает колоду (строка без разделителей)
+     * Формат: ЗначениеМасть (например: 2H, AC, ED...)
+     */
+    public function createShuffledDeck()
+    {
+        // Сразу используем нужные символы:
+        // 10->A, 11->B (Валет), 12->C (Дама), 13->D (Король), 14->E (Туз)
+        $values = ['2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E'];
+        $suits = ['H', 'D', 'C', 'S']; 
+
+        $deck = [];
+        foreach ($suits as $suit) {
+            foreach ($values as $value) {
+                // Просто склеиваем значение и масть: "2H", "AE" и т.д.
+                $deck[] = $value . $suit;
             }
         }
-    }
 
-    # Перемешивает карты в колоде
-    public function shuffle() {
-        shuffle($this->cards);
-        return $this;
-    }
-
-    # Вытягивает (раздает) одну карту из колоды
-    public function draw() {
-        if (empty($this->cards)) {
-            return null; # Колода пуста - нечего раздавать
+        if (!shuffle($deck)) {
+            return ['error' => 806];
         }
 
-        # Удаляет и возвращает последнюю карту
-        return array_pop($this->cards);
-    }
-
-    # Возвращает все карты в колоде
-    public function getCards() {
-        return $this->cards;
-    }
-
-    # Возвращает количество карт в колоде
-    public function getCount() {
-        return count($this->cards);
-    }
-
-    # Сбрасывает колоду к исходному состоянию
-    public function reset() {
-        $this->createDeck();
-        return $this;
+        // Возвращаем строку без разделителей: "2H3D4C...AE..."
+        return implode('', $deck);
     }
 }

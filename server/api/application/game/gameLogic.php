@@ -5,6 +5,9 @@
 class GameLogic
 {
     private $db;
+    const BET_TIMEOUT_S = 30;
+    const ACTION_TIMEOUT_S = 15;
+    const FULL_TIMEOUT_S = 600;
 
     function __construct($db)
     {
@@ -22,6 +25,7 @@ class GameLogic
     public function getInfoRoom($roomId, $userId, $clientHash)
     {
         // Получаем текущий hash комнаты
+        $this->checkTimeouts($roomId);
         $room = $this->db->getRoom($roomId);
         $currentMemberId = $this->db->getCurrentMemberId($roomId);
         if (!$room) {
@@ -29,6 +33,9 @@ class GameLogic
         }
 
         $currentHash = $room->hash;
+
+        // Фиксируем активность комнаты, чтобы last_update отражал последние обращения
+        $this->db->touchRoom($roomId);
 
         // Если hash совпадает - изменений нет
         if ($currentHash && $currentHash === $clientHash) {
@@ -68,18 +75,102 @@ class GameLogic
      * * @param int $roomId ID комнаты
      * @return array Массив с данными игроков
      */
+    private function checkTimeouts($roomId)
+    {
+        $room = $this->db->getRoom($roomId);
+        if (!$room || $room->status === 'closed') {
+            return;
+        }
+
+        $now = time();
+        $members = $this->db->getRoomMembers($roomId);
+        
+        // Проверяем, что last_update установлен и валиден
+        if (!$room->last_update) {
+            // Если last_update не установлен, обновляем его и выходим
+            $this->db->touchRoom($roomId);
+            return;
+        }
+        
+        $lastUpdateTimestamp = strtotime($room->last_update);
+        if ($lastUpdateTimestamp === false) {
+            // Если не удалось распарсить дату, обновляем её и выходим
+            $this->db->touchRoom($roomId);
+            return;
+        }
+        
+        $timePassedSinceLastUpdate = $now - $lastUpdateTimestamp;
+
+        //проверка на 10мин
+        if ($timePassedSinceLastUpdate > self::FULL_TIMEOUT_S) {
+            $this->db->updateRoomStatus($roomId, 'closed');
+            $this->db->cleanRoom($roomId);
+            return;
+        }
+
+        //проверка ставки 30сек
+        
+        if (!$room->current_member_id && $room->status === 'waiting_for_bets') { 
+            
+            $betPhaseExpired = ($timePassedSinceLastUpdate > self::BET_TIMEOUT_S);
+            
+            if ($betPhaseExpired) {
+                $playersLeft = 0;
+                
+                foreach ($members as $member) {
+                    if ($member->status === 'player' && (int)$member->bet === 0) {
+                        $this->db->updateMemberStatus($roomId, $member->user_id, 'spectator');
+                    }
+                    if ($member->status !== 'spectator') {
+                         $playersLeft++;
+                    }
+                }
+                 
+                $this->db->updateRoomAction($roomId); 
+
+                if ($playersLeft < 1) { 
+                     $this->db->updateRoomStatus($roomId, 'closed');
+                     $this->db->cleanRoom($roomId);
+                }
+            }
+        } 
+        
+        //проверка 15 сек хода
+        elseif ($room->current_member_id && $room->status === 'playing') {
+            
+            $currentPlayer = null;
+            foreach ($members as $member) {
+                if ($member->member_id == $room->current_member_id) {
+                    $currentPlayer = $member;
+                    break;
+                }
+            }
+
+            if ($currentPlayer) {
+                $turnStartTime = strtotime($room->turn_start_time);
+                $timePassed = $now - $turnStartTime;
+
+                if ($timePassed > self::ACTION_TIMEOUT_S) {
+                    $this->db->resetCurrentMember($roomId); 
+                    $this->db->updateRoomAction($roomId); 
+                }
+            }
+        }
+    }
+
+
     private function getPlayersInfo($roomId)
     {
         $members = $this->db->getRoomMembers($roomId); // Этот метод уже есть в DB.php
         $players = [];
 
         foreach ($members as $member) {
-            // Декодируем карты игрока из JSON
             $cards = [];
             if (!empty($member->cards)) {
-                $decoded = json_decode($member->cards, true);
-                if (is_array($decoded)) {
-                    $cards = $decoded;
+                // В room_members.cards храним HEX строки без разделителей
+                $cardsString = hex2bin($member->cards);
+                if ($cardsString !== false && $cardsString !== '') {
+                    $cards = str_split($cardsString, 2); // Режем строку по 2 символа
                 }
             }
 
@@ -90,7 +181,7 @@ class GameLogic
                 'balance' => (int)$member->balance,
                 'bet' => (int)$member->bet,
                 'cards' => $cards,
-                'status' => $member->status ?? 'active' // active, folded, waiting
+                'status' => $member->status ?? 'spectator' // player status (player, spectator)
             ];
         }
 
@@ -105,15 +196,19 @@ class GameLogic
      */
     private function getUserCards($roomId, $userId)
     {
-        // Этот метод нужно добавить в DB.php
         $member = $this->db->getRoomMember($roomId, $userId); 
         
         if (!$member || empty($member->cards)) {
             return [];
         }
 
-        $cards = json_decode($member->cards, true);
-        return is_array($cards) ? $cards : [];
+        // Аналогично Player::getMemberCards — работаем со строкой из HEX
+        $cardsString = hex2bin($member->cards);
+        if ($cardsString === false || $cardsString === '') {
+            return [];
+        }
+
+        return str_split($cardsString, 2);
     }
 
     /**
@@ -124,19 +219,30 @@ class GameLogic
     private function getTimer($room)
     {
         if (!$room->current_member_id) {
+            if ($room->status === 'waiting_for_bets') {
+                $timeElapsed = time() - strtotime($room->last_update);
+                $timeLeft = max(0, self::BET_TIMEOUT_S - $timeElapsed);
+
+                return [
+                    'currentPlayerId' => null,
+                    'timeLeft' => $timeLeft,
+                    'totalTime' => self::BET_TIMEOUT_S,
+                    'isBetPhase' => true
+                ];
+            }
             return null;
         }
 
         // Если есть timestamp начала хода
         if (isset($room->turn_start_time)) {
-            $turnDuration = 30; // Длительность хода в секундах
+            $turnDuration = self::ACTION_TIMEOUT_S;
             $timeElapsed = time() - strtotime($room->turn_start_time);
             $timeLeft = max(0, $turnDuration - $timeElapsed);
 
             return [
-                'currentPlayerId' => $room->current_member_id,
                 'timeLeft' => $timeLeft,
-                'totalTime' => $turnDuration
+                'totalTime' => $turnDuration,
+                'isBetPhase' => false
             ];
         }
 
@@ -144,7 +250,9 @@ class GameLogic
         return [
             'currentPlayerId' => $room->current_member_id,
             'timeLeft' => null,
-            'totalTime' => null
+            'totalTime' => null,
+            'isBetPhase' => false
         ];
     }
+
 }

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Ноя 22 2025 г., 18:13
+-- Время создания: Дек 02 2025 г., 00:50
 -- Версия сервера: 8.0.30
 -- Версия PHP: 7.2.34
 
@@ -60,16 +60,18 @@ CREATE TABLE `rooms` (
   `current_member_id` bigint UNSIGNED DEFAULT NULL,
   `private_code` varchar(4) DEFAULT NULL,
   `hash` varchar(255) DEFAULT NULL,
-  `deckOfCards` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'HEX строка: QS,5C,2D,...'
+  `deckOfCards` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'HEX строка: QS,5C,2D,...',
+  `dealerCards` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'HEX строка: QS,5C,2D,...',
+  `turn_start_time` datetime DEFAULT NULL,
+  `last_update` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Дамп данных таблицы `rooms`
 --
 
-INSERT INTO `rooms` (`id`, `type`, `status`, `current_member_id`, `private_code`, `hash`, `deckOfCards`) VALUES
-(23, 'private', 'playing', NULL, 'UJNZ', '40528c9847d3006b2f3ae443d49706c3', NULL),
-(24, 'open', 'playing', NULL, NULL, '95dc32487dc6fd7884e760e3cc626bac', 'CD9SDSEHBH5H8CAH8S8DCC8HBSASDH3C4SBC6SCSAD7C2D6H9C3HES6CBD4H5S7H3S2S6DDDEC9D4C5D7S3DED2CDC5C9HCH7D2HAC4D');
+INSERT INTO `rooms` (`id`, `type`, `status`, `current_member_id`, `private_code`, `hash`, `deckOfCards`, `dealerCards`) VALUES
+(43, 'open', 'playing', NULL, NULL, 'bacb2bb2de4e2fdbda5eaf125b5f553f', 'ACDC9H4D6DBDECEH3SAS2HES6S4C7D9S9DAHBS5CCSBHCH7SCD8D2DDH2SDD5D3HBC6H5H3DDS4S7C5S9C8H8SED2C3C8C7H6CADCC4H', NULL);
 
 -- --------------------------------------------------------
 
@@ -92,7 +94,7 @@ CREATE TABLE `room_members` (
 --
 
 INSERT INTO `room_members` (`id`, `room_id`, `user_id`, `status`, `bet`, `types`, `cards`) VALUES
-(31, 24, 4, 'spectator', 0, 0, '');
+(78, 43, 5, 'spectator', 0, 0, '');
 
 -- --------------------------------------------------------
 
@@ -119,8 +121,8 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `email`, `password`, `name`, `balance`, `token`, `total_played`, `total_win`, `total_balance`) VALUES
 (2, 'yana@awsi.com', '$2y$10$yhQWfuyAW63mcy3ZksXBFOuv4Y4m2CuCoFOucVO768BAHMekzYooe', 'owerlord', 8000, '527ad0d366406ff3acf9d677ae9f72f2', 0, 0, 5000),
 (3, 'dev@dev.com', '$2y$10$hvDnmfqRDzCBShPSqWrm2.4YVxLBpS/.FKS.FG7DiBKCwjVnI0dpq', 'dev', 5000, '8a1954228142f4c6f15188d5649b560e', 0, 0, 5000),
-(4, 'vibes@vibes.com', '25d55ad283aa400af464c76d713c07ad', 'bob', 5000, 'e7efc8b8649278e453a4deed287d8c1f', 0, 0, 5000),
-(5, 'vibhs@vibes.com', '25d55ad283aa400af464c76d713c07ad', 'vibe', 1000000, '80a756ce0f6712f0bf81441e93d30dc1', 0, 0, 1000000);
+(4, 'vibes@vibes.com', '25d55ad283aa400af464c76d713c07ad', 'bob', 5000, '5872883649eee47883ad6ed56451b085', 0, 0, 5000),
+(5, 'vibhs@vibes.com', '25d55ad283aa400af464c76d713c07ad', 'vibe', 1000000, '91e05717ac2358d663aa8c6d58f01bf7', 0, 0, 1000000);
 
 --
 -- Индексы сохранённых таблиц
@@ -184,13 +186,13 @@ ALTER TABLE `message_hashes`
 -- AUTO_INCREMENT для таблицы `rooms`
 --
 ALTER TABLE `rooms`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- AUTO_INCREMENT для таблицы `room_members`
 --
 ALTER TABLE `room_members`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 
 --
 -- AUTO_INCREMENT для таблицы `users`

@@ -8,6 +8,7 @@ class Store {
     chatHash: string = 'empty chat hash';
     roomHash: string = 'empty room hash';
     currentRoomId: number | null = null;
+    roomCode: string | null = null;
 
     setToken(token: string): void {
         localStorage.setItem(TOKEN, token);
@@ -112,6 +113,18 @@ addMessages(messages: TMessages, roomId?: number): void {
 
     clearCurrentRoomId(): void {
         this.currentRoomId = null;
+    }
+
+    setRoomCode(code: string | null): void {
+        this.roomCode = code;
+    }
+
+    getRoomCode(): string | null {
+        return this.roomCode;
+    }
+
+    clearRoomCode(): void {
+        this.roomCode = null;
     }
 }
 
