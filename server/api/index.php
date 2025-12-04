@@ -1,54 +1,53 @@
 <?php
-
 error_reporting(1);
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
-
-require_once('application/Answer.php');
-require_once('application/Application.php');
+require_once 'application/Answer.php';
+require_once 'application/Application.php';
 
 function result($params) {
     $method = $params['method'];
     if ($method) {
         $app = new Application();
-        switch ($method) {
-            // user
-            case 'login': return $app->login($params);
-            case 'logout': return $app->logout($params);
-            case 'registration': return $app->registration($params);
-            case 'updateUserName': return $app->updateUserName($params);// Обновление имени
-            // chat
-            case 'sendMessage': return $app->sendMessage($params);
-            case 'getMessages': return $app->getMessages($params); // loop
-            
-            // balance 
-            case 'addBalance': return $app->addBalance($params);
-            case 'subtractBalance': return $app->subtractBalance($params);
+    switch ($method) {
+        // Authentication
+        case 'login': return $app->login($params);
+        case 'logout': return $app->logout($params);
+        case 'registration': return $app->registration($params);
+        case 'updateUserName': return $app->updateUserName($params);
 
-            // menu
-            case 'getUserStat': return $app->getUserStat($params);
-            case 'getUserBalance': return $app->getUserBalance($params);
+        // Chat
+        case 'sendMessage': return $app->sendMessage($params);
+        case 'getMessages': return $app->getMessages($params);
 
-            // lobby
-            case 'quickStart': return $app->quickStart($params);
-            case 'createPrivateRoom': return $app->createPrivateRoom($params);
-            case 'joinPrivateRoom': return $app->joinPrivateRoom($params);
-            case 'getRatingTable': return $app->getRatingTable($params);
+        // Balance
+        case 'addBalance': return $app->addBalance($params);
+        case 'subtractBalance': return $app->subtractBalance($params);
 
-            // game
-            case 'getInfoRoom': return $app->getInfoRoom($params); // loop
-            case 'leaveRoom': return $app->leaveRoom($params);
-            case 'takeUserCard': return $app->takeUserCard($params);
-            case 'connectRoom': return $app->connectRoom($params);
-            // bet
-            // getCard
-            // pass
-        
-            default: return ['error' => 102];
-        }
+        // Menu
+        case 'getUserStat': return $app->getUserStat($params);
+        case 'getUserBalance': return $app->getUserBalance($params);
+
+        // Lobby
+        case 'quickStart': return $app->quickStart($params);
+        case 'createPrivateRoom': return $app->createPrivateRoom($params);
+        case 'joinPrivateRoom': return $app->joinPrivateRoom($params);
+        case 'getRatingTable': return $app->getRatingTable($params);
+        case 'connectRoom': return $app->connectRoom($params);
+        case 'leaveRoom': return $app->leaveRoom($params);
+
+        // Game
+        case 'getInfoRoom': return $app->getInfoRoom($params);
+        case 'makeBet': return $app->makeBet($params);
+        case 'takeUserCard': return $app->takeUserCard($params);
+        case 'pass': return $app->pass($params);
+        case 'doubleBet': return $app->doubleBet($params);
+
+        default: return ['error' => 102];
     }
-    return ['error' => 101];
+}
+ return ['error' => 101];  
 }
 
 // Определение параметра 

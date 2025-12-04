@@ -1,46 +1,41 @@
 <?php
-require_once('db/DB.php');
-require_once('user/User.php');
-require_once('lobby/Lobby.php');
-require_once('game/gameLogic.php');
-require_once('game/Deck.php');
-require_once('game/Player.php');
 
-// require_once('chat/Chat.php'); 
+require_once ('db/DB.php');
+require_once ('user/User.php');
+require_once ('lobby/Lobby.php');
+require_once ('game/gameLogic.php');
+require_once ('game/Deck.php');
+require_once ('game/Player.php');
 
-class Application
-{
+class Application {
+    private $db;
     private $user;
-    // private $chat; 
     private $lobby;
-    private $db; 
     private $gameLogic;
+    private $deck;
     private $player;
 
-    function __construct()
-    {
-        $db = new DB();
-        $this->db = $db;
-        $this->user = new User($db);
-        // $this->chat = new Chat($db); 
-        $this->lobby = new Lobby($db);
-        $this->gameLogic = new GameLogic($db);
-        $this->deck = new Deck($db);
-        $this->player = new Player($db);
+    public function __construct() {
+        $this->db = new DB();
+        $this->user = new User($this->db);
+        $this->lobby = new Lobby($this->db);
+        $this->deck = new Deck($this->db);
+        $this->player = new Player($this->db, $this->deck);
+        $this->gameLogic = new GameLogic($this->db);
     }
 
-    public function login($params)
-    {
+    // ============================================================
+    // AUTHENTICATION
+    // ============================================================
+
+    public function login($params) {
         if ($params['email'] && $params['hash'] && $params['rnd']) {
             return $this->user->login($params['email'], $params['hash'], $params['rnd']);
-
         }
-
         return ['error' => 242];
     }
 
-    public function logout($params)
-    {
+    public function logout($params) {
         if ($params['token']) {
             $user = $this->user->getUser($params['token']);
             if ($user) {
@@ -51,23 +46,21 @@ class Application
         return ['error' => 242];
     }
 
-    public function registration($params)
-    {
-
+    public function registration($params) {
         if ($params['email'] && !filter_var($params['email'], FILTER_VALIDATE_EMAIL)) {
             return ['error' => 242];
         }
-
         if ($params['email'] && $params['password'] && $params['name']) {
-            // Пароль уже приходит хешированный с клиента
             return $this->user->registration($params['email'], $params['password'], $params['name']);
         }
         return ['error' => 242];
     }
 
-    // Обновление имени
-    public function updateUserName($params)
-    {
+    // ============================================================
+    // USER MANAGEMENT
+    // ============================================================
+
+    public function updateUserName($params) {
         if ($params['token'] && $params['newName']) {
             $user = $this->user->getUser($params['token']);
             if ($user) {
@@ -78,31 +71,73 @@ class Application
         return ['error' => 242];
     }
 
-    public function sendMessage($params)
-    {
-        // Теперь чат привязан к комнате, нужен room_id
-        if ($params['token'] && $params['message'] && $params['room_id']) { 
+    public function getUserStat($params) {
+        if ($params['token']) {
             $user = $this->user->getUser($params['token']);
             if ($user) {
-                // (Опционально) Здесь можно добавить проверку, состоит ли юзер в этой комнате
-
-                // Вставляем сообщение в БД
-                $this->db->addMessage($user->id, $params['message'], $params['room_id']);
-                
-                // Обновляем хэш чата для этой комнаты
-                $newHash = md5(microtime());
-                $this->db->updateRoomChatHash($params['room_id'], $newHash);
-
-                return ['hash' => $newHash]; // Возвращаем новый хэш
+                return ['stats' => $this->user->getUserStat($user->id)];
             }
             return ['error' => 705];
         }
-        return ['error' => 242]; // Не хватает 'room_id' или других параметров
+        return ['error' => 242];
     }
 
-    public function getMessages($params)
-    {
-        // Требуется room_id для получения сообщений комнаты
+    public function getUserBalance($params) {
+        if ($params['token']) {
+            $user = $this->user->getUser($params['token']);
+            if ($user) {
+                return ['balance' => $user->balance];
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242];
+    }
+
+    // ============================================================
+    // BALANCE
+    // ============================================================
+
+    public function addBalance($params) {
+        if ($params['token'] && $params['amount']) {
+            $user = $this->user->getUser($params['token']);
+            if ($user) {
+                return $this->user->addBalance($user->id, $params['amount']);
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242];
+    }
+
+    public function subtractBalance($params) {
+        if ($params['token'] && $params['amount']) {
+            $user = $this->user->getUser($params['token']);
+            if ($user) {
+                return $this->user->subtractBalance($user->id, $params['amount']);
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242];
+    }
+
+    // ============================================================
+    // CHAT
+    // ============================================================
+
+    public function sendMessage($params) {
+        if ($params['token'] && $params['message'] && $params['room_id']) {
+            $user = $this->user->getUser($params['token']);
+            if ($user) {
+                $this->db->addMessage($user->id, $params['message'], $params['room_id']);
+                $newHash = md5(microtime());
+                $this->db->updateRoomChatHash($params['room_id'], $newHash);
+                return ['hash' => $newHash];
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242];
+    }
+
+    public function getMessages($params) {
         if ($params['token'] && $params['hash'] && $params['room_id']) {
             $user = $this->user->getUser($params['token']);
             if ($user) {
@@ -111,56 +146,28 @@ class Application
                 $clientHash = $params['hash'];
 
                 if ($currentHash && $currentHash === $clientHash) {
-                    // Хэши совпадают, нет новых сообщений
                     return ['messages' => [], 'hash' => $clientHash];
                 }
 
-                // Хэши не совпадают (или хэша нет), отправляем новые сообщения
                 $messages = $this->db->getMessages($params['room_id']);
-                
-                // Если хэша не было, создадим его
                 if (!$currentHash) {
                     $newHash = md5(microtime());
                     $this->db->updateRoomChatHash($params['room_id'], $newHash);
                 } else {
                     $newHash = $currentHash;
                 }
-
                 return ['messages' => $messages, 'hash' => $newHash];
             }
             return ['error' => 705];
         }
-        return ['error' => 242]; // Не хватает 'room_id' или 'hash'
-    }
-
-    // menu
-    public function getUserStat($params)
-    {
-        if ($params['token']) {
-            $user = $this->user->getUser($params['token']);
-            if ($user){
-                return ['stats' => $this->user->getUserStat($user->id)];
-            }
-            return ['error' => 705];
-        }
         return ['error' => 242];
     }
 
-    public function getUserBalance($params)
-    {
-        if ($params['token']) {
-            $user = $this->user->getUser($params['token']);
-            if ($user){
-               return ['balance' => $user->balance];
-            }
-            return ['error' => 705];
-        }
-        return ['error' => 242];
-    }
+    // ============================================================
+    // LOBBY
+    // ============================================================
 
-    // lobby
-    public function quickStart($params)
-    {
+    public function quickStart($params) {
         if ($params['token']) {
             $user = $this->user->getUser($params['token']);
             if ($user) {
@@ -171,11 +178,9 @@ class Application
         return ['error' => 242];
     }
 
-    public function createPrivateRoom($params)
-    {
+    public function createPrivateRoom($params) {
         if ($params['token']) {
             $user = $this->user->getUser($params['token']);
-
             if ($user) {
                 return $this->lobby->createPrivateRoom($user->id);
             }
@@ -184,11 +189,9 @@ class Application
         return ['error' => 242];
     }
 
-    public function joinPrivateRoom($params)
-    {
+    public function joinPrivateRoom($params) {
         if ($params['token'] && $params['code']) {
             $user = $this->user->getUser($params['token']);
-
             if ($user) {
                 return $this->lobby->joinPrivateRoom($user->id, $params['code']);
             }
@@ -197,23 +200,18 @@ class Application
         return ['error' => 242];
     }
 
-    public function connectRoom($params)
-    {
+    public function connectRoom($params) {
         if ($params['token'] && $params['room_id']) {
             $user = $this->user->getUser($params['token']);
-
             if ($user) {
                 return $this->lobby->connectRoom($params['room_id']);
             }
-
             return ['error' => 705];
         }
-
         return ['error' => 242];
     }
 
-    public function getRatingTable($params)
-    {
+    public function getRatingTable($params) {
         if ($params['token']) {
             $user = $this->user->getUser($params['token']);
             if ($user) {
@@ -224,8 +222,7 @@ class Application
         return ['error' => 242];
     }
 
-    public function leaveRoom($params)
-    {
+    public function leaveRoom($params) {
         if ($params['token']) {
             $user = $this->user->getUser($params['token']);
             if ($user) {
@@ -236,67 +233,131 @@ class Application
         return ['error' => 242];
     }
 
-    public function addBalance($params){
-        if ($params['token'] && $params['amount']) { 
-            
-            $user = $this->user->getUser($params['token']);
-            
-            if ($user) {
-                
-                return $this->user->addBalance($user->id, $params['amount']);
-            }
-            return ['error' => 705]; 
-        }
-        return ['error' => 242];
-    }
+    // ============================================================
+    // GAME
+    // ============================================================
 
-    public function subtractBalance($params){
-        if ($params['token'] && $params['amount']) { 
-            
-            $user = $this->user->getUser($params['token']);
-            
-            if ($user) {
-                
-                return $this->user->subtractBalance($user->id, $params['amount']);
-            }
-            return ['error' => 705]; 
-        }
-        return ['error' => 242];
-    }
-    public function getInfoRoom($params)
-    {
+    public function getInfoRoom($params) {
         if ($params['token'] && $params['hash'] && $params['room_id']) {
             $user = $this->user->getUser($params['token']);
-
             if (!$user) {
-                return ['error' => 705]; // User not found
+                return ['error' => 705];
             }
-
             return $this->gameLogic->getInfoRoom(
                 $params['room_id'],
                 $user->id,
                 $params['hash']
             );
         }
-
-        return ['error' => 242]; // Params not set fully
+        return ['error' => 242];
     }
 
     /**
-     * Взять карту игроку
+     * Сделать ставку
      */
-    public function takeUserCard($params)
-    {
+    public function makeBet($params) {
+        if ($params['token'] && isset($params['amount'])) {
+            $user = $this->user->getUser($params['token']);
+            if (!$user) {
+                return ['error' => 705];
+            }
+
+            $roomId = null;
+            if (isset($params['room_id'])) {
+                $roomId = $params['room_id'];
+            } else {
+                $roomData = $this->db->getRoomId($user->id);
+                if ($roomData && $roomData->room_id) {
+                    $roomId = $roomData->room_id;
+                } else {
+                    return ['error' => 902];
+                }
+            }
+
+            return $this->player->makeBet($roomId, $user->id, $params['amount']);
+        }
+        return ['error' => 242];
+    }
+
+    /**
+     * Взять карту
+     */
+    public function takeUserCard($params) {
         if ($params['token']) {
             $user = $this->user->getUser($params['token']);
-            
             if (!$user) {
-                return ['error' => 705]; // User not found
+                return ['error' => 705];
             }
-            
-            return $this->player->takeUserCard($user->id);
+
+            $roomId = null;
+            if (isset($params['room_id'])) {
+                $roomId = $params['room_id'];
+            } else {
+                $roomData = $this->db->getRoomId($user->id);
+                if ($roomData && $roomData->room_id) {
+                    $roomId = $roomData->room_id;
+                } else {
+                    return ['error' => 902];
+                }
+            }
+
+            return $this->player->takeUserCard($roomId, $user->id);
         }
-        
-        return ['error' => 242]; // Params not set fully
+        return ['error' => 242];
+    }
+
+    /**
+     * Пропустить ход
+     */
+    public function pass($params) {
+        if ($params['token']) {
+            $user = $this->user->getUser($params['token']);
+            if (!$user) {
+                return ['error' => 705];
+            }
+
+            $roomId = null;
+            if (isset($params['room_id'])) {
+                $roomId = $params['room_id'];
+            } else {
+                $roomData = $this->db->getRoomId($user->id);
+                if ($roomData && $roomData->room_id) {
+                    $roomId = $roomData->room_id;
+                } else {
+                    return ['error' => 902];
+                }
+            }
+
+            return $this->player->pass($roomId, $user->id);
+        }
+        return ['error' => 242];
+    }
+
+    /**
+     * Удвоить ставку
+     */
+    public function doubleBet($params) {
+        if ($params['token']) {
+            $user = $this->user->getUser($params['token']);
+            if (!$user) {
+                return ['error' => 705];
+            }
+
+            $roomId = null;
+            if (isset($params['room_id'])) {
+                $roomId = $params['room_id'];
+            } else {
+                $roomData = $this->db->getRoomId($user->id);
+                if ($roomData && $roomData->room_id) {
+                    $roomId = $roomData->room_id;
+                } else {
+                    return ['error' => 902];
+                }
+            }
+
+            return $this->player->doubleBet($roomId, $user->id);
+        }
+        return ['error' => 242];
     }
 }
+?>

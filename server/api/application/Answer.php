@@ -1,6 +1,6 @@
 <?php
-class Answer
-{
+
+class Answer {
     static $CODES = array(
         '101' => 'Param method not setted',
         '102' => 'Method not found',
@@ -13,8 +13,8 @@ class Answer
         '1005' => 'User is no exists',
         '1006' => 'Other user is playing wright now. If you doesn`t, please change the password',
         '1007' => 'user with this email is already registered',
-        '1009' => 'Error updating user name', // Техническая ошибка
-        '1010' => 'Name is already taken', // Новая ошибка - имя занято
+        '1009' => 'Error updating user name',
+        '1010' => 'Name is already taken',
         '404' => 'not found',
         '605' => 'invalid teamId',
         '700' => 'No skins',
@@ -23,7 +23,6 @@ class Answer
         '707' => 'could not send message',
         '708' => 'invalid code from E-mail',
         '709' => ' session did not start or you need use previous method',
-
         '800' => 'Невозможно войти в комнату. Игрок уже играет',
         '801' => 'Failed to generate unique room code',
         '802' => 'Private room not found or invalid code',
@@ -37,7 +36,6 @@ class Answer
         '810' => 'Колода пуста',
         '811' => 'Ошибка загрузки данных комнаты',
         '812' => 'Ошибка проверки уникальности приватного кода',
-            
         '900' => 'Ошибка добавления в комнату',
         '901' => 'Комната не найдена',
         '902' => 'Пользователь не в комнате',
@@ -45,7 +43,6 @@ class Answer
         '908' => 'Зритель не может брать карты',
         '909' => 'Не ваш ход',
         '910' => 'Максимум 5 карт в руке',
-
         '9000' => 'unknown error'
     );
 

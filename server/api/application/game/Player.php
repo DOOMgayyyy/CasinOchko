@@ -1,394 +1,353 @@
 <?php
-/**
- * Класс для игровой логики игрока
- */
-class Player
-{
+
+class Player {
     private $db;
+    private $deck;
 
-    /* Важные настройки и статусы выносим в константы */
-    private const CARD_LENGTH      = 2;        # Длина карты в строке (2 символа)
-    private const MAX_HAND_VALUE   = 21;       # Максимальная сумма без перебора
-    private const MAX_CARDS        = 5;        # Максимум карт в руке
-    private const DEALER_MIN_VALUE = 17;       # Минимальная сумма для остановки дилера
-    private const ACE_ADJUSTMENT   = 10;       # Разница между высоким и низким тузом (11-1)
-    private const ACE_SYMBOL       = 'E';      # Символ туза в колоде
+    const MIN_BET = 10;
+    const MAX_BET = 1000;
+    const MAX_CARDS = 5;
 
-    private const STATUS_PLAYER    = 'player';
-    private const STATUS_SPECTATOR = 'spectator';
-
-    function __construct($db)
-    {
+    public function __construct($db, $deck = null) {
         $this->db = $db;
+        $this->deck = $deck ?: new Deck($db);
     }
 
-    private function getCardValue($card) 
-    {
-        $values = [
-            '2' => 2, 
-            '3' => 3, 
-            '4' => 4, 
-            '5' => 5, 
-            '6' => 6,
-            '7' => 7, 
-            '8' => 8, 
-            '9' => 9, 
-            'A' => 10,
-            'B' => 10, 
-            'C' => 10, 
-            'D' => 10, 
-            'E' => 11
-        ];
+    // ============================================================
+    // BETTING PHASE
+    // ============================================================
 
-        return $values[$card[0]] ?? 0;
-    }
-
-    private function calculateHandValue($cards) 
-    {
-        $sum = 0;
-        $countAces = 0;
-        
-        foreach ($cards as $card) {
-            $sum += $this->getCardValue($card);
-            if ($card[0] === self::ACE_SYMBOL) {
-                $countAces++;
-            }
-        }
-        
-        # Оптимизация тузов: если перебор, считаем туз за 1 вместо 11
-        while ($sum > self::MAX_HAND_VALUE && $countAces > 0) {
-            $sum -= self::ACE_ADJUSTMENT;
-            $countAces--;
-        }
-        
-        return $sum;
-    }
-
-    private function drawCardFromDeck($roomId)
-    {
-        $card = $this->db->drawCardAtomic($roomId, self::CARD_LENGTH);
-        
-        if (!$card) {
-            return ['error' => 810]; 
-        }
-        
-        return $card;
-    }
-
-    private function getMemberCards($roomId, $userId)
-    {
-        $member = $this->db->getRoomMember($roomId, $userId);
-        
-        if (!$member || !$member->cards) {
-            return [];
-        }
-        
-        $cardsString = hex2bin($member->cards);   # В БД храним HEX
-
-        if ($cardsString === false || $cardsString === '') {
-            return [];
+    public function makeBet($roomId, $userId, $betAmount) {
+        if ($betAmount < self::MIN_BET) {
+            return ['error' => 'MIN_BET', 'message' => 'Минимальная ставка: ' . self::MIN_BET];
         }
 
-        # Работаем везде со строкой карт без разделителей — режем по 2 символа
-        return str_split($cardsString, self::CARD_LENGTH);
-    }
-
-    private function refreshRoomHash($roomId)
-    {
-        $hash = md5(microtime() . random_int(0, PHP_INT_MAX));
-        $this->db->updateRoomHash($roomId, $hash);
-    }
-
-    private function getActivePlayers($roomId)
-    {
-        $members = $this->db->getRoomMembers($roomId);
-        $players = [];
-        
-        foreach ($members as $member) {
-            if ($member->status === self::STATUS_PLAYER) {
-                $players[] = $member;
-            }
-        }
-        
-        return $players;
-    }
-
-    private function findNextPlayer($players, $currentMemberId)
-    {
-        for ($i = 0; $i < count($players); $i++) {
-            if ($players[$i]->member_id == $currentMemberId) {
-                $nextIndex = $i + 1;
-                
-                if (isset($players[$nextIndex])) {
-                    return $players[$nextIndex];
-                }
-                
-                return null;   # Следующего игрока нет
-            }
-        }
-        
-        return null;
-    }
-
-    private function moveToNextPlayer($roomId)
-    {
-        $players = $this->getActivePlayers($roomId);
-
-        if (empty($players)) {
-            $this->dealerTakeCard($roomId);
-            return;
+        if ($betAmount > self::MAX_BET) {
+            return ['error' => 'MAX_BET', 'message' => 'Максимальная ставка: ' . self::MAX_BET];
         }
 
-        $currentMemberId = $this->db->getCurrentMemberId($roomId);
-        $nextPlayer = $this->findNextPlayer($players, $currentMemberId);
-        
-        if ($nextPlayer) {
-            $this->db->setCurrentPlayer($roomId, $nextPlayer->member_id);
-        } else {
-            $this->dealerTakeCard($roomId);
-        }
-    }
-
-    private function getDealerCards($roomId)
-    {
-        $room = $this->db->getRoom($roomId);
-        
-        if (!$room || !$room->dealerCards) {
-            return null;
-        }
-        
-        $cards = str_split($room->dealerCards, self::CARD_LENGTH);
-        
-        return empty($cards) ? null : $cards;
-    }
-
-    private function dealerDrawCards($roomId, $dealerCards)
-    {
-        $dealerValue = $this->calculateHandValue($dealerCards);
-        
-        while ($dealerValue < self::DEALER_MIN_VALUE) {
-            $newCard = $this->drawCardFromDeck($roomId);
-            
-            if (isset($newCard['error'])) {
-                break;
-            }
-            
-            $dealerCards[] = $newCard;
-            $dealerValue = $this->calculateHandValue($dealerCards);
-            
-            $this->db->updateDealerCards($roomId, implode('', $dealerCards));
-        }
-        
-        return $dealerCards;
-    }
-
-    private function dealerTakeCard($roomId) 
-    {
-        $this->db->resetCurrentMember($roomId);
-
-        $dealerCards = $this->getDealerCards($roomId);
-        if (!$dealerCards) {
-            return;
-        }
-
-        $this->dealerDrawCards($roomId, $dealerCards);
-        
-        $this->refreshRoomHash($roomId);
-    }
-
-    private function validateUserInRoom($userId)
-    {
-        $roomData = $this->db->getRoomId($userId);
-        
-        if (!$roomData || !$roomData->room_id) {
-            return ['error' => 902]; 
-        }
-        
-        return ['roomId' => $roomData->room_id];
-    }
-
-    private function validatePlayerTurn($roomId, $userId, $member)
-    {
-        if ($member->status === self::STATUS_SPECTATOR) {
-            return ['error' => 908]; 
-        }
-        
-        $currentMemberId = $this->db->getCurrentMemberId($roomId);
-        if ($currentMemberId != $member->member_id) {
-            return ['error' => 909]; 
-        }
-        
-        return true;
-    }
-
-    private function validateCardsLimit($cards)
-    {
-        if (count($cards) >= self::MAX_CARDS) {
-            return ['error' => 910]; 
-        }
-        
-        return true;
-    }
-
-    private function processCardTaken($roomId, $userId, $cards)
-    {
-        $this->db->updateMemberCards($roomId, $userId, $cards);
-        
-        $handValue = $this->calculateHandValue($cards);
-        
-        if ($handValue > self::MAX_HAND_VALUE) {
-            $this->moveToNextPlayer($roomId);
-        }
-    }
-
-    public function takeUserCard($userId)
-    {
-        # Проверка, что пользователь находится в комнате
-        $roomValidation = $this->validateUserInRoom($userId);
-        if (isset($roomValidation['error'])) {
-            return $roomValidation;
-        }
-        $roomId = $roomValidation['roomId'];
-        
-        # Получение данных участника
         $member = $this->db->getRoomMember($roomId, $userId);
         if (!$member) {
-            return ['error' => 903]; 
-        }
-        
-        # Проверка права и хода игрока
-        $turnValidation = $this->validatePlayerTurn($roomId, $userId, $member);
-        if (is_array($turnValidation)) {
-            return $turnValidation;
+            return ['error' => 902];
         }
 
-        # Получение карт и проверка лимита
-        $cards = $this->getMemberCards($roomId, $userId);
-        $limitValidation = $this->validateCardsLimit($cards);
-        if (is_array($limitValidation)) {
-            return $limitValidation;
+        if ($member->balance < $betAmount) {
+            return ['error' => 804];
         }
-        
-        # Берем карту из колоды
-        $newCard = $this->drawCardFromDeck($roomId);
-        if (isset($newCard['error'])) {
-            return $newCard;
+
+        $room = $this->db->getRoom($roomId);
+        if (!$room || $room->status !== 'waiting') {
+            return ['error' => 'ROOM_NOT_WAITING', 'message' => 'Ставки больше не принимаются'];
         }
-        
-        # Добавление карты и обработка результата
-        $cards[] = $newCard;
-        $this->processCardTaken($roomId, $userId, $cards);
-        
-        # Синхронизация с клиентами
-        $this->refreshRoomHash($roomId);
-        
-        return true;
+
+        try {
+            $this->db->updateMemberBet($roomId, $userId, $betAmount);
+            $this->db->updateMemberStatus($roomId, $userId, 'player');
+            $this->db->updateBalance($userId, -$betAmount);
+            $this->db->updateRoomAction($roomId);
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['error' => 9000, 'message' => $e->getMessage()];
+        }
     }
 
-    /**
-     * Вспомогательная функция раздачи ОДНОЙ карты конкретному участнику (без проверок хода).
-     * Используется для стартовой раздачи, когда нужно пройтись по всем игрокам.
-     */
-    private function giveCardToMember($roomId, $member)
-    {
-        $cards = $this->getMemberCards($roomId, $member->user_id);
+    // ============================================================
+    // GAME START
+    // ============================================================
 
-        $limitValidation = $this->validateCardsLimit($cards);
-        if (is_array($limitValidation)) {
-            return $limitValidation;
+    public function startGame($roomId) {
+        if (!$this->deck->reinitializeDeck($roomId)) {
+            return ['success' => false, 'error' => 'DECK_ERROR'];
         }
 
-        $newCard = $this->drawCardFromDeck($roomId);
-        if (isset($newCard['error'])) {
-            return $newCard;
+        try {
+            $members = $this->db->getRoomMembers($roomId);
+            $playingMembers = array_filter($members, function($m) {
+                return $m->status === 'player' && $m->bet > 0;
+            });
+
+            if (empty($playingMembers)) {
+                return ['success' => false, 'error' => 'NO_PLAYERS'];
+            }
+
+            foreach ($playingMembers as $member) {
+                $card1 = $this->deck->getCard($roomId);
+                $card2 = $this->deck->getCard($roomId);
+                if ($card1 === false || $card2 === false) {
+                    return ['success' => false, 'error' => 'NO_DECK'];
+                }
+
+                $this->db->updateMemberCards($roomId, $member->user_id, [$card1, $card2]);
+            }
+
+            $dealerCard = $this->deck->getCard($roomId);
+            if ($dealerCard === false) {
+                return ['success' => false, 'error' => 'NO_DECK'];
+            }
+
+            $this->db->updateDealerCards($roomId, $dealerCard);
+            $firstPlayer = reset($playingMembers);
+            $this->db->setCurrentPlayer($roomId, $firstPlayer->member_id);
+            $this->db->updateRoomStatus($roomId, 'playing');
+            $this->db->updateRoomAction($roomId);
+            return ['success' => true];
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
         }
-
-        $cards[] = $newCard;
-        $this->processCardTaken($roomId, $member->user_id, $cards);
-
-        return true;
     }
 
-    /**
-     * Стартовая раздача: проходим по всем активным игрокам, начиная с current_member,
-     * и выдаём каждому по одной карте.
-     */
-    public function dealCardsToPlayers($roomId)
-    {
-        $players = $this->getActivePlayers($roomId);
+    // ============================================================
+    // SCORE CALCULATION
+    // ============================================================
 
-        if (empty($players)) {
-            return ['error' => 911]; // Нет активных игроков
+    public static function calculateScore($cards) {
+        if (empty($cards)) {
+            return 0;
         }
 
-        $currentMemberId = $this->db->getCurrentMemberId($roomId);
+        $score = 0;
+        $aces = 0;
 
-        // Если current_member не задан, начинаем с первого игрока в списке
-        $startIndex = 0;
-        foreach ($players as $index => $player) {
-            if ($player->member_id == $currentMemberId) {
-                $startIndex = $index;
-                break;
+        foreach ($cards as $card) {
+            if (empty($card) || strlen($card) < 2) continue;
+
+            $value = $card[0];
+            if ($value === 'E') {
+                $aces++;
+                $score += 11;
+            } elseif ($value === 'B' || $value === 'C' || $value === 'D') {
+                $score += 10;
+            } elseif ($value === 'A') {
+                $score += 10;
+            } else {
+                $score += (int)$value;
             }
         }
 
-        $playersCount = count($players);
-
-        for ($i = 0; $i < $playersCount; $i++) {
-            $idx = ($startIndex + $i) % $playersCount;
-            $result = $this->giveCardToMember($roomId, $players[$idx]);
-
-            if (is_array($result) && isset($result['error'])) {
-                return $result;
-            }
+        while ($score > 21 && $aces > 0) {
+            $score -= 10;
+            $aces--;
         }
 
-        $this->refreshRoomHash($roomId);
-
-        return true;
+        return $score;
     }
 
-    /**
-     * Выдать одну карту дилеру и сразу посчитать значение его руки.
-     * Возвращаем флаг перебора и текущую сумму.
-     */
-    public function dealCardToDealer($roomId)
-    {
-        $dealerCards = $this->getDealerCards($roomId);
-        if (!$dealerCards) {
-            $dealerCards = [];
+    public static function isBust($cards) {
+        return self::calculateScore($cards) > 21;
+    }
+
+    public static function isBlackjack($cards) {
+        return count($cards) === 2 && self::calculateScore($cards) === 21;
+    }
+
+    // ============================================================
+    // PLAYER ACTIONS
+    // ============================================================
+
+    public function takeUserCard($roomId, $userId) {
+        $room = $this->db->getRoom($roomId);
+        if (!$room || $room->status !== 'playing') {
+            return ['error' => 'ROOM_NOT_PLAYING'];
         }
 
-        $newCard = $this->drawCardFromDeck($roomId);
-        if (isset($newCard['error'])) {
-            return $newCard;
+        $member = $this->db->getRoomMember($roomId, $userId);
+        if (!$member) {
+            return ['error' => 902];
         }
 
-        $dealerCards[] = $newCard;
+        if ($member->status !== 'player') {
+            return ['error' => 908];
+        }
 
-        $this->db->updateDealerCards($roomId, implode('', $dealerCards));
+        if ($member->member_id != $room->current_member_id) {
+            return ['error' => 909];
+        }
 
-        $value = $this->calculateHandValue($dealerCards);
+        $currentCards = $this->parseCards($member->cards);
+        if (count($currentCards) >= self::MAX_CARDS) {
+            return ['error' => 910];
+        }
 
-        $this->refreshRoomHash($roomId);
+        $newCard = $this->deck->getCard($roomId);
+        if ($newCard === false) {
+            return ['error' => 810];
+        }
 
+        $currentCards[] = $newCard;
+        $this->db->updateMemberCards($roomId, $userId, $currentCards);
+        $this->db->updateRoomAction($roomId);
+
+        $shouldPass = self::isBust($currentCards);
         return [
-            'bust'  => $value > self::MAX_HAND_VALUE,
-            'value' => $value,
+            'success' => true,
+            'card' => $newCard,
+            'shouldPass' => $shouldPass
         ];
     }
 
-    public function makeBet()
-    {
+    public function pass($roomId, $userId) {
+        $room = $this->db->getRoom($roomId);
+        if (!$room || $room->status !== 'playing') {
+            return ['error' => 'ROOM_NOT_PLAYING'];
+        }
 
+        $member = $this->db->getRoomMember($roomId, $userId);
+        if (!$member) {
+            return ['error' => 902];
+        }
+
+        if ($member->status !== 'player') {
+            return ['error' => 908];
+        }
+
+        if ($member->member_id != $room->current_member_id) {
+            return ['error' => 909];
+        }
+
+        return ['success' => true];
     }
-    public function getCard()
-    {
 
+    public function doubleBet($roomId, $userId) {
+        $room = $this->db->getRoom($roomId);
+        if (!$room || $room->status !== 'playing') {
+            return ['error' => 'ROOM_NOT_PLAYING'];
+        }
+
+        $member = $this->db->getRoomMember($roomId, $userId);
+        if (!$member) {
+            return ['error' => 902];
+        }
+
+        if ($member->status !== 'player') {
+            return ['error' => 908];
+        }
+
+        if ($member->member_id != $room->current_member_id) {
+            return ['error' => 909];
+        }
+
+        $currentCards = $this->parseCards($member->cards);
+        if (count($currentCards) != 2) {
+            return ['error' => 'CANNOT_DOUBLE', 'message' => 'Удвоение только с двумя картами'];
+        }
+
+        if ($member->balance < $member->bet) {
+            return ['error' => 804];
+        }
+
+        $this->db->updateMemberBet($roomId, $userId, $member->bet * 2);
+        $this->db->updateBalance($userId, -$member->bet);
+
+        $newCard = $this->deck->getCard($roomId);
+        if ($newCard === false) {
+            return ['error' => 810];
+        }
+
+        $currentCards[] = $newCard;
+        $this->db->updateMemberCards($roomId, $userId, $currentCards);
+        $this->db->updateRoomAction($roomId);
+
+        return [
+            'success' => true,
+            'card' => $newCard,
+            'shouldPass' => true
+        ];
     }
-    public function pass()
-    {
 
+    // ============================================================
+    // DEALER LOGIC
+    // ============================================================
+
+    public function dealerTakeCard($roomId) {
+        $room = $this->db->getRoom($roomId);
+        if (!$room) {
+            return ['error' => 901];
+        }
+
+        $dealerCards = $this->parseCards($room->dealerCards);
+        while (self::calculateScore($dealerCards) < 17) {
+            $newCard = $this->deck->getCard($roomId);
+            if ($newCard === false) {
+                break;
+            }
+
+            $dealerCards[] = $newCard;
+        }
+
+        $this->db->updateDealerCards($roomId, implode('', $dealerCards));
+        $this->db->updateRoomAction($roomId);
+        return ['success' => true];
     }
 
+    public function calculateAndPayResults($roomId) {
+        $room = $this->db->getRoom($roomId);
+        if (!$room) {
+            return ['success' => false, 'error' => 901];
+        }
+
+        $dealerCards = $this->parseCards($room->dealerCards);
+        $dealerScore = self::calculateScore($dealerCards);
+        $dealerBust = $dealerScore > 21;
+
+        $members = $this->db->getRoomMembers($roomId);
+        foreach ($members as $member) {
+            if ($member->status !== 'player' || $member->bet == 0) {
+                continue;
+            }
+
+            $playerCards = $this->parseCards($member->cards);
+            $playerScore = self::calculateScore($playerCards);
+            $playerBust = $playerScore > 21;
+
+            $winAmount = 0;
+            if ($playerBust) {
+                $winAmount = 0;
+            } elseif ($dealerBust) {
+                $winAmount = $member->bet * 2;
+            } elseif ($playerScore > $dealerScore) {
+                if (self::isBlackjack($playerCards)) {
+                    $winAmount = $member->bet * 2.5;
+                } else {
+                    $winAmount = $member->bet * 2;
+                }
+            } elseif ($playerScore == $dealerScore) {
+                $winAmount = $member->bet;
+            }
+
+            if ($winAmount > 0) {
+                $this->db->updateBalance($member->user_id, $winAmount);
+            }
+        }
+
+        $this->db->updateRoomAction($roomId);
+        return ['success' => true];
+    }
+
+    public function startNewRound($roomId) {
+        $members = $this->db->getRoomMembers($roomId);
+        foreach ($members as $member) {
+            $this->db->updateMemberCards($roomId, $member->user_id, []);
+            $this->db->updateMemberBet($roomId, $member->user_id, 0);
+            $this->db->updateMemberStatus($roomId, $member->user_id, 'spectator');
+        }
+
+        $this->db->updateDealerCards($roomId, '');
+        $this->db->setCurrentPlayer($roomId, null);
+        $this->db->updateRoomStatus($roomId, 'waiting');
+        $this->db->updateRoomAction($roomId);
+        return ['success' => true];
+    }
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    private function parseCards($cardsString) {
+        if (empty($cardsString)) {
+            return [];
+        }
+
+        return str_split($cardsString, 2);
+    }
 }
+?>
