@@ -58,8 +58,8 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     const handleCreateRoom = async () => {
         const result = await server.createPrivateRoom();
         
-        if (result && result.private_code) {
-            store.setRoomCode(result.private_code);
+        if (result && result.privatecode) {
+            store.setRoomCode(result.privatecode);
             store.setCurrentRoomId(result.id);
             setPage(PAGES.GAME);
         }

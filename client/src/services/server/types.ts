@@ -36,7 +36,7 @@ export type TRoomResponse = {
     type: 'private' | 'open';                     
     status: 'playing' | 'closed';        
     current_member_id?: number | null;
-    private_code: string | null; 
+    privatecode: string | null; 
     hash: string;                        
 };
 
