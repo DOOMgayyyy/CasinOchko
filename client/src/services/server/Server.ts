@@ -155,13 +155,13 @@ class Server {
         return null;
     }
 
-    const { total_played, total_win, total_balance, total_hours } = result.stats;
+    const { totalplayed, totalwin, totalbalance, totalhours } = result.stats;
 
     return {
-        totalGames: Number(total_played),
-        totalWins: Number(total_win),
-        totalMoney: Number(total_balance),
-        totalHours: total_hours ? Number(total_hours) : 0
+        totalGames: Number(totalplayed),
+        totalWins: Number(totalwin),
+        totalMoney: Number(totalbalance),
+        totalHours: totalhours ? Number(totalhours) : 0
     };
 }
 

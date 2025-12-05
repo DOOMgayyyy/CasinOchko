@@ -50,10 +50,10 @@ export type TUserStats = {
 
 // формат как отвечает PHP
 export type TRawUserStats = {
-    total_played: string;
-    total_win: string;
-    total_balance: string;
-    total_hours?: string;
+    totalplayed: string;
+    totalwin: string;
+    totalbalance: string;
+    totalhours?: string;
 };
 
 // Игрок в комнате
