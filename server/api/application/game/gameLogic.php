@@ -20,31 +20,32 @@ class GameLogic {
         $this->checkTimeouts($roomId);
         $room = $this->db->getRoom($roomId);
         $currentMemberId = $this->db->getCurrentMemberId($roomId);
-
+    
         if (!$room) {
             return ['error' => 901];
         }
-
+    
         $currentHash = $room->hash;
         $this->db->touchRoom($roomId);
-
+    
         if ($currentHash && $currentHash === $clientHash) {
-            return (true);
+            return true;
         }
-
+    
         $players = $this->getPlayersInfo($roomId);
         $myCards = $this->getUserCards($roomId, $userId);
-        $timer = $this->getTimer($room);
-
+        $timer   = $this->getTimer($room);
+    
         return [
-            'players' => $players,
-            'myCards' => $myCards,
-            'timer' => $timer,
-            'hash' => $currentHash,
+            'players'         => $players,
+            'myCards'         => $myCards,
+            'timer'           => $timer,          // число секунд или null
+            'status'          => $room->status,   // waiting / waiting_for_bets / playing / closed
+            'hash'            => $currentHash,
             'currentPlayerId' => $currentMemberId,
-            'changed' => true
         ];
     }
+
 
     private function checkTimeouts($roomId)
     {
@@ -161,37 +162,21 @@ class GameLogic {
 
     private function getTimer($room)
     {
-        if (!$room->current_member_id) {
-            if ($room->status === 'waiting_for_bets') {
-                $timeElapsed = time() - strtotime($room->last_update);
-                $timeLeft = max(0, self::BET_TIMEOUT_S - $timeElapsed);
-                return [
-                    'currentPlayerId' => null,
-                    'timeLeft' => $timeLeft,
-                    'totalTime' => self::BET_TIMEOUT_S,
-                    'isBetPhase' => true
-                ];
-            }
-            return null;
+        // Фаза ставок
+        if (!$room->current_member_id && $room->status === 'waiting_for_bets') {
+            $timeElapsed = time() - strtotime($room->last_update);
+            return max(0, self::BET_TIMEOUT_S - $timeElapsed);
         }
 
-        if (isset($room->turn_start_time)) {
-            $turnDuration = self::ACTION_TIMEOUT_S;
+        // Ход игрока
+        if ($room->current_member_id && isset($room->turn_start_time)) {
             $timeElapsed = time() - strtotime($room->turn_start_time);
-            $timeLeft = max(0, $turnDuration - $timeElapsed);
-            return [
-                'timeLeft' => $timeLeft,
-                'totalTime' => $turnDuration,
-                'isBetPhase' => false
-            ];
+            return max(0, self::ACTION_TIMEOUT_S - $timeElapsed);
         }
 
-        return [
-            'currentPlayerId' => $room->current_member_id,
-            'timeLeft' => null,
-            'totalTime' => null,
-            'isBetPhase' => false
-        ];
+        // Таймера нет
+        return null;
     }
+
 }
 ?>
