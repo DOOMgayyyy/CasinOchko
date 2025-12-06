@@ -48,7 +48,7 @@ class GameLogic {
             'timer' => $timer,
             'status' => $room->status,
             'hash' => $currentHash,
-            'currentPlayerId' => $currentMemberId,
+            'currentMemberId' => $currentMemberId,
         ];
     }
 
