@@ -57,7 +57,7 @@ INSERT INTO `users` (`id`, `email`, `password`, `name`, `balance`, `token`, `tot
 CREATE TABLE `rooms` (
   `id` bigint UNSIGNED NOT NULL,
   `type` enum('open','private') NOT NULL,
-  `status` enum('waiting','playing','closed') NOT NULL DEFAULT 'waiting',
+  `status` enum('waiting','waiting_for_bets','playing','closed') NOT NULL DEFAULT 'waiting',
   `current_member_id` bigint UNSIGNED DEFAULT NULL,
   `privatecode` varchar(10) DEFAULT NULL,
   `hash` varchar(255) DEFAULT NULL,

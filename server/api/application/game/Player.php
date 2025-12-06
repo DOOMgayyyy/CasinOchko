@@ -20,43 +20,47 @@ class Player {
         if ($betAmount < self::MIN_BET) {
             return ['error' => 'MIN_BET', 'message' => 'Минимальная ставка: ' . self::MIN_BET];
         }
-
+        
         $member = $this->db->getRoomMember($roomId, $userId);
         if (!$member) {
             return ['error' => 902];
         }
-
-        // Получаем текущую ставку участника
+        
         $currentBet = $member->bet ? $member->bet : 0;
-        // Вычисляем новую общую ставку
         $newTotalBet = $currentBet + $betAmount;
-
-        // Получаем актуальный баланс пользователя из базы
+        
         $user = $this->db->getUserById($userId);
         if (!$user) {
             return ['error' => 705];
         }
-
-        // Проверяем, достаточно ли средств для новой ставки
+        
         if ($user->balance < $betAmount) {
             return ['error' => 804];
         }
-
+        
         $room = $this->db->getRoom($roomId);
-        if (!$room || $room->status !== 'waiting') {
+        if (!$room || ($room->status !== 'waiting' && $room->status !== 'waiting_for_bets')) {
             return ['error' => 'ROOM_NOT_WAITING', 'message' => 'Ставки больше не принимаются'];
         }
-
+        
         try {
             $this->db->updateMemberBet($roomId, $userId, $newTotalBet);
             $this->db->updateMemberStatus($roomId, $userId, 'player');
             $this->db->updateBalance($userId, -$betAmount);
-            $this->db->updateRoomAction($roomId);
+            
+            // Если это первая ставка, переводим комнату в waiting_for_bets
+            if ($room->status === 'waiting') {
+                $this->db->updateRoomStatus($roomId, 'waiting_for_bets');
+            } else {
+                $this->db->updateRoomAction($roomId);
+            }
+            
             return ['success' => true];
         } catch (Exception $e) {
             return ['error' => 9000, 'message' => $e->getMessage()];
         }
     }
+
 
     // ============================================================
     // GAME START
