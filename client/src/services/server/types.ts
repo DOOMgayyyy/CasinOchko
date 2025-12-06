@@ -93,3 +93,10 @@ export type TGetLeaveRoomResponse = {
     success: boolean;
     roomDeleted: boolean;
 };
+
+// Ответ takeUserCard
+export type TTakeCardResponse = {
+    success: boolean;
+    card?: string;
+    shouldPass?: boolean;
+};

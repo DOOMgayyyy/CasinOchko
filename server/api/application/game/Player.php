@@ -4,8 +4,7 @@ class Player {
     private $db;
     private $deck;
 
-    const MIN_BET = 10;
-    const MAX_BET = 1000;
+    const MIN_BET = 50;
     const MAX_CARDS = 5;
 
     public function __construct($db, $deck = null) {
@@ -20,10 +19,6 @@ class Player {
     public function makeBet($roomId, $userId, $betAmount) {
         if ($betAmount < self::MIN_BET) {
             return ['error' => 'MIN_BET', 'message' => 'Минимальная ставка: ' . self::MIN_BET];
-        }
-
-        if ($betAmount > self::MAX_BET) {
-            return ['error' => 'MAX_BET', 'message' => 'Максимальная ставка: ' . self::MAX_BET];
         }
 
         $member = $this->db->getRoomMember($roomId, $userId);

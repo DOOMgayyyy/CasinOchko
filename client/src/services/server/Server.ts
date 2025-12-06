@@ -1,7 +1,7 @@
 import md5 from 'md5';
 import CONFIG from "../../config";
 import Store from "../store/Store";
-import { TAnswer, TError, TRoomResponse, TMessagesResponse, TUser, TUserStats, TRawUserStats, TRoomInfoResponse, TLeaderboardResponse, TGetLeaveRoomResponse} from "./types";
+import { TAnswer, TError, TRoomResponse, TMessagesResponse, TUser, TUserStats, TRawUserStats, TRoomInfoResponse, TLeaderboardResponse, TGetLeaveRoomResponse, TTakeCardResponse} from "./types";
 
 const { CHAT_TIMESTAMP, HOST } = CONFIG;
 const GAME_TIMESTAMP = 1000; // 1 секунда для игрового loop
@@ -270,6 +270,15 @@ class Server {
                 this.store.setUser({ ...user, balance: user.balance - amount });
             }
         }
+        
+        return result;
+    }
+
+    // Взять карту
+    async takeUserCard(roomId: number): Promise<TTakeCardResponse| null> {
+        const result = await this.request<{ success: boolean, card?: string, shouldPass?: boolean }>('takeUserCard', { 
+            room_id: String(roomId)
+        });
         
         return result;
     }

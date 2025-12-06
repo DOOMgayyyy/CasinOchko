@@ -98,9 +98,23 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     }
     /****************/
 
-    const handleHit = () => {
-        console.log('Hit button clicked');
-        // Логика для взятия карты
+    const handleHit = async () => {
+        if (!roomId || !user) {
+          return;
+        }
+
+        const result = await server.takeUserCard(roomId);
+        
+        if (result && result.success) {
+          // Карта добавлена на бэкенде, состояние обновится через game loop
+          console.log('Card taken:', result.card);
+          
+          // Если shouldPass === true, игрок перебрал или достиг максимума карт
+          if (result.shouldPass) {
+            console.log('Bust or max cards reached, should pass turn');
+          }
+        }
+        // Ошибки обрабатываются через Popup автоматически
       };
     
       const handleStand = () => {

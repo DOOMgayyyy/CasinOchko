@@ -3,35 +3,54 @@ import './PrivateRoom.scss';
 import MenuIcon from '../../../assets/img/toppanel/sidebarmenu.png';
 import PlusIcon from '../../../assets/img/toppanel/topupthebalance.png';
 import { ServerContext, StoreContext } from '../../../App';
-import { PAGES } from '../../PageManager';
+import { IBasePage, PAGES } from '../../PageManager';
 import SnowEffect from '../../../components/SnowEffect/SnowEffect';
+import SideMenu from '../SideMenu/SideMenu';
+import AdReward from '../AdReward/AdReward';
+import video from '../../../assets/ads/ad.mp4';
 
-export interface PrivateRoomProps {
-    player: {
-        name: string;
-        balance: number;
-    };
-    onBack: () => void;
-    onCreateRoom: () => void;
-    onShowSideMenu: () => void;
-    onShowAdModal: () => void;
-    setPage: (page: PAGES) => void; 
-}
+const PrivateRoom: React.FC<IBasePage> = ({ setPage }) => {
+    const store = useContext(StoreContext);
+    const server = useContext(ServerContext);
+    
+    const [player, setPlayer] = useState(() => {
+        const user = store.getUser();
+        return user ? {
+            name: user.name,
+            balance: user.balance
+        } : null;
+    });
 
-const PrivateRoom: React.FC<PrivateRoomProps> = ({ 
-    player,              // Данные игрока (имя и баланс) для отображения в заголовке
-    onBack,              // Callback для возврата к основному лобби
-    onCreateRoom,        // Callback для создания новой приватной комнаты
-    //onJoinRoom,          // Callback для присоединения к существующей комнате по коду
-    onShowSideMenu,      // Callback для открытия бокового меню с настройками
-    onShowAdModal,       // Callback для открытия модального окна с рекламой (пополнение баланса)
-    setPage
-}) => {
+    const [showSideMenu, setShowSideMenu] = useState(false);
+    const [showAdModal, setShowAdModal] = useState(false);
     const [joinCode, setJoinCode] = useState('');
     const [showJoinInput, setShowJoinInput] = useState(false);
 
-    const server = useContext(ServerContext);
-    const store = useContext(StoreContext);
+    const handleCreateRoom = async () => {
+        const result = await server.createPrivateRoom();
+        
+        if (result && result.privatecode) {
+            store.setRoomCode(result.privatecode);
+            store.setCurrentRoomId(result.id);
+            setPage(PAGES.GAME);
+        }
+    };
+
+    const handleLogout = async () => {
+        await server.logout();
+        setPage(PAGES.LOGIN);
+    };
+
+    const handleAdSuccess = (newBalance: number) => {
+        setPlayer((prev) =>
+            prev ? { ...prev, balance: newBalance } : prev
+        );
+
+        const currentUser = store.getUser();
+        if (currentUser) {
+            store.setUser({ ...currentUser, balance: newBalance });
+        }
+    };
 
     const handleJoinRoom = async (code: string) => {
         const roomData = await server.joinPrivateRoom(code);
@@ -68,6 +87,38 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
         }
     };
 
+    if (!player) {
+        setPage(PAGES.LOGIN);
+        return null;
+    }
+
+    const sideMenuComponent = showSideMenu && (
+        <SideMenu
+            player={player}
+            onClose={() => setShowSideMenu(false)}
+            onEditName={() => {
+                const updatedUser = store.getUser();
+                if (updatedUser) {
+                    setPlayer({
+                        name: updatedUser.name,
+                        balance: updatedUser.balance
+                    });
+                }
+            }}
+            onShowRules={() => setPage(PAGES.RULES)}
+            onShowAuthors={() => setPage(PAGES.AUTHORS)}
+            onLogout={handleLogout}
+        />
+    );
+
+    const adModalComponent = showAdModal && (
+        <AdReward
+            videoUrl={video}
+            onClose={() => setShowAdModal(false)}
+            onSuccess={handleAdSuccess}
+        />
+    );
+
     return (
         <div className="private-room">
             <SnowEffect />
@@ -75,13 +126,13 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
             
             <header className="private-room-header">
                 <div className="header-left">
-                    <button className="menu-btn" onClick={onShowSideMenu}><img src={MenuIcon}/></button>
+                    <button className="menu-btn" onClick={() => setShowSideMenu(true)}><img src={MenuIcon}/></button>
                     <span className="player-name">{player.name}</span>
                 </div>
                 <div className="header-right">
                     <span className="balance-text">Ваш баланс: </span>
                     <span className="balance-amount">${player.balance}</span>
-                    <button className="add-money-btn" onClick={onShowAdModal}><img src={PlusIcon}  /></button>
+                    <button className="add-money-btn" onClick={() => setShowAdModal(true)}><img src={PlusIcon}  /></button>
                 </div>
             </header>
 
@@ -93,7 +144,7 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
                 
                 <div className="private-room-buttons">
                     <div className="create-room-section">
-                        <button className="private-room-btn create-btn" onClick={onCreateRoom}>
+                        <button className="private-room-btn create-btn" onClick={handleCreateRoom}>
                             Создать 
                         </button>
                     </div>
@@ -139,11 +190,13 @@ const PrivateRoom: React.FC<PrivateRoomProps> = ({
                         )}
                     </div>
                     
-                    <button className="back-btn" onClick={onBack}>
+                    <button className="back-btn" onClick={() => setPage(PAGES.LOBBY)}>
                         &lt;назад
                     </button>
                 </div>
             </main>
+            {sideMenuComponent}
+            {adModalComponent}
         </div>
     );
 };
