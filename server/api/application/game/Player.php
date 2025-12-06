@@ -274,15 +274,11 @@ class Player {
         $dealerCards = $this->parseCards($room->dealerCards);
         while (self::calculateScore($dealerCards) < 17) {
             $newCard = $this->deck->getCard($roomId);
-            if ($newCard === false) {
-                break;
-            }
-
+            if ($newCard === false) break;
             $dealerCards[] = $newCard;
         }
-
-        $this->db->updateDealerCards($roomId, implode('', $dealerCards));
-        $this->db->updateRoomAction($roomId);
+        // Передаем массив, метод updateDealerCards сам преобразует в строку
+        $this->db->updateDealerCards($roomId, $dealerCards);
         return ['success' => true];
     }
 

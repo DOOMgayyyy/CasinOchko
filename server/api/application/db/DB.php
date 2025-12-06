@@ -253,14 +253,16 @@ class DB {
 
     public function getRoomMembers($roomId) {
         return $this->queryAll(
-            "SELECT rm.id as member_id, rm.userid, rm.bet, rm.cards, rm.status, u.id, u.name, u.balance 
-             FROM roommembers AS rm 
-             JOIN users u ON rm.userid = u.id 
-             WHERE rm.roomid = ? 
-             ORDER BY rm.id ASC",
+            "SELECT rm.id as member_id, rm.userid as user_id, rm.bet, rm.cards, rm.status, u.name, u.balance
+            FROM roommembers AS rm
+            JOIN users u ON rm.userid = u.id
+            WHERE rm.roomid = ?
+            ORDER BY rm.id ASC",
             [$roomId]
         );
     }
+
+
 
     public function addRoomMember($roomId, $userId, $status = 'spectator', $bet = 0) {
         try {
@@ -293,11 +295,12 @@ class DB {
     // ============================================================
 
     public function updateMemberCards($roomId, $userId, $cards) {
+        // Карты хранятся как простая строка "2H3SAS"
         $cardsStr = is_array($cards) ? implode('', $cards) : $cards;
-        $hex = bin2hex($cardsStr);
+
         return $this->execute(
             "UPDATE roommembers SET cards = ? WHERE roomid = ? AND userid = ?",
-            [$hex, $roomId, $userId]
+            [$cardsStr, $roomId, $userId]
         );
     }
 
@@ -316,8 +319,11 @@ class DB {
     }
 
     public function updateDealerCards($roomId, $dealerCards) {
-        return $this->execute("UPDATE rooms SET dealerCards = ? WHERE id = ?", [$dealerCards, $roomId]);
+        // Дилер карты тоже хранятся как строка
+        $cardsStr = is_array($dealerCards) ? implode('', $dealerCards) : $dealerCards;
+        return $this->execute("UPDATE rooms SET dealerCards = ? WHERE id = ?", [$cardsStr, $roomId]);
     }
+
 
     // ============================================================
     // DECK MANAGEMENT

@@ -20,28 +20,29 @@ class GameLogic {
         $this->checkTimeouts($roomId);
         $room = $this->db->getRoom($roomId);
         $currentMemberId = $this->db->getCurrentMemberId($roomId);
-    
+        
         if (!$room) {
             return ['error' => 901];
         }
-    
+        
         $currentHash = $room->hash;
         $this->db->touchRoom($roomId);
-    
+        
         if ($currentHash && $currentHash === $clientHash) {
             return true;
         }
-    
+        
         $players = $this->getPlayersInfo($roomId);
         $myCards = $this->getUserCards($roomId, $userId);
-        $timer   = $this->getTimer($room);
-    
+        $timer = $this->getTimer($room);
+        
         return [
-            'players'         => $players,
-            'myCards'         => $myCards,
-            'timer'           => $timer,          // число секунд или null
-            'status'          => $room->status,   // waiting / waiting_for_bets / playing / closed
-            'hash'            => $currentHash,
+            'players' => $players,
+            'myCards' => $myCards,
+            'userId' => $userId,  
+            'timer' => $timer,
+            'status' => $room->status,
+            'hash' => $currentHash,
             'currentPlayerId' => $currentMemberId,
         ];
     }
@@ -121,19 +122,17 @@ class GameLogic {
     {
         $members = $this->db->getRoomMembers($roomId);
         $players = [];
-
+        
         foreach ($members as $member) {
             $cards = [];
+            
             if (!empty($member->cards)) {
-                $cardsString = hex2bin($member->cards);
-                if ($cardsString !== false && $cardsString !== '') {
-                    $cards = str_split($cardsString, 2);
-                }
+                $cards = str_split($member->cards, 2);
             }
-
+            
             $players[] = [
                 'memberId' => $member->member_id,
-                'userId' => $member->user_id,
+                'userId' => $member->user_id,  // ← ИСПРАВЛЕНО: было $userId
                 'name' => $member->name,
                 'balance' => (int)$member->balance,
                 'bet' => (int)$member->bet,
@@ -141,23 +140,21 @@ class GameLogic {
                 'status' => $member->status ?? 'spectator'
             ];
         }
-
+        
         return $players;
     }
+
 
     private function getUserCards($roomId, $userId)
     {
         $member = $this->db->getRoomMember($roomId, $userId);
+
         if (!$member || empty($member->cards)) {
-            return [];
+            return [];  // Возвращаем пустой массив
         }
 
-        $cardsString = hex2bin($member->cards);
-        if ($cardsString === false || $cardsString === '') {
-            return [];
-        }
-
-        return str_split($cardsString, 2);
+        // Возвращаем карты как МАССИВ для фронта: ["9C", "6H", "DH", "8S"]
+        return str_split($member->cards, 2);
     }
 
     private function getTimer($room)
