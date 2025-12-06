@@ -10,7 +10,7 @@ import { TPlayer, TRoomInfoResponse } from '../../services/server/types';
 import tableImgSrc from '../../assets/img/Table/Table.png';
 import chatIcon from '../../assets/img/chat_bubble.svg';
 import './Game.scss';
-import SnowEffect from '../Lobby/SnowEffect';
+import SnowEffect from '../../components/SnowEffect/SnowEffect';
 
 
 const GAME_FIELD = 'game-field';
@@ -118,16 +118,18 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         setShowBetModal(true);
       };
 
+      const MIN_BET = 100
+
       const handleBetIncrease = () => {
-        if (user && currentBet + 50 <= user.balance) {
-          setCurrentBet(currentBet + 50);
+        if (user) {
+          const newBet = Math.min(currentBet + 50, user.balance);
+          setCurrentBet(newBet);
         }
       };
 
       const handleBetDecrease = () => {
-        if (currentBet >= 50) {
-          setCurrentBet(currentBet - 50);
-        }
+        const newBet = Math.max(currentBet - 50, 100);
+        setCurrentBet(newBet);
       };
 
       const handleBetInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,9 +153,17 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
       };
 
 
-      const handlePlaceBet = () => {
-        console.log('Placing bet:', currentBet);
-        setShowBetModal(false);
+      const handlePlaceBet = async () => {
+        if (!roomId || currentBet === 0 || !user) {
+          return;
+        }
+
+        const result = await server.makeBet(roomId, currentBet);
+        
+        if (result && result.success) {
+          setShowBetModal(false);
+          setCurrentBet(0);
+        }
       };
 
       const handleCancelBet = () => {
@@ -456,7 +466,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                             <button 
                                 className="bet-control-button bet-decrease" 
                                 onClick={handleBetDecrease}
-                                disabled={currentBet < 50}
+                                disabled={currentBet === 100}
                             >
                                 - 50$
                             </button>
@@ -488,7 +498,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                             <button 
                                 className="bet-action-button bet-place" 
                                 onClick={handlePlaceBet}
-                                disabled={currentBet === 0}
+                                disabled={currentBet < MIN_BET || !user || currentBet > (user.balance || 0)}
                             >
                                 поставить <span className="bet-arrow">&gt;</span>
                             </button>

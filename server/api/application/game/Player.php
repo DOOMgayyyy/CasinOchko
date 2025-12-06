@@ -31,7 +31,19 @@ class Player {
             return ['error' => 902];
         }
 
-        if ($member->balance < $betAmount) {
+        // Получаем текущую ставку участника
+        $currentBet = $member->bet ? $member->bet : 0;
+        // Вычисляем новую общую ставку
+        $newTotalBet = $currentBet + $betAmount;
+
+        // Получаем актуальный баланс пользователя из базы
+        $user = $this->db->getUserById($userId);
+        if (!$user) {
+            return ['error' => 705];
+        }
+
+        // Проверяем, достаточно ли средств для новой ставки
+        if ($user->balance < $betAmount) {
             return ['error' => 804];
         }
 
@@ -41,7 +53,7 @@ class Player {
         }
 
         try {
-            $this->db->updateMemberBet($roomId, $userId, $betAmount);
+            $this->db->updateMemberBet($roomId, $userId, $newTotalBet);
             $this->db->updateMemberStatus($roomId, $userId, 'player');
             $this->db->updateBalance($userId, -$betAmount);
             $this->db->updateRoomAction($roomId);

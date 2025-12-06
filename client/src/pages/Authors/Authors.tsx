@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { IBasePage, PAGES } from '../PageManager';
 import { StoreContext } from '../../App';
 import './Authors.scss';
-import SnowEffect from '../Lobby/SnowEffect';
+import SnowEffect from '../../components/SnowEffect/SnowEffect';
 const Authors: React.FC<IBasePage> = ({ setPage }) => {
     const store = useContext(StoreContext);
     const user = store.getUser();

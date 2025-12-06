@@ -4,7 +4,7 @@ import MenuIcon from '../../../assets/img/toppanel/sidebarmenu.png';
 import PlusIcon from '../../../assets/img/toppanel/topupthebalance.png';
 import { ServerContext, StoreContext } from '../../../App';
 import { PAGES } from '../../PageManager';
-import SnowEffect from '../SnowEffect';
+import SnowEffect from '../../../components/SnowEffect/SnowEffect';
 
 export interface PrivateRoomProps {
     player: {

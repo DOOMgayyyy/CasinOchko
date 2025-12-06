@@ -1,5 +1,5 @@
 export type TError = {
-    code: number;
+    code: number | string;
     text: string;
 }
 

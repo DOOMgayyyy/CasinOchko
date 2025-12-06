@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { IBasePage, PAGES } from '../PageManager';
 import './Rules.scss';
-import SnowEffect from '../Lobby/SnowEffect';
+import SnowEffect from '../../components/SnowEffect/SnowEffect';
 
 const Rules: React.FC<IBasePage> = (props: IBasePage) => {
     const { setPage } = props;

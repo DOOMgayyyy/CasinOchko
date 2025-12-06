@@ -255,6 +255,24 @@ class Server {
     async leaveRoom(): Promise<TGetLeaveRoomResponse | null> {
         return await this.request<TGetLeaveRoomResponse>('leaveRoom');
     }
+
+    // Сделать ставку
+    async makeBet(roomId: number, amount: number): Promise<{ success: boolean } | null> {
+        const result = await this.request<{ success: boolean }>('makeBet', { 
+            room_id: String(roomId),
+            amount: String(amount)
+        });
+        
+        if (result && result.success) {
+            // Обновление баланса пользователя после успешной ставки
+            const user = this.store.getUser();
+            if (user) {
+                this.store.setUser({ ...user, balance: user.balance - amount });
+            }
+        }
+        
+        return result;
+    }
 } 
 
 export default Server;

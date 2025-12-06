@@ -2,11 +2,10 @@ import React, { useContext, useEffect, useState } from 'react';
 import { IBasePage, PAGES } from '../PageManager';
 import { StoreContext, ServerContext } from '../../App';
 import { TUserRating } from '../../services/server/types';
-import firstPlaceIcon from '../../assets/img/first_place.svg';
 import snowman1 from '../../assets/img/HNY/snowman1.svg';
 import snowman2 from '../../assets/img/HNY/snowman2.svg';
 import './Leaderboard.scss';
-import SnowEffect from '../Lobby/SnowEffect';
+import SnowEffect from '../../components/SnowEffect/SnowEffect';
 
 const Leaderboard: React.FC<IBasePage> = ({ setPage }) => {
     const store = useContext(StoreContext);

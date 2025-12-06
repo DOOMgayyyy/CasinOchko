@@ -7,8 +7,7 @@ import { StoreContext, ServerContext } from '../../App';
 
 import AdReward from './AdReward/AdReward'; 
 import MenuIcon from '../../assets/img/toppanel/sidebarmenu.png';
-import PlusIcon from '../../assets/img/toppanel/topupthebalance.png';
-import SnowEffect from './SnowEffect';
+import SnowEffect from '../../components/SnowEffect/SnowEffect';
 import garlandImg from '../../assets/img/HNY/garland.png';
 import snowman1 from '../../assets/img/HNY/snowman1.svg';
 import snowman2 from '../../assets/img/HNY/snowman2.svg';

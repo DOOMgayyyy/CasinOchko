@@ -2,7 +2,7 @@ import './Register.scss';
 import React, { useState, useRef, useContext } from 'react'; 
 import { ServerContext } from '../../App';
 import { IBasePage, PAGES } from '../PageManager';
-import SnowEffect from '../Lobby/SnowEffect';
+import SnowEffect from '../../components/SnowEffect/SnowEffect';
 
 
 const Register: React.FC<IBasePage> = (props) => {
