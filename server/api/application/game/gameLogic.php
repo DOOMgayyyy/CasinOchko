@@ -81,9 +81,9 @@ class GameLogic {
             return;
         }
         
-        $lastUpdateTimestamp = strtotime($room->last_update);
+        // ИСПРАВЛЕНИЕ: используем UTC для корректного парсинга времени из БД
+        $lastUpdateTimestamp = strtotime($room->last_update . ' UTC');
         if ($lastUpdateTimestamp === false) {
-            // УБРАТЬ touchRoom отсюда!
             return;
         }
 
@@ -143,7 +143,8 @@ class GameLogic {
             }
 
             if ($currentPlayer) {
-                $turnStartTime = strtotime($room->turn_start_time);
+                // ИСПРАВЛЕНИЕ: используем UTC для корректного парсинга времени из БД
+                $turnStartTime = strtotime($room->turn_start_time . ' UTC');
                 $timePassed = $now - $turnStartTime;
 
                 if ($timePassed > self::ACTION_TIMEOUT_S) {
@@ -197,15 +198,21 @@ class GameLogic {
 
     private function getTimer($room)
     {
+        $now = time();
+        
         // Фаза ставок
         if (!$room->current_member_id && $room->status === 'waiting_for_bets') {
-            $timeElapsed = time() - strtotime($room->last_update);
+            // ИСПРАВЛЕНИЕ: используем UTC для корректного парсинга времени из БД
+            $lastUpdateTimestamp = strtotime($room->last_update . ' UTC');
+            $timeElapsed = $now - $lastUpdateTimestamp;
             return max(0, self::BET_TIMEOUT_S - $timeElapsed);
         }
 
         // Ход игрока
         if ($room->current_member_id && isset($room->turn_start_time)) {
-            $timeElapsed = time() - strtotime($room->turn_start_time);
+            // ИСПРАВЛЕНИЕ: используем UTC для корректного парсинга времени из БД
+            $turnStartTimestamp = strtotime($room->turn_start_time . ' UTC');
+            $timeElapsed = $now - $turnStartTimestamp;
             return max(0, self::ACTION_TIMEOUT_S - $timeElapsed);
         }
 

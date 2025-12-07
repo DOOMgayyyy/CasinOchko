@@ -175,7 +175,7 @@ class DB {
 
     public function createRoom($type, $status, $privateCode, $hash) {
         $this->execute(
-            "INSERT INTO rooms (type, status, privatecode, hash, last_update) VALUES (?, ?, ?, ?, NOW())",
+            "INSERT INTO rooms (type, status, privatecode, hash, last_update) VALUES (?, ?, ?, ?, UTC_TIMESTAMP())",
             [$type, $status, $privateCode, $hash]
         );
         return $this->pdo->lastInsertId();
@@ -195,32 +195,32 @@ class DB {
     }
 
     public function updateRoomHash($roomId, $hash) {
-        return $this->execute("UPDATE rooms SET hash = ?, last_update = NOW() WHERE id = ?", [$hash, $roomId]);
+        return $this->execute("UPDATE rooms SET hash = ?, last_update = UTC_TIMESTAMP() WHERE id = ?", [$hash, $roomId]);
     }
 
     public function updateRoomStatus($roomId, $status) {
         $hash = md5(time() . $roomId . rand(1, 10000));
         return $this->execute(
-            "UPDATE rooms SET status = ?, hash = ?, last_update = NOW() WHERE id = ?",
+            "UPDATE rooms SET status = ?, hash = ?, last_update = UTC_TIMESTAMP() WHERE id = ?",
             [$status, $hash, $roomId]
         );
     }
 
     public function touchRoom($roomId) {
-        return $this->execute("UPDATE rooms SET last_update = NOW() WHERE id = ?", [$roomId]);
+        return $this->execute("UPDATE rooms SET last_update = UTC_TIMESTAMP() WHERE id = ?", [$roomId]);
     }
 
     public function updateRoomAction($roomId) {
         $newHash = md5(time() . $roomId . rand(1, 10000));
         return $this->execute(
-            "UPDATE rooms SET hash = ?, last_update = NOW() WHERE id = ?",
+            "UPDATE rooms SET hash = ?, last_update = UTC_TIMESTAMP() WHERE id = ?",
             [$newHash, $roomId]
         );
     }
 
     public function setCurrentPlayer($roomId, $memberId) {
         return $this->execute(
-            "UPDATE rooms SET current_member_id = ?, turn_start_time = NOW(), last_update = NOW() WHERE id = ?",
+            "UPDATE rooms SET current_member_id = ?, turn_start_time = UTC_TIMESTAMP(), last_update = UTC_TIMESTAMP() WHERE id = ?",
             [$memberId, $roomId]
         );
     }
@@ -232,7 +232,7 @@ class DB {
 
     public function resetCurrentMember($roomId) {
         return $this->execute(
-            "UPDATE rooms SET current_member_id = NULL, last_update = NOW() WHERE id = ?",
+            "UPDATE rooms SET current_member_id = NULL, last_update = UTC_TIMESTAMP() WHERE id = ?",
             [$roomId]
         );
     }
