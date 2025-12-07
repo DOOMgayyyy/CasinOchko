@@ -3,7 +3,6 @@ import CONFIG from '../../config';
 import Button from '../../components/Button/Button';
 import { IBasePage, PAGES } from '../PageManager';
 import Game from '../../game/Game';
-// Canvas больше не нужен, стол будет обычным HTML элементом
 import { ServerContext, StoreContext } from '../../App';
 import { TPlayer, TRoomInfoResponse } from '../../services/server/types';
 
@@ -28,7 +27,6 @@ const getCardImage = (cardCode: string): string => {
 };
 
 const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
-    const { WINDOW, SPRITE_SIZE } = CONFIG;
     const { setPage } = props;
     const server = useContext(ServerContext);
     const store = useContext(StoreContext);
@@ -53,21 +51,6 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const roomId = store.getCurrentRoomId();
     const user = store.getUser();
 
-    // Canvas больше не используется, стол теперь обычный HTML элемент
-
-    /****************/
-    /* Mouse Events */
-    /****************/
-    const mouseMove = (_x: number, _y: number) => {
-    }
-
-    const mouseClick = (_x: number, _y: number) => {
-    }
-
-    const mouseRightClick = () => {
-    }
-    /****************/
-
     const handleHit = async () => {
         if (!roomId || !user) {
           return;
@@ -76,15 +59,12 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         const result = await server.takeUserCard(roomId);
         
         if (result && result.success) {
-          // Карта добавлена на бэкенде, состояние обновится через game loop
           console.log('Card taken:', result.card);
           
-          // Если shouldPass === true, игрок перебрал или достиг максимума карт
           if (result.shouldPass) {
             console.log('Bust or max cards reached, should pass turn');
           }
         }
-        // Ошибки обрабатываются через Popup автоматически
       };
     
       const handleStand = () => {
@@ -192,9 +172,8 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                 interval = null;
             }
         }
-    }, []); // Выполняется только при монтировании
+    }, []);
 
-    // tableImage больше не нужен, используем обычный img элемент
 
     useEffect(() => {
         const code = store.getRoomCode();
@@ -270,7 +249,6 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         <SnowEffect />
         <div className="game-scale-wrapper">
            
-        {/* Стол как обычный HTML элемент */}
         <div className="game-table-container">
             <img src={tableImgSrc} alt="Poker Table" className="game-table-image" />
         </div>
