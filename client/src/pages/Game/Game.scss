@@ -329,13 +329,10 @@
 .game-table-container {
   position: fixed;
   inset: 0;
-  width: 100%;
-  height: 100%;
   z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none; // Чтобы клики проходили сквозь стол к элементам игры
 }
 
 .game-table-image {
@@ -343,7 +340,7 @@
   height: auto;
   max-width: 1200px;
   object-fit: contain;
-  transform: translateY(-78px); // Смещение вверх, как было в canvas
+  transform: translateY(-78px);
 }
 
 #game-field{
@@ -351,8 +348,7 @@
   inset: 0;        
   width: 100%;
   height: 100%;
-  z-index: 2; // Выше стола, чтобы элементы игры были поверх
-  pointer-events: auto; // Чтобы кнопки и другие интерактивные элементы были кликабельны
+  z-index: 2; 
 }
 
 .timer-div {
