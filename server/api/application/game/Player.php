@@ -18,7 +18,7 @@ class Player {
 
     public function makeBet($roomId, $userId, $betAmount) {
         if ($betAmount < self::MIN_BET) {
-            return ['error' => 'MIN_BET', 'message' => 'Минимальная ставка: ' . self::MIN_BET];
+            return ['error' => 813];
         }
         
         $member = $this->db->getRoomMember($roomId, $userId);
@@ -40,7 +40,7 @@ class Player {
         
         $room = $this->db->getRoom($roomId);
         if (!$room || ($room->status !== 'waiting' && $room->status !== 'waiting_for_bets')) {
-            return ['error' => 'ROOM_NOT_WAITING', 'message' => 'Ставки больше не принимаются'];
+            return ['error' => 814];
         }
         
         try {
@@ -68,7 +68,7 @@ class Player {
 
     public function startGame($roomId) {
         if (!$this->deck->reinitializeDeck($roomId)) {
-            return ['success' => false, 'error' => 'DECK_ERROR'];
+            return ['success' => false, 'error' => 817];
         }
 
         try {
@@ -78,7 +78,7 @@ class Player {
             });
 
             if (empty($playingMembers)) {
-                return ['success' => false, 'error' => 'NO_PLAYERS'];
+                return ['success' => false, 'error' => 818];
             }
 
             // Раздаем карты игрокам
@@ -86,7 +86,7 @@ class Player {
                 $card1 = $this->deck->getCard($roomId);
                 $card2 = $this->deck->getCard($roomId);
                 if ($card1 === false || $card2 === false) {
-                    return ['success' => false, 'error' => 'NO_DECK'];
+                    return ['success' => false, 'error' => 810];
                 }
 
                 $this->db->updateMemberCards($roomId, $member->user_id, [$card1, $card2]);
@@ -95,7 +95,7 @@ class Player {
             // Дилер берет карту
             $dealerCard = $this->deck->getCard($roomId);
             if ($dealerCard === false) {
-                return ['success' => false, 'error' => 'NO_DECK'];
+                return ['success' => false, 'error' => 810];
             }
 
             $this->db->updateDealerCards($roomId, $dealerCard);
@@ -128,7 +128,7 @@ class Player {
                 $cards = $this->db->getRoomMember($roomId, $member->user_id);
                 if ($cards) {
                     $playerCards = $this->parseCards($cards->cards);
-                    // ДОБАВЛЕНО: пропускаем игроков с блэкджеком
+                    // пропускаем игроков с блэкджеком
                     if (!self::isBlackjack($playerCards)) {
                         $firstPlayer = $member;
                         break;
@@ -206,7 +206,7 @@ class Player {
     public function takeUserCard($roomId, $userId) {
         $room = $this->db->getRoom($roomId);
         if (!$room || $room->status !== 'playing') {
-            return ['error' => 'ROOM_NOT_PLAYING'];
+            return ['error' => 815];
         }
 
         $member = $this->db->getRoomMember($roomId, $userId);
@@ -306,7 +306,7 @@ class Player {
     public function pass($roomId, $userId) {
         $room = $this->db->getRoom($roomId);
         if (!$room || $room->status !== 'playing') {
-            return ['error' => 'ROOM_NOT_PLAYING'];
+            return ['error' => 815];
         }
 
         $member = $this->db->getRoomMember($roomId, $userId);
@@ -329,7 +329,7 @@ class Player {
     public function doubleBet($roomId, $userId) {
         $room = $this->db->getRoom($roomId);
         if (!$room || $room->status !== 'playing') {
-            return ['error' => 'ROOM_NOT_PLAYING'];
+            return ['error' => 815];
         }
 
         $member = $this->db->getRoomMember($roomId, $userId);
@@ -347,7 +347,7 @@ class Player {
 
         $currentCards = $this->parseCards($member->cards);
         if (count($currentCards) != 2) {
-            return ['error' => 'CANNOT_DOUBLE', 'message' => 'Удвоение только с двумя картами'];
+            return ['error' => 816];
         }
 
         if ($member->balance < $member->bet) {

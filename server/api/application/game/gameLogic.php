@@ -128,7 +128,7 @@ class GameLogic {
             }
 
             if ($currentPlayer) {
-                // ИСПРАВЛЕНИЕ: используем UTC для корректного парсинга времени из БД
+                // используем UTC для корректного парсинга времени из БД
                 $turnStartTime = strtotime($room->turn_start_time . ' UTC');
                 $timePassed = $now - $turnStartTime;
 
@@ -185,7 +185,7 @@ class GameLogic {
         
         // Фаза ставок
         if (!$room->current_member_id && $room->status === 'waiting_for_bets') {
-            // ИСПРАВЛЕНИЕ: используем UTC для корректного парсинга времени из БД
+            // используем UTC для корректного парсинга времени из БД
             $lastUpdateTimestamp = strtotime($room->last_update . ' UTC');
             $timeElapsed = $now - $lastUpdateTimestamp;
             return max(0, self::BET_TIMEOUT_S - $timeElapsed);
@@ -193,7 +193,7 @@ class GameLogic {
 
         // Ход игрока
         if ($room->current_member_id && isset($room->turn_start_time)) {
-            // ИСПРАВЛЕНИЕ: используем UTC для корректного парсинга времени из БД
+            // используем UTC для корректного парсинга времени из БД
             $turnStartTimestamp = strtotime($room->turn_start_time . ' UTC');
             $timeElapsed = $now - $turnStartTimestamp;
             return max(0, self::ACTION_TIMEOUT_S - $timeElapsed);
