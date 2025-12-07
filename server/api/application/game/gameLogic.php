@@ -3,7 +3,7 @@
 class GameLogic {
     private $db;
 
-    const BET_TIMEOUT_S = 30;
+    const BET_TIMEOUT_S = 5;
     const ACTION_TIMEOUT_S = 15;
     const FULL_TIMEOUT_S = 600;
 
@@ -15,48 +15,34 @@ class GameLogic {
      * Получить информацию о комнате (игроки, карты, таймер)
      * Работает по принципу long polling с hash-проверкой
      */
-    public function getInfoRoom($roomId, $userId, $clientHash)
-    {
+    public function getInfoRoom($roomId, $userId, $clientHash) {
         $this->checkTimeouts($roomId);
         $room = $this->db->getRoom($roomId);
         $currentMemberId = $this->db->getCurrentMemberId($roomId);
-
-        if (!$room) {
-            return ['error' => 901];
-        }
-
+        
+        if (!$room) return ['error' => 901];
+        
         $currentHash = $room->hash;
-
-        // Обновляем last_update ТОЛЬКО в режиме ожидания (для проверки активности)
-        // НЕ обновляем во время фазы ставок и игры, чтобы таймеры работали!
+        $timer = $this->getTimer($room);  // ← ВСЕГДА вычисляем!
+        
+        // Long polling только для waiting
         if ($room->status === 'waiting') {
             $this->db->touchRoom($roomId);
+            if ($currentHash === $clientHash && $timer === null) return true;
+            if ($currentHash === $clientHash && $timer !== null) {
+                return ['timer' => $timer, 'hash' => $currentHash, 'changed' => false];
+            }
         }
-
-        // Всегда вычисляем таймер, так как он меняется каждую секунду
-        $timer = $this->getTimer($room);
-
-        // Если hash совпадает и таймера нет, возвращаем true (нет изменений)
-        if ($currentHash && $currentHash === $clientHash && $timer === null) {
-            return true;
-        }
-
-        // Если hash совпадает, но есть таймер - возвращаем только таймер
-        if ($currentHash && $currentHash === $clientHash && $timer !== null) {
-            return [
-                'timer' => $timer,
-                'hash' => $currentHash,
-                'changed' => false
-            ];
-        }
-
-        // Если hash не совпадает - возвращаем все данные
+        
+        // Всегда возвращаем полную информацию для игры
         $players = $this->getPlayersInfo($roomId);
         $myCards = $this->getUserCards($roomId, $userId);
-
+        $dealerCards = !empty($room->dealerCards) ? str_split($room->dealerCards, 2) : [];
+        
         return [
             'players' => $players,
             'myCards' => $myCards,
+            'dealerCards' => $dealerCards,
             'userId' => $userId,
             'timer' => $timer,
             'status' => $room->status,
@@ -65,23 +51,22 @@ class GameLogic {
             'changed' => true
         ];
     }
-
-    private function checkTimeouts($roomId)
-    {
+    
+    private function checkTimeouts($roomId) {
         $room = $this->db->getRoom($roomId);
         if (!$room || $room->status === 'closed') {
             return;
         }
-        
+
         $now = time();
         $members = $this->db->getRoomMembers($roomId);
-        
+
         if (!$room->last_update) {
             $this->db->touchRoom($roomId);
             return;
         }
         
-        // ИСПРАВЛЕНИЕ: используем UTC для корректного парсинга времени из БД
+        //используем UTC для корректного парсинга времени из БД
         $lastUpdateTimestamp = strtotime($room->last_update . ' UTC');
         if ($lastUpdateTimestamp === false) {
             return;
@@ -108,6 +93,7 @@ class GameLogic {
                     if ($member->status === 'player' && (int)$member->bet === 0) {
                         $this->db->updateMemberStatus($roomId, $member->user_id, 'spectator');
                     }
+
                     if ($member->status !== 'spectator') {
                         $playersLeft++;
                     }
@@ -131,7 +117,6 @@ class GameLogic {
                 }
             }
         }
-
         // Проверка хода игрока (15 сек)
         elseif ($room->current_member_id && $room->status === 'playing') {
             $currentPlayer = null;
@@ -148,26 +133,29 @@ class GameLogic {
                 $timePassed = $now - $turnStartTime;
 
                 if ($timePassed > self::ACTION_TIMEOUT_S) {
-                    // Время истекло - автоматический пасс
-                    $this->db->resetCurrentMember($roomId);
-                    $this->db->updateRoomAction($roomId);
+                    // вызываем pass вместо просто сброса
+                    require_once 'Player.php';
+                    $player = new Player($this->db);
+                    $player->pass($roomId, $currentPlayer->user_id);
                 }
             }
         }
     }
 
 
-    private function getPlayersInfo($roomId)
-    {
+    private function getPlayersInfo($roomId) {
         $members = $this->db->getRoomMembers($roomId);
         $players = [];
-        
+
         foreach ($members as $member) {
-            $cards = $member->cards ?? '';
-            
+            $cards = [];
+            if (!empty($member->cards)) {
+                $cards = str_split($member->cards, 2);
+            }
+
             $players[] = [
                 'memberId' => $member->member_id,
-                'userId' => $member->user_id, 
+                'userId' => $member->user_id,
                 'name' => $member->name,
                 'balance' => (int)$member->balance,
                 'bet' => (int)$member->bet,
@@ -175,7 +163,7 @@ class GameLogic {
                 'status' => $member->status ?? 'spectator'
             ];
         }
-        
+
         return $players;
     }
 
