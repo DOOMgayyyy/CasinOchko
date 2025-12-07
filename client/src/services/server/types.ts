@@ -63,14 +63,14 @@ export type TPlayer = {
     name: string;
     balance: number;
     bet: number;
-    cards: string[];
+    cards: string;
     status: 'spectator' | 'player' ;
 };
 
 // Ответ getInfoRoom
 export type TRoomInfoResponse = {
     players?: TPlayer[];
-    myCards?: string[];
+    myCards?: string;
     timer: number | null;  // Количество секунд, оставшихся на ход (или null)
     hash: string;
     currentPlayerId?: number | null;  // ID игрока, чей сейчас ход

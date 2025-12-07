@@ -43,6 +43,7 @@ function result($params) {
         case 'takeUserCard': return $app->takeUserCard($params);
         case 'pass': return $app->pass($params);
         case 'doubleBet': return $app->doubleBet($params);
+        case 'calculateScore': return $app->calculateScore($params);
 
         default: return ['error' => 102];
     }
