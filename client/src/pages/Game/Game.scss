@@ -260,13 +260,13 @@
   pointer-events: none;
 }
 
-.players .left-top     { top: 50%; left: 17%; }
-.players .left-middle  { top: 61%; left: 22%; }
-.players .left-bottom  { top: 72%; left: 32%; }
+.players .left-top     { top: 50%; left: 13%; }
+.players .left-middle  { top: 63%; left: 19%; }
+.players .left-bottom  { top: 75%; left: 32%; }
 
-.players .right-top    { top: 50%; right: 15%; }
-.players .right-middle { top: 61%; right: 22%; }
-.players .right-bottom { top: 72%; right: 31%; }
+.players .right-top    { top: 50%; right: 13%; }
+.players .right-middle { top: 65%; right: 20%; }
+.players .right-bottom { top: 76%; right: 31%; }
 .players .balance { color: #FFC300; padding-left: 30px; padding-right: 30px;}
 
 .diller-slot  { top: 1.5%; left: 47%; }
@@ -325,6 +325,121 @@
   .card:nth-child(2) { transform: translateX(-87px); }
 }
 
+// Контейнер для карт на столе
+.table-cards-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 6;
+}
+
+// Карты игроков на столе
+.table-player-cards {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  pointer-events: none;
+
+  .table-card {
+    width: 70px;
+    height: 98px;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    animation: tableCardAppear 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    opacity: 0;
+    transform-origin: center;
+
+    img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      background: #202020;
+      color: #fff;
+      font-size: 12px;
+    }
+
+    // Наложение карт друг на друга
+    &:not(:first-child) {
+      margin-left: -45px;
+    }
+  }
+
+  // Позиции для карт на столе - точные координаты белых контуров
+  &.left-top {
+    top: 39.73%;
+    left: 29.04%;
+    flex-direction: row;
+    transform: rotate(50deg);
+  }
+
+  &.left-middle {
+    top: 56.04%;
+    left: 37.66%;
+    flex-direction: row;
+    transform: rotate(30deg);
+  }
+
+  &.left-bottom {
+    top: 62.26%;
+    left: 45.78%;
+    flex-direction: row;
+    transform: rotate(10deg);
+  }
+
+  &.right-bottom {
+    top: 62.26%;
+    left: 54.22%;
+    flex-direction: row;
+    transform: rotate(-10deg);
+  }
+
+  &.right-middle {
+    top: 56.27%;
+    left: 62.19%;
+    flex-direction: row;
+    transform: rotate(-30deg);
+  }
+
+  &.right-top {
+    top: 43.96%;
+    left: 68.75%;
+    flex-direction: row;
+    transform: rotate(-50deg);
+  }
+}
+
+// Анимация появления карт на столе
+@keyframes tableCardAppear {
+  0% {
+    opacity: 0;
+    transform: translateY(-80px) scale(0.3) rotateX(90deg) rotateZ(180deg);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(10px) scale(1.15) rotateX(-10deg) rotateZ(-5deg);
+  }
+  80% {
+    transform: translateY(-5px) scale(0.95) rotateX(5deg) rotateZ(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg) rotateZ(0deg);
+  }
+}
+
 // Контейнер для стола
 .game-table-container {
   position: fixed;
@@ -336,9 +451,9 @@
 }
 
 .game-table-image {
-  width: 80%;
+  width: 95%;
   height: auto;
-  max-width: 1200px;
+  max-width: 1600px;
   object-fit: contain;
   transform: translateY(-78px);
 }
