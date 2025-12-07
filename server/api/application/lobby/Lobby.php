@@ -1,46 +1,29 @@
 <?php
-/*
- Класс для работы с лобби и комнатами
- */
-class Lobby
-{
+
+class Lobby {
     private $db;
     private $deck;
 
-    /**
-     * Конструктор класса Lobby
-     * @param DB $db Объект для работы с базой данных
-     */
-    function __construct($db, $deck = null)
-    {
+    public function __construct($db, $deck = null) {
         $this->db = $db;
         $this->deck = $deck ?: new Deck($db);
     }
 
-    /**
-     * Проверяет, участвует ли пользователь в активной игровой сессии
-     * @param int $userId ID пользователя для проверки
-     * @return bool true если пользователь сейчас в игре, false если нет
-     */
-    private function isUserPlaying($userId)
-    {
+    // ============================================================
+    // PRIVATE HELPERS
+    // ============================================================
+
+    private function isUserPlaying($userId) {
         $data = $this->db->getRoomId($userId);
-        if (!$data || !$data->room_id) {
+        if (!$data || !$data->roomid) {
             return false;
         }
-        $room = $this->db->getRoom($data->room_id);
-        return $room && $room->status === 'playing';
+
+        $room = $this->db->getRoom($data->roomid);
+        return $room && ($room->status === 'playing' || $room->status === 'waiting');
     }
 
-    /**
-     * Находит открытую комнату со свободными местами
-     * Производит поиск среди всех открытых комнат со статусом 'playing'
-     * и проверяет количество активных игроков в каждой.
-     * Возвращает первую найденную комнату, где меньше 6 активных игроков.
-     * @return object|null Объект комнаты если найдена подходящая, иначе null
-     */
-    private function getOpenRoom()
-    {
+    private function getOpenRoom() {
         $rooms = $this->db->getOpenRooms();
         foreach ($rooms as $room) {
             $playingMembersCount = $this->db->getPlayingMembersCount($room->id)->count;
@@ -51,12 +34,7 @@ class Lobby
         return null;
     }
 
-    /**
-     * Генерирует 4-буквенный код приватной комнаты (A-Z)
-     * @return string Код из четырёх заглавных букв
-     */
-    private function generatePrivateCode()
-    {
+    private function generatePrivateCode() {
         $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $code = '';
         for ($i = 0; $i < 4; $i++) {
@@ -65,82 +43,51 @@ class Lobby
         return $code;
     }
 
-    /**
-     * Проверяет уникальность 4-буквенного кода
-     * @param string $code Код для проверки
-     * @return bool true если код свободен
-     */
-    private function isPrivateCodeUnique($code)
-    {
-        $existing = $this->db->getRoomByPrivateCode($code);
-        return !$existing;
+    private function isPrivateCodeUnique($code) {
+        return $this->db->isPrivateCodeUnique($code);
     }
 
-    /**
-     * Возвращает текущий хэш комнаты (поле hash в таблице rooms)
-     * @param int $roomId ID комнаты
-     * @return string|null Текущий хэш или null
-     */
-    private function getRoomHash($roomId)
-    {
-        return $this->db->getRoomHash($roomId);
-    }
-
-    /**
-     * Обновляет хэш комнаты (поле hash в таблице rooms)
-     * @param int $roomId ID комнаты
-     * @return string Новый хэш
-     */
     private function refreshRoomHash($roomId) {
         $newHash = md5(microtime(true) . rand(1000, 9999) . $roomId);
         $success = $this->db->updateRoomHash($roomId, $newHash);
         return $success ? $newHash : false;
     }
 
-    /**
-     * Быстрое подключение пользователя к игровой комнате
-     * @param int $userId ID пользователя
-     * @return array|object Данные комнаты или ошибка
-     */
+    // ============================================================
+    // PUBLIC METHODS
+    // ============================================================
+
     public function quickStart($userId) {
-        
         if ($this->isUserPlaying($userId)) {
             return ['error' => 800];
         }
 
         $room = $this->getOpenRoom();
         $isNewRoom = false;
-        
+
         if ($room) {
             $roomId = $room->id;
         } else {
             $isNewRoom = true;
             $initialHash = md5(random_int(0, PHP_INT_MAX));
-            $roomId = $this->db->createRoom('open', 'playing', null, $initialHash);
+            $roomId = $this->db->createRoom('open', 'waiting', null, $initialHash);
             if (!$roomId) {
                 return ['error' => 807];
             }
 
-            // Используем Deck.php для создания и перемешивания колоды
-            if (!$this->deck) {
-                $this->db->deleteRoom($roomId);
-                return ['error' => 806];
-            }
-            
             $deck = $this->deck->createShuffledDeck();
             if (isset($deck['error'])) {
                 $this->db->deleteRoom($roomId);
                 return $deck;
             }
-            
+
             if (!$this->db->saveDeck($roomId, $deck)) {
                 $this->db->deleteRoom($roomId);
                 return ['error' => 805];
             }
         }
-    
+
         if (!$this->db->addRoomMember($roomId, $userId, 'spectator', 0)) {
-            // Если не удалось добавить пользователя и это новая комната, удаляем её
             if ($isNewRoom) {
                 $this->db->deleteRoom($roomId);
             }
@@ -149,30 +96,22 @@ class Lobby
 
         $newHash = $this->refreshRoomHash($roomId);
         if ($newHash === false) {
-            // Если не удалось обновить хэш, удаляем пользователя
-            // Если это новая комната, удаляем и её
             $this->db->removeUserFromRoom($roomId, $userId);
             if ($isNewRoom) {
                 $this->db->deleteRoom($roomId);
             }
-            return ['error' => 808]; 
+            return ['error' => 808];
         }
 
         $roomData = $this->db->getRoom($roomId);
         if (!$roomData) {
             return ['error' => 811];
         }
-        
+
         return $roomData;
     }
 
-    /**
-     * Создает приватную комнату с уникальным 4-буквенным кодом
-     * @param int $userId ID пользователя, создающего комнату
-     * @return array|object Данные комнаты или ошибка
-     */
-    public function createPrivateRoom($userId)
-    {
+    public function createPrivateRoom($userId) {
         if ($this->isUserPlaying($userId)) {
             return ['error' => 800];
         }
@@ -189,41 +128,33 @@ class Lobby
         }
 
         $initialHash = md5(random_int(0, PHP_INT_MAX));
-        $roomId = $this->db->createRoom('private', 'playing', $privateCode, $initialHash);
-        
+        $roomId = $this->db->createRoom('private', 'waiting', $privateCode, $initialHash);
         if (!$roomId) {
             return ['error' => 807];
         }
 
-        $success = $this->db->addRoomMember($roomId, $userId, 'player', 0);
-        if (!$success) {
-            // Если не удалось добавить пользователя, удаляем созданную комнату
+        $deck = $this->deck->createShuffledDeck();
+        if (isset($deck['error'])) {
+            $this->db->deleteRoom($roomId);
+            return $deck;
+        }
+
+        if (!$this->db->saveDeck($roomId, $deck)) {
+            $this->db->removeUserFromRoom($roomId, $userId);
+            $this->db->deleteRoom($roomId);
+            return ['error' => 805];
+        }
+
+        if (!$this->db->addRoomMember($roomId, $userId, 'spectator', 0)) {
             $this->db->deleteRoom($roomId);
             return ['error' => 900];
         }
 
         $newHash = $this->refreshRoomHash($roomId);
         if ($newHash === false) {
-            // Если не удалось обновить хэш, удаляем пользователя и комнату
             $this->db->removeUserFromRoom($roomId, $userId);
             $this->db->deleteRoom($roomId);
-            return ['error' => 808]; 
-        }
-
-        $deck = $this->deck->createShuffledDeck();
-        if (isset($deck['error'])) {
-            // Если не удалось создать колоду, удаляем пользователя и комнату
-            $this->db->removeUserFromRoom($roomId, $userId);
-            $this->db->deleteRoom($roomId);
-            return $deck;
-        }
-        
-        $saveDeckResult = $this->db->saveDeck($roomId, $deck);
-        if (!$saveDeckResult) {
-            // Если не удалось сохранить колоду, удаляем пользователя и комнату
-            $this->db->removeUserFromRoom($roomId, $userId);
-            $this->db->deleteRoom($roomId);
-            return ['error' => 805];
+            return ['error' => 808];
         }
 
         $roomData = $this->db->getRoom($roomId);
@@ -234,30 +165,27 @@ class Lobby
         return $roomData;
     }
 
-    /**
-     * Присоединяет пользователя к приватной комнате по коду
-     * @param int $userId ID пользователя
-     * @param string $code 4-буквенный код комнаты
-     * @return array|object Данные комнаты или ошибка
-     */
-    public function joinPrivateRoom($userId, $code)
-    {
+    public function joinPrivateRoom($userId, $code) {
         if ($this->isUserPlaying($userId)) {
             return ['error' => 800];
         }
 
         $code = strtoupper($code);
         if (!preg_match('/^[A-Z]{4}$/', $code)) {
-            return ['error' => 901];
+            return ['error' => 802];
         }
 
         $room = $this->db->getRoomByPrivateCode($code);
         if (!$room) {
-            return ['error' => 901];
+            return ['error' => 802];
         }
 
-        $success = $this->db->addRoomMember($room->id, $userId, 'spectator', 0);
-        if (!$success) {
+        $membersCount = $this->db->getMembersCount($room->id);
+        if ($membersCount && $membersCount->count >= 6) {
+            return ['error' => 803];
+        }
+
+        if (!$this->db->addRoomMember($room->id, $userId, 'spectator', 0)) {
             return ['error' => 900];
         }
 
@@ -266,15 +194,13 @@ class Lobby
             return ['error' => 808];
         }
 
-        $this->refreshRoomHash($room->id);
-
         return $this->db->getRoom($room->id);
     }
 
     public function connectRoom($roomId) {
         $roomData = $this->db->getRoom($roomId);
         if (!$roomData) {
-            return ['error' => 901]; 
+            return ['error' => 901];
         }
 
         $newHash = $this->refreshRoomHash($roomId);
@@ -282,57 +208,35 @@ class Lobby
             return ['error' => 808];
         }
 
-        $this->refreshRoomHash($roomId);
-
         return $this->db->getRoom($roomId);
     }
 
-    # Выход пользователя из комнаты
-    public function leaveRoom($userId) 
-    {
-        // Получаем данные о комнате пользователя
+    public function leaveRoom($userId) {
         $roomData = $this->db->getRoomId($userId);
-        if (!$roomData || !$roomData->room_id) {
-            return ['error' => 902]; # Пользователь не в комнате
+        if (!$roomData || !$roomData->roomid) {
+            return ['error' => 902];
         }
 
-        $roomId = $roomData->room_id;
-
+        $roomId = $roomData->roomid;
         $room = $this->db->getRoom($roomId);
         if (!$room) {
-            return ['error' => 901]; # Комната не найдена
+            return ['error' => 901];
         }
 
-        # Проверка, был ли игрок текущим
-        $member = $this->db->getRoomMember($roomId, $userId);
-        if ($member && $room->current_member_id == $member->member_id) {
-            $this->db->resetCurrentMember($roomId);
-        }
+        $this->db->removeUserFromRoom($roomId, $userId);
 
-        # Удаляем пользователя из комнаты (ставка сгорает)
-        $success = $this->db->removeUserFromRoom($roomId, $userId);
-        if (!$success) {
-            return ['error' => 903]; # Ошибка удаления
-        }
-
-        $membersCount = $this->db->getMembersCount($roomId)->count;
-        
-        if ($membersCount == 0) {
+        $membersCount = $this->db->getMembersCount($roomId);
+        if ($membersCount && $membersCount->count == 0) {
             $this->db->deleteRoom($roomId);
-            return ['success' => true, 'roomDeleted' => true];
         } else {
-            
             $this->refreshRoomHash($roomId);
-            return ['success' => true, 'roomDeleted' => false];
         }
+
+        return ['success' => true];
     }
 
-    /**
-     * Возвращает рейтинг игроков по балансу
-     * @return array Список пользователей
-     */
-    public function getRatingTable()
-    {
+    public function getRatingTable() {
         return $this->db->getUsersByBalance();
     }
 }
+?>

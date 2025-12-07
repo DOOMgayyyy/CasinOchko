@@ -1,5 +1,5 @@
 export type TError = {
-    code: number;
+    code: number | string;
     text: string;
 }
 
@@ -36,7 +36,7 @@ export type TRoomResponse = {
     type: 'private' | 'open';                     
     status: 'playing' | 'closed';        
     current_member_id?: number | null;
-    private_code: string | null; 
+    privatecode: string | null; 
     hash: string;                        
 };
 
@@ -50,10 +50,10 @@ export type TUserStats = {
 
 // формат как отвечает PHP
 export type TRawUserStats = {
-    total_played: string;
-    total_win: string;
-    total_balance: string;
-    total_hours?: string;
+    totalplayed: string;
+    totalwin: string;
+    totalbalance: string;
+    totalhours?: string;
 };
 
 // Игрок в комнате
@@ -63,18 +63,20 @@ export type TPlayer = {
     name: string;
     balance: number;
     bet: number;
-    cards: string[];
+    cards: string;
     status: 'spectator' | 'player' ;
 };
 
 // Ответ getInfoRoom
 export type TRoomInfoResponse = {
-    players: TPlayer[];
-    myCards: string[];
+    players?: TPlayer[];
+    myCards?: string;
     timer: number | null;  // Количество секунд, оставшихся на ход (или null)
     hash: string;
-    currentPlayerId: number | null;  // ID игрока, чей сейчас ход
-    changed: boolean;
+    currentPlayerId?: number | null;  // ID игрока, чей сейчас ход
+    changed?: boolean;  // Опционально, может отсутствовать если только таймер обновился
+    status?: string;
+    userId?: number;
 };
 
 // Запись пользователя в рейтинг
@@ -92,4 +94,11 @@ export type TLeaderboardResponse = {
 export type TGetLeaveRoomResponse = {
     success: boolean;
     roomDeleted: boolean;
+};
+
+// Ответ takeUserCard
+export type TTakeCardResponse = {
+    success: boolean;
+    card?: string;
+    shouldPass?: boolean;
 };

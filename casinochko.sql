@@ -3,14 +3,13 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Дек 02 2025 г., 00:50
+-- Время создания: Дек 04 2025 г., 11:54
 -- Версия сервера: 8.0.30
 -- Версия PHP: 7.2.34
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
-
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -20,81 +19,6 @@ SET time_zone = "+00:00";
 --
 -- База данных: `casinochko`
 --
-
--- --------------------------------------------------------
-
---
--- Структура таблицы `messages`
---
-
-CREATE TABLE `messages` (
-  `id` bigint UNSIGNED NOT NULL,
-  `room_id` bigint UNSIGNED NOT NULL,
-  `user_id` bigint UNSIGNED NOT NULL,
-  `message` text NOT NULL,
-  `created` datetime DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица сообщений в чате';
-
--- --------------------------------------------------------
-
---
--- Структура таблицы `message_hashes`
---
-
-CREATE TABLE `message_hashes` (
-  `id` bigint UNSIGNED NOT NULL,
-  `room_id` bigint UNSIGNED NOT NULL,
-  `hash` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица хэшей сообщений';
-
--- --------------------------------------------------------
-
---
--- Структура таблицы `rooms`
---
-
-CREATE TABLE `rooms` (
-  `id` bigint UNSIGNED NOT NULL,
-  `type` enum('open','private') NOT NULL,
-  `status` enum('playing','closed') NOT NULL,
-  `current_member_id` bigint UNSIGNED DEFAULT NULL,
-  `private_code` varchar(4) DEFAULT NULL,
-  `hash` varchar(255) DEFAULT NULL,
-  `deckOfCards` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'HEX строка: QS,5C,2D,...',
-  `dealerCards` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'HEX строка: QS,5C,2D,...',
-  `turn_start_time` datetime DEFAULT NULL,
-  `last_update` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
---
--- Дамп данных таблицы `rooms`
---
-
-INSERT INTO `rooms` (`id`, `type`, `status`, `current_member_id`, `private_code`, `hash`, `deckOfCards`, `dealerCards`) VALUES
-(43, 'open', 'playing', NULL, NULL, 'bacb2bb2de4e2fdbda5eaf125b5f553f', 'ACDC9H4D6DBDECEH3SAS2HES6S4C7D9S9DAHBS5CCSBHCH7SCD8D2DDH2SDD5D3HBC6H5H3DDS4S7C5S9C8H8SED2C3C8C7H6CADCC4H', NULL);
-
--- --------------------------------------------------------
-
---
--- Структура таблицы `room_members`
---
-
-CREATE TABLE `room_members` (
-  `id` bigint UNSIGNED NOT NULL,
-  `room_id` bigint UNSIGNED NOT NULL,
-  `user_id` bigint UNSIGNED NOT NULL,
-  `status` varchar(50) NOT NULL DEFAULT 'spectator',
-  `bet` int DEFAULT '0',
-  `types` tinyint(1) DEFAULT '0',
-  `cards` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT 'HEX строка: AH,7D ->  hex'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица членов комнат';
-
---
--- Дамп данных таблицы `room_members`
---
-
-INSERT INTO `room_members` (`id`, `room_id`, `user_id`, `status`, `bet`, `types`, `cards`) VALUES
-(78, 43, 5, 'spectator', 0, 0, '');
 
 -- --------------------------------------------------------
 
@@ -109,90 +33,127 @@ CREATE TABLE `users` (
   `name` varchar(255) NOT NULL,
   `balance` int DEFAULT '5000',
   `token` varchar(255) DEFAULT NULL,
-  `total_played` int DEFAULT '0',
-  `total_win` int DEFAULT '0',
-  `total_balance` int DEFAULT '5000'
+  `totalplayed` int DEFAULT '0',
+  `totalwin` int DEFAULT '0',
+  `totalbalance` int DEFAULT '5000'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Дамп данных таблицы `users`
 --
 
-INSERT INTO `users` (`id`, `email`, `password`, `name`, `balance`, `token`, `total_played`, `total_win`, `total_balance`) VALUES
+INSERT INTO `users` (`id`, `email`, `password`, `name`, `balance`, `token`, `totalplayed`, `totalwin`, `totalbalance`) VALUES
 (2, 'yana@awsi.com', '$2y$10$yhQWfuyAW63mcy3ZksXBFOuv4Y4m2CuCoFOucVO768BAHMekzYooe', 'owerlord', 8000, '527ad0d366406ff3acf9d677ae9f72f2', 0, 0, 5000),
 (3, 'dev@dev.com', '$2y$10$hvDnmfqRDzCBShPSqWrm2.4YVxLBpS/.FKS.FG7DiBKCwjVnI0dpq', 'dev', 5000, '8a1954228142f4c6f15188d5649b560e', 0, 0, 5000),
 (4, 'vibes@vibes.com', '25d55ad283aa400af464c76d713c07ad', 'bob', 5000, '5872883649eee47883ad6ed56451b085', 0, 0, 5000),
-(5, 'vibhs@vibes.com', '25d55ad283aa400af464c76d713c07ad', 'vibe', 1000000, '91e05717ac2358d663aa8c6d58f01bf7', 0, 0, 1000000);
+(5, 'vibhs@vibes.com', '25d55ad283aa400af464c76d713c07ad', 'vibe', 1000000, '2177b595a90543bed73ad4ac97b828b0', 0, 0, 1000000);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `rooms`
+--
+
+CREATE TABLE `rooms` (
+  `id` bigint UNSIGNED NOT NULL,
+  `type` enum('open','private') NOT NULL,
+  `status` enum('waiting','waiting_for_bets','playing','closed') NOT NULL DEFAULT 'waiting',
+  `current_member_id` bigint UNSIGNED DEFAULT NULL,
+  `privatecode` varchar(10) DEFAULT NULL,
+  `hash` varchar(255) DEFAULT NULL,
+  `turn_start_time` datetime DEFAULT NULL,
+  `last_update` datetime DEFAULT CURRENT_TIMESTAMP,
+  `deckOfCards` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT 'Колода карт в виде строки',
+  `dealerCards` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT 'Карты дилера'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица игровых комнат';
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `roommembers`
+--
+
+CREATE TABLE `roommembers` (
+  `id` bigint UNSIGNED NOT NULL,
+  `roomid` bigint UNSIGNED NOT NULL,
+  `userid` bigint UNSIGNED NOT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'spectator',
+  `bet` int DEFAULT '0',
+  `cards` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT '' COMMENT 'HEX строка карт игрока'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица участников комнат';
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `messages`
+--
+
+CREATE TABLE `messages` (
+  `id` bigint UNSIGNED NOT NULL,
+  `roomid` bigint UNSIGNED NOT NULL,
+  `userid` bigint UNSIGNED NOT NULL,
+  `message` text NOT NULL,
+  `created` datetime DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица сообщений в чате';
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `messagehashes`
+--
+
+CREATE TABLE `messagehashes` (
+  `id` bigint UNSIGNED NOT NULL,
+  `roomid` bigint UNSIGNED NOT NULL,
+  `hash` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица хэшей для чата';
 
 --
 -- Индексы сохранённых таблиц
 --
 
 --
--- Индексы таблицы `messages`
+-- Индексы таблицы `users`
 --
-ALTER TABLE `messages`
+ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `room_id` (`room_id`),
-  ADD KEY `user_id` (`user_id`);
-
---
--- Индексы таблицы `message_hashes`
---
-ALTER TABLE `message_hashes`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `room_id` (`room_id`);
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `token` (`token`);
 
 --
 -- Индексы таблицы `rooms`
 --
 ALTER TABLE `rooms`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uniq_private_code` (`private_code`),
+  ADD UNIQUE KEY `privatecode` (`privatecode`),
   ADD KEY `type_status` (`type`,`status`);
 
 --
--- Индексы таблицы `room_members`
+-- Индексы таблицы `roommembers`
 --
-ALTER TABLE `room_members`
+ALTER TABLE `roommembers`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `unique_user_in_room` (`room_id`,`user_id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD UNIQUE KEY `unique_user_in_room` (`roomid`,`userid`),
+  ADD KEY `userid` (`userid`);
 
 --
--- Индексы таблицы `users`
+-- Индексы таблицы `messages`
 --
-ALTER TABLE `users`
+ALTER TABLE `messages`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD KEY `roomid` (`roomid`),
+  ADD KEY `userid` (`userid`);
+
+--
+-- Индексы таблицы `messagehashes`
+--
+ALTER TABLE `messagehashes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `roomid` (`roomid`);
 
 --
 -- AUTO_INCREMENT для сохранённых таблиц
 --
-
---
--- AUTO_INCREMENT для таблицы `messages`
---
-ALTER TABLE `messages`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `message_hashes`
---
-ALTER TABLE `message_hashes`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT для таблицы `rooms`
---
-ALTER TABLE `rooms`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
-
---
--- AUTO_INCREMENT для таблицы `room_members`
---
-ALTER TABLE `room_members`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
@@ -201,28 +162,29 @@ ALTER TABLE `users`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
--- Ограничения внешнего ключа сохраненных таблиц
+-- AUTO_INCREMENT для таблицы `rooms`
 --
+ALTER TABLE `rooms`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- Ограничения внешнего ключа таблицы `messages`
+-- AUTO_INCREMENT для таблицы `roommembers`
+--
+ALTER TABLE `roommembers`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `messages`
 --
 ALTER TABLE `messages`
-  ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- Ограничения внешнего ключа таблицы `message_hashes`
+-- AUTO_INCREMENT для таблицы `messagehashes`
 --
-ALTER TABLE `message_hashes`
-  ADD CONSTRAINT `message_hashes_ibfk_1` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`) ON DELETE CASCADE;
+ALTER TABLE `messagehashes`
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT;
 
---
--- Ограничения внешнего ключа таблицы `room_members`
---
-ALTER TABLE `room_members`
-  ADD CONSTRAINT `room_members_ibfk_1` FOREIGN KEY (`room_id`) REFERENCES `rooms` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `room_members_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

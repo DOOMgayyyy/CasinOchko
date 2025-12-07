@@ -1,7 +1,7 @@
 import md5 from 'md5';
 import CONFIG from "../../config";
 import Store from "../store/Store";
-import { TAnswer, TError, TRoomResponse, TMessagesResponse, TUser, TUserStats, TRawUserStats, TRoomInfoResponse, TLeaderboardResponse, TGetLeaveRoomResponse} from "./types";
+import { TAnswer, TError, TRoomResponse, TMessagesResponse, TUser, TUserStats, TRawUserStats, TRoomInfoResponse, TLeaderboardResponse, TGetLeaveRoomResponse, TTakeCardResponse} from "./types";
 
 const { CHAT_TIMESTAMP, HOST } = CONFIG;
 const GAME_TIMESTAMP = 1000; // 1 секунда для игрового loop
@@ -173,20 +173,36 @@ startChatMessages(cb: (hash: string) => void, roomId?: number | null): void {
     async getUserStat(): Promise<TUserStats | null> {
     const result = await this.request<{ stats: TRawUserStats }>('getUserStat');
 
+
+    
+
     if (!result) {
         return null;
     }
 
-    const { total_played, total_win, total_balance, total_hours } = result.stats;
+    const { totalplayed, totalwin, totalbalance, totalhours } = result.stats;
 
     return {
-        totalGames: Number(total_played),
-        totalWins: Number(total_win),
-        totalMoney: Number(total_balance),
-        totalHours: total_hours ? Number(total_hours) : 0
+        totalGames: Number(totalplayed),
+        totalWins: Number(totalwin),
+        totalMoney: Number(totalbalance),
+        totalHours: totalhours ? Number(totalhours) : 0
     };
-}
+    }
 
+    // Метод для вычисления счёта карт через сервер
+    async calculateUserScore(cardsString: string): Promise<number | null> {
+        // Отправляем строку карт напрямую на сервер
+        const result = await this.request<{ score: number }>('calculateScore', { 
+            cards: cardsString 
+        });
+        
+        if (result && typeof result.score === 'number') {
+            return result.score;
+        }
+        
+        return null;
+    }
 
 
     async addBalance(amount: number): Promise<{ ok: boolean; newBalance?: number }> {
@@ -251,8 +267,7 @@ startChatMessages(cb: (hash: string) => void, roomId?: number | null): void {
         // Запускаем новый loop
         this.gameInterval = setInterval(async () => {
             const result = await this.getInfoRoom(roomId);
-            // Вызываем callback только если есть изменения
-            if (result && result.changed) {
+            if (result) {
                 cb(result);
             }
         }, GAME_TIMESTAMP);
@@ -276,6 +291,33 @@ startChatMessages(cb: (hash: string) => void, roomId?: number | null): void {
     // Покинуть комнату
     async leaveRoom(): Promise<TGetLeaveRoomResponse | null> {
         return await this.request<TGetLeaveRoomResponse>('leaveRoom');
+    }
+
+    // Сделать ставку
+    async makeBet(roomId: number, amount: number): Promise<{ success: boolean } | null> {
+        const result = await this.request<{ success: boolean }>('makeBet', { 
+            room_id: String(roomId),
+            amount: String(amount)
+        });
+        
+        if (result && result.success) {
+            // Обновление баланса пользователя после успешной ставки
+            const user = this.store.getUser();
+            if (user) {
+                this.store.setUser({ ...user, balance: user.balance - amount });
+            }
+        }
+        
+        return result;
+    }
+
+    // Взять карту
+    async takeUserCard(roomId: number): Promise<TTakeCardResponse| null> {
+        const result = await this.request<{ success: boolean, card?: string, shouldPass?: boolean }>('takeUserCard', { 
+            room_id: String(roomId)
+        });
+        
+        return result;
     }
 } 
 

@@ -1,46 +1,61 @@
 <?php
 
-
 class Deck {
-    /**
-     * @var DB
-     */
     private $db;
 
-    /**
-     * Конструктор класса Deck
-     * @param DB $db Объект для работы с базой данных
-     */
-    public function __construct($db)
-    {
+    public function __construct($db) {
         $this->db = $db;
     }
 
-    
-    /**
-     * Создает и перемешивает колоду (строка без разделителей)
-     * Формат: ЗначениеМасть (например: 2H, AC, ED...)
-     */
-    public function createShuffledDeck()
-    {
-        // Сразу используем нужные символы:
-        // 10->A, 11->B (Валет), 12->C (Дама), 13->D (Король), 14->E (Туз)
-        $values = ['2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E'];
-        $suits = ['H', 'D', 'C', 'S']; 
+    // ============================================================
+    // DECK MANAGEMENT
+    // ============================================================
 
+    public function createShuffledDeck() {
+        $values = ['2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E'];
+        $suits = ['H', 'D', 'C', 'S'];
         $deck = [];
+
         foreach ($suits as $suit) {
             foreach ($values as $value) {
-                // Просто склеиваем значение и масть: "2H", "AE" и т.д.
                 $deck[] = $value . $suit;
             }
         }
 
-        if (!shuffle($deck)) {
-            return ['error' => 806];
-        }
-
-        // Возвращаем строку без разделителей: "2H3D4C...AE..."
+        shuffle($deck);
         return implode('', $deck);
     }
+
+    public function reinitializeDeck($roomId) {
+        $newDeck = $this->createShuffledDeck();
+        return $this->db->saveDeck($roomId, $newDeck);
+    }
+
+    public function getCard($roomId) {
+        $deckString = $this->db->loadDeck($roomId);
+        if (empty($deckString) || strlen($deckString) < 2) {
+            return false;
+        }
+
+        $card = substr($deckString, 0, 2);
+        $remainingDeck = substr($deckString, 2);
+
+        $this->db->saveDeck($roomId, $remainingDeck);
+        return $card;
+    }
+
+    public function getCards($roomId, $count) {
+        $cards = [];
+        for ($i = 0; $i < $count; $i++) {
+            $card = $this->getCard($roomId);
+            if ($card === false) {
+                break;
+            }
+
+            $cards[] = $card;
+        }
+
+        return $cards;
+    }
 }
+?>

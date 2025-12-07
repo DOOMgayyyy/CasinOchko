@@ -3,7 +3,6 @@ import CONFIG from '../../config';
 import Button from '../../components/Button/Button';
 import { IBasePage, PAGES } from '../PageManager';
 import Game from '../../game/Game';
-import { Canvas, useCanvas } from '../../services/canvas';
 import { ServerContext, StoreContext } from '../../App';
 import { TPlayer, TRoomInfoResponse } from '../../services/server/types';
 
@@ -11,7 +10,7 @@ import tableImgSrc from '../../assets/img/Table/Table.png';
 import chatIcon from '../../assets/img/chat_bubble.svg';
 import './Game.scss';
 import Chat from '../Chat/Chat';
-import SnowEffect from '../Lobby/SnowEffect';
+import SnowEffect from '../../components/SnowEffect/SnowEffect';
 
 
 const GAME_FIELD = 'game-field';
@@ -29,23 +28,18 @@ const getCardImage = (cardCode: string): string => {
 };
 
 const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
-    const { WINDOW, SPRITE_SIZE } = CONFIG;
     const { setPage } = props;
     const server = useContext(ServerContext);
     const store = useContext(StoreContext);
     
     let game: Game | null = null;
-    // инициализация канваса
-    let canvas: Canvas | null = null;
-    const Canvas = useCanvas(render);
     let interval: NodeJS.Timeout | null = null;
 
-    // инициализация стола
-    const [tableImage, setTableImage] = useState<HTMLImageElement | null>(null);
-
     // Состояние игры из сервера
-    const [myCards, setMyCards] = useState<string[]>([]);
+    const [myCards, setMyCards] = useState<string>('');
+    const [myScore, setMyScore] = useState<number>(0);
     const [players, setPlayers] = useState<TPlayer[]>([]);
+    const [playersScores, setPlayersScores] = useState<{ [memberId: number]: number }>({});
     const [timer, setTimer] = useState<number | null>(null);
     const [currentPlayerId, setCurrentPlayerId] = useState<number | null>(null);
     const [myMemberId, setMyMemberId] = useState<number | null>(null);
@@ -61,48 +55,20 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const roomId = store.getCurrentRoomId();
     const user = store.getUser();
 
-    // функция отрисовки одного кадра сцены
-    function render(FPS: number): void {
-        if (canvas && game) {
-            canvas.clear();
-
-            /**********************/
-            /* фон покерного стола */
-            /**********************/
-            if (tableImage) {
-                canvas.drawImageFit(tableImage, {
-                  mode: 'contain',
-                  alignX: 'center',
-                  alignY: 'center',
-                  zoom: 0.8,     // отдаление
-                  offsetX: 0,    // смещение в стороны
-                  offsetY: -78,   // смещение вверх вниз
-                });
-            }
-
-            /************************/
-            /* отрендерить картинку */
-            /************************/
-            canvas.render();
+    const handleHit = async () => {
+        if (!roomId || !user) {
+          return;
         }
-    }
 
-    /****************/
-    /* Mouse Events */
-    /****************/
-    const mouseMove = (_x: number, _y: number) => {
-    }
-
-    const mouseClick = (_x: number, _y: number) => {
-    }
-
-    const mouseRightClick = () => {
-    }
-    /****************/
-
-    const handleHit = () => {
-        console.log('Hit button clicked');
-        // Логика для взятия карты
+        const result = await server.takeUserCard(roomId);
+        
+        if (result && result.success) {
+          console.log('Card taken:', result.card);
+          
+          if (result.shouldPass) {
+            console.log('Bust or max cards reached, should pass turn');
+          }
+        }
       };
     
       const handleStand = () => {
@@ -120,16 +86,18 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         setShowBetModal(true);
       };
 
+      const MIN_BET = 100
+
       const handleBetIncrease = () => {
-        if (user && currentBet + 50 <= user.balance) {
-          setCurrentBet(currentBet + 50);
+        if (user) {
+          const newBet = Math.min(currentBet + 50, user.balance);
+          setCurrentBet(newBet);
         }
       };
 
       const handleBetDecrease = () => {
-        if (currentBet >= 50) {
-          setCurrentBet(currentBet - 50);
-        }
+        const newBet = Math.max(currentBet - 50, 100);
+        setCurrentBet(newBet);
       };
 
       const handleBetInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,9 +121,17 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
       };
 
 
-      const handlePlaceBet = () => {
-        console.log('Placing bet:', currentBet);
-        setShowBetModal(false);
+      const handlePlaceBet = async () => {
+        if (!roomId || currentBet === 0 || !user) {
+          return;
+        }
+
+        const result = await server.makeBet(roomId, currentBet);
+        
+        if (result && result.success) {
+          setShowBetModal(false);
+          setCurrentBet(0);
+        }
       };
 
       const handleCancelBet = () => {
@@ -191,35 +167,17 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     useEffect(() => {
         // инициализация игры
         game = new Game();
-        canvas = Canvas({
-            parentId: GAME_FIELD,
-            WIDTH: WINDOW.WIDTH * SPRITE_SIZE,
-            HEIGHT: WINDOW.HEIGHT * SPRITE_SIZE,
-            WINDOW,
-            callbacks: {
-                mouseMove,
-                mouseClick,
-                mouseRightClick,
-            },
-        });
         return () => {
             // деинициализировать все экземпляры
             game?.destructor();
-            canvas?.destructor();
-            canvas = null;
             game = null;
             if (interval) {
                 clearInterval(interval);
                 interval = null;
             }
         }
-    });
-
-    useEffect(() => {
-        const img = new Image();
-        img.src = tableImgSrc;
-        img.onload = () => setTableImage(img);
     }, []);
+
 
     useEffect(() => {
         const code = store.getRoomCode();
@@ -254,14 +212,45 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         }
 
         // Функция обработки обновлений игры
-        const handleGameUpdate = (roomInfo: TRoomInfoResponse) => {
-            setMyCards(roomInfo.myCards);
-            setPlayers(roomInfo.players);
+        const handleGameUpdate = async (roomInfo: TRoomInfoResponse) => {
+            // Всегда обновляем таймер (он всегда присутствует)
             setTimer(roomInfo.timer);
-            setCurrentPlayerId(roomInfo.currentPlayerId);
+            
+            // Обновляем остальные данные только если они пришли (при полном обновлении)
+            if (roomInfo.myCards !== undefined) {
+                setMyCards(roomInfo.myCards);
+                // Вычисляем счёт моих карт через сервер
+                if (roomInfo.myCards && roomInfo.myCards.length > 0) {
+                    const score = await server.calculateUserScore(roomInfo.myCards);
+                    if (score !== null) {
+                        setMyScore(score);
+                    }
+                } else {
+                    setMyScore(0);
+                }
+            }
+            
+            if (roomInfo.players !== undefined) {
+                setPlayers(roomInfo.players);
+                // Вычисляем счёт для каждого игрока через сервер
+                const scores: { [memberId: number]: number } = {};
+                for (const player of roomInfo.players) {
+                    if (player.cards && player.cards.length > 0) {
+                        const score = await server.calculateUserScore(player.cards);
+                        if (score !== null) {
+                            scores[player.memberId] = score;
+                        }
+                    } else {
+                        scores[player.memberId] = 0;
+                    }
+                }
+                setPlayersScores(scores);
+            }
+            
+            if (roomInfo.currentPlayerId !== undefined) setCurrentPlayerId(roomInfo.currentPlayerId);
             
             // Находим себя в списке игроков
-            if (user) {
+            if (user && roomInfo.players) {
                 const myPlayer = roomInfo.players.find(p => p.userId === user.id);
                 if (myPlayer) {
                     setMyMemberId(myPlayer.memberId);
@@ -291,6 +280,10 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         <SnowEffect />
         <div className="game-scale-wrapper">
            
+        <div className="game-table-container">
+            <img src={tableImgSrc} alt="Poker Table" className="game-table-image" />
+        </div>
+        
         {/* надписи с инфой игроков за столом */}
         <div id={GAME_FIELD} className={GAME_FIELD}>
             <div className="players">
@@ -299,7 +292,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                     const position = positions[index] || 'left-top';
                     const isCurrentPlayer = myMemberId !== null && player.memberId === myMemberId;
                     const isActiveTurn = currentPlayerId === player.memberId;
-                    const score = player.cards.length * 5; // Реализовать правильный расчет очков
+                    const score = playersScores[player.memberId] ?? 0;
                     
                     return (
                         <div 
@@ -332,8 +325,9 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                         <span className="your-cards-label">Ваши карты:</span>
                     </div>
                     <div className="my-cards">
-                        {myCards.length > 0 ? (
-                            myCards.map((card, index) => {
+                        {myCards && myCards.length > 0 ? (
+                            // Преобразуем строку карт в массив по 2 символа
+                            myCards.match(/.{1,2}/g)?.map((card, index) => {
                                 const cardImage = getCardImage(card);
                                 return (
                                     <div className="card" key={index}>
@@ -381,7 +375,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         {!isSpectator && (
             <div className='count-div'>
                 <span className='count-span'>Ваши очки:</span>
-                <span className='count-number'>{myCards.length * 5}</span>
+                <span className='count-number'>{myScore}</span>
             </div>
         )}
 
@@ -463,7 +457,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                             <button 
                                 className="bet-control-button bet-decrease" 
                                 onClick={handleBetDecrease}
-                                disabled={currentBet < 50}
+                                disabled={currentBet === 100}
                             >
                                 - 50$
                             </button>
@@ -495,7 +489,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                             <button 
                                 className="bet-action-button bet-place" 
                                 onClick={handlePlaceBet}
-                                disabled={currentBet === 0}
+                                disabled={currentBet < MIN_BET || !user || currentBet > (user.balance || 0)}
                             >
                                 поставить <span className="bet-arrow">&gt;</span>
                             </button>
