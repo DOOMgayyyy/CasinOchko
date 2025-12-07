@@ -58,10 +58,10 @@ class Lobby {
     // ============================================================
 
     public function quickStart($userId) {
-        if ($this->isUserPlaying($userId)) {
-            return ['error' => 800];
-        }
-
+        // if ($this->isUserPlaying($userId)) {
+        //     return ['error' => 800];
+        // }
+        $this->db->removeUserFromAllRooms($userId);
         $room = $this->getOpenRoom();
         $isNewRoom = false;
 
@@ -112,10 +112,9 @@ class Lobby {
     }
 
     public function createPrivateRoom($userId) {
-        if ($this->isUserPlaying($userId)) {
-            return ['error' => 800];
-        }
-
+        // if ($this->isUserPlaying($userId)) {
+        //     return ['error' => 800];
+        // }
         $attempts = 0;
         $privateCode = null;
         do {
@@ -166,10 +165,10 @@ class Lobby {
     }
 
     public function joinPrivateRoom($userId, $code) {
-        if ($this->isUserPlaying($userId)) {
-            return ['error' => 800];
-        }
-
+        // if ($this->isUserPlaying($userId)) {
+        //     return ['error' => 800];
+        // }
+        
         $code = strtoupper($code);
         if (!preg_match('/^[A-Z]{4}$/', $code)) {
             return ['error' => 802];
@@ -179,9 +178,9 @@ class Lobby {
         if (!$room) {
             return ['error' => 802];
         }
-
-        $membersCount = $this->db->getMembersCount($room->id);
-        if ($membersCount && $membersCount->count >= 6) {
+        
+        $playingMembersCount = $this->db->getPlayingMembersCount($room->id);
+        if ($playingMembersCount && $playingMembersCount->count >= 6) {
             return ['error' => 803];
         }
 
