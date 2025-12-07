@@ -69,12 +69,14 @@ export type TPlayer = {
 
 // Ответ getInfoRoom
 export type TRoomInfoResponse = {
-    players: TPlayer[];
-    myCards: string[];
+    players?: TPlayer[];
+    myCards?: string[];
     timer: number | null;  // Количество секунд, оставшихся на ход (или null)
     hash: string;
-    currentPlayerId: number | null;  // ID игрока, чей сейчас ход
-    changed: boolean;
+    currentPlayerId?: number | null;  // ID игрока, чей сейчас ход
+    changed?: boolean;  // Опционально, может отсутствовать если только таймер обновился
+    status?: string;
+    userId?: number;
 };
 
 // Запись пользователя в рейтинг

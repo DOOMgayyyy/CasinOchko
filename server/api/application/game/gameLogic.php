@@ -33,13 +33,26 @@ class GameLogic {
             $this->db->touchRoom($roomId);
         }
 
-        if ($currentHash && $currentHash === $clientHash) {
+        // Всегда вычисляем таймер, так как он меняется каждую секунду
+        $timer = $this->getTimer($room);
+
+        // Если hash совпадает и таймера нет, возвращаем true (нет изменений)
+        if ($currentHash && $currentHash === $clientHash && $timer === null) {
             return true;
         }
 
+        // Если hash совпадает, но есть таймер - возвращаем только таймер
+        if ($currentHash && $currentHash === $clientHash && $timer !== null) {
+            return [
+                'timer' => $timer,
+                'hash' => $currentHash,
+                'changed' => false
+            ];
+        }
+
+        // Если hash не совпадает - возвращаем все данные
         $players = $this->getPlayersInfo($roomId);
         $myCards = $this->getUserCards($roomId, $userId);
-        $timer = $this->getTimer($room);
 
         return [
             'players' => $players,
@@ -49,6 +62,7 @@ class GameLogic {
             'status' => $room->status,
             'hash' => $currentHash,
             'currentMemberId' => $currentMemberId,
+            'changed' => true
         ];
     }
 

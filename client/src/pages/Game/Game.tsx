@@ -3,7 +3,7 @@ import CONFIG from '../../config';
 import Button from '../../components/Button/Button';
 import { IBasePage, PAGES } from '../PageManager';
 import Game from '../../game/Game';
-import { Canvas, useCanvas } from '../../services/canvas';
+// Canvas больше не нужен, стол будет обычным HTML элементом
 import { ServerContext, StoreContext } from '../../App';
 import { TPlayer, TRoomInfoResponse } from '../../services/server/types';
 
@@ -34,13 +34,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const store = useContext(StoreContext);
     
     let game: Game | null = null;
-    // инициализация канваса
-    let canvas: Canvas | null = null;
-    const Canvas = useCanvas(render);
     let interval: NodeJS.Timeout | null = null;
-
-    // инициализация стола
-    const [tableImage, setTableImage] = useState<HTMLImageElement | null>(null);
 
     // Состояние игры из сервера
     const [myCards, setMyCards] = useState<string[]>([]);
@@ -59,31 +53,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const roomId = store.getCurrentRoomId();
     const user = store.getUser();
 
-    // функция отрисовки одного кадра сцены
-    function render(FPS: number): void {
-        if (canvas && game) {
-            canvas.clear();
-
-            /**********************/
-            /* фон покерного стола */
-            /**********************/
-            if (tableImage) {
-                canvas.drawImageFit(tableImage, {
-                  mode: 'contain',
-                  alignX: 'center',
-                  alignY: 'center',
-                  zoom: 0.8,     // отдаление
-                  offsetX: 0,    // смещение в стороны
-                  offsetY: -78,   // смещение вверх вниз
-                });
-            }
-
-            /************************/
-            /* отрендерить картинку */
-            /************************/
-            canvas.render();
-        }
-    }
+    // Canvas больше не используется, стол теперь обычный HTML элемент
 
     /****************/
     /* Mouse Events */
@@ -213,35 +183,18 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     useEffect(() => {
         // инициализация игры
         game = new Game();
-        canvas = Canvas({
-            parentId: GAME_FIELD,
-            WIDTH: WINDOW.WIDTH * SPRITE_SIZE,
-            HEIGHT: WINDOW.HEIGHT * SPRITE_SIZE,
-            WINDOW,
-            callbacks: {
-                mouseMove,
-                mouseClick,
-                mouseRightClick,
-            },
-        });
         return () => {
             // деинициализировать все экземпляры
             game?.destructor();
-            canvas?.destructor();
-            canvas = null;
             game = null;
             if (interval) {
                 clearInterval(interval);
                 interval = null;
             }
         }
-    });
+    }, []); // Выполняется только при монтировании
 
-    useEffect(() => {
-        const img = new Image();
-        img.src = tableImgSrc;
-        img.onload = () => setTableImage(img);
-    }, []);
+    // tableImage больше не нужен, используем обычный img элемент
 
     useEffect(() => {
         const code = store.getRoomCode();
@@ -277,13 +230,17 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
 
         // Функция обработки обновлений игры
         const handleGameUpdate = (roomInfo: TRoomInfoResponse) => {
-            setMyCards(roomInfo.myCards);
-            setPlayers(roomInfo.players);
+            // Всегда обновляем таймер (он всегда присутствует)
             setTimer(roomInfo.timer);
-            setCurrentPlayerId(roomInfo.currentPlayerId);
+            
+            // Обновляем остальные данные только если они пришли (при полном обновлении)
+            // Используем проверку на undefined, так как пустые массивы тоже валидны
+            if (roomInfo.myCards !== undefined) setMyCards(roomInfo.myCards);
+            if (roomInfo.players !== undefined) setPlayers(roomInfo.players);
+            if (roomInfo.currentPlayerId !== undefined) setCurrentPlayerId(roomInfo.currentPlayerId);
             
             // Находим себя в списке игроков
-            if (user) {
+            if (user && roomInfo.players) {
                 const myPlayer = roomInfo.players.find(p => p.userId === user.id);
                 if (myPlayer) {
                     setMyMemberId(myPlayer.memberId);
@@ -313,6 +270,11 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         <SnowEffect />
         <div className="game-scale-wrapper">
            
+        {/* Стол как обычный HTML элемент */}
+        <div className="game-table-container">
+            <img src={tableImgSrc} alt="Poker Table" className="game-table-image" />
+        </div>
+        
         {/* надписи с инфой игроков за столом */}
         <div id={GAME_FIELD} className={GAME_FIELD}>
             <div className="players">

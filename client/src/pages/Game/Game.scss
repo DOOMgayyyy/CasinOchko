@@ -16,6 +16,7 @@
     z-index: 10;
     padding: 0 20px;
     transition: all 0.5s ease;
+    pointer-events: auto; // Кнопки должны быть кликабельны
 
     &.vertical {
       bottom: 30px;
@@ -41,6 +42,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        pointer-events: auto; 
+        cursor: pointer;
 
       &:active {
         transform: translateY(0);
@@ -118,6 +121,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    pointer-events: auto;
 
     &:hover {
       background-color: rgba(255, 255, 255, 0.1);
@@ -165,6 +169,7 @@
     font-family: 'Handjet', monospace;
     color: #ffffff;
     box-sizing: border-box;
+    pointer-events: auto;
   
     &::before {
       content: "←";
@@ -208,6 +213,7 @@
   position: fixed;
   left: 18%;
   bottom: 5%;
+  pointer-events: auto;
 }
 
 .bet-button {
@@ -319,17 +325,34 @@
   .card:nth-child(2) { transform: translateX(-87px); }
 }
 
+// Контейнер для стола
+.game-table-container {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; // Чтобы клики проходили сквозь стол к элементам игры
+}
+
+.game-table-image {
+  width: 80%;
+  height: auto;
+  max-width: 1200px;
+  object-fit: contain;
+  transform: translateY(-78px); // Смещение вверх, как было в canvas
+}
+
 #game-field{
   position: fixed; 
   inset: 0;        
   width: 100%;
   height: 100%;
-  z-index: 1;
-}
-#game-field canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
+  z-index: 2; // Выше стола, чтобы элементы игры были поверх
+  pointer-events: auto; // Чтобы кнопки и другие интерактивные элементы были кликабельны
 }
 
 .timer-div {
@@ -397,6 +420,7 @@
   background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
   border: 2px solid #4CAF50;
   border-radius: 12px;
+  pointer-events: auto;
   padding: 20px;
   min-width: 350px;
   box-shadow: 0 8px 24px rgba(76, 175, 80, 0.3);
@@ -441,6 +465,7 @@
   color: white;
   font-size: 1.5rem;
   cursor: pointer;
+  pointer-events: auto;
   padding: 0;
   width: 24px;
   height: 24px;
@@ -487,6 +512,7 @@
 
 .room-code-value.clickable {
   cursor: pointer;
+  pointer-events: auto;
 }
 
 .copy-success {
@@ -521,6 +547,7 @@
   justify-content: center;
   z-index: 2000;
   animation: fadeIn 0.3s ease-out;
+  pointer-events: auto;
 }
 
 .leave-room-modal {
@@ -533,6 +560,7 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   animation: slideDown 0.3s ease-out;
   backdrop-filter: blur(10px);
+  pointer-events: auto;
 }
 
 .leave-room-modal-content {
@@ -628,6 +656,7 @@
   justify-content: center;
   z-index: 2000;
   animation: fadeIn 0.3s ease-out;
+  pointer-events: auto;
 }
 
 .bet-modal {
@@ -640,6 +669,7 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   animation: slideDown 0.3s ease-out;
   backdrop-filter: blur(10px);
+  pointer-events: auto;
 }
 
 .bet-modal-content {
@@ -690,6 +720,8 @@
   font-family: 'Handjet', monospace;
   font-size: 24px;
   font-weight: 600;
+  pointer-events: auto;
+  cursor: pointer;
   cursor: pointer;
   transition: all 0.3s ease;
   border: 2px solid;
@@ -739,6 +771,7 @@
   font-size: 32px;
   font-weight: 600;
   min-width: 100px;
+  pointer-events: auto;
   max-width: 150px;
   text-align: center;
   background: rgba(32, 32, 32, 0.8);
@@ -774,6 +807,7 @@
   font-size: 24px;
   font-weight: 600;
   cursor: pointer;
+  pointer-events: auto;
   transition: all 0.3s ease;
   text-transform: lowercase;
   letter-spacing: 1px;

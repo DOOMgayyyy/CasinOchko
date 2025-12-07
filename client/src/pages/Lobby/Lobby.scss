@@ -27,10 +27,10 @@
 
 .lobby-garland {
   position: fixed;
-  top: 0;
+  top: 80px;
   left: 0;
   width: 100%;
-  z-index: 25;
+  z-index: 15;
   pointer-events: none;
   display: block;
   overflow: visible;
@@ -38,7 +38,7 @@
 }
 
 .garland-image {
-  width: 100%;
+  width: 100vw;
   height: auto;
   object-fit: contain;
   object-position: top center;
