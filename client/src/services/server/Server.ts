@@ -229,8 +229,7 @@ class Server {
         // Запускаем новый loop
         this.gameInterval = setInterval(async () => {
             const result = await this.getInfoRoom(roomId);
-            // Вызываем callback только если есть изменения
-            if (result && result.changed) {
+            if (result) {
                 cb(result);
             }
         }, GAME_TIMESTAMP);
