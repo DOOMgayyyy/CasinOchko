@@ -186,14 +186,68 @@ class Player {
 
         $currentCards[] = $newCard;
         $this->db->updateMemberCards($roomId, $userId, $currentCards);
-        $this->db->updateRoomAction($roomId);
 
-        $shouldPass = self::isBust($currentCards);
+        $shouldPass = self::isBust($currentCards) || count($currentCards) >= self::MAX_CARDS;
+
+        if ($shouldPass) {
+            $this->moveToNextPlayer($roomId);
+        } else {
+            $this->db->updateRoomAction($roomId);
+        }
+
         return [
             'success' => true,
             'card' => $newCard,
             'shouldPass' => $shouldPass
         ];
+    }
+    private function moveToNextPlayer($roomId) {
+        $members = $this->db->getRoomMembers($roomId);
+        $room = $this->db->getRoom($roomId);
+
+        $playingMembers = array_filter($members, function($m) {
+            return $m->status === 'player' && $m->bet > 0;
+        });
+
+        if (empty($playingMembers)) {
+            // Нет игроков - завершаем раунд
+            $this->finishRound($roomId);
+            return;
+        }
+
+        // Находим текущего игрока
+        $currentIndex = -1;
+        foreach ($playingMembers as $index => $member) {
+            if ($member->member_id == $room->current_member_id) {
+                $currentIndex = $index;
+                break;
+            }
+        }
+
+        $playingArray = array_values($playingMembers);
+
+        // Ищем следующего активного игрока
+        for ($i = $currentIndex + 1; $i < count($playingArray); $i++) {
+            $nextMember = $playingArray[$i];
+            $cards = $this->parseCards($nextMember->cards);
+
+            // Пропускаем перебравших или имеющих максимум карт
+            if (!self::isBust($cards) && count($cards) < self::MAX_CARDS) {
+                $this->db->setCurrentPlayer($roomId, $nextMember->member_id);
+                $this->db->updateRoomAction($roomId);
+                return;
+            }
+        }
+
+        // Все игроки закончили - ход дилера
+        $this->db->resetCurrentMember($roomId);
+        $this->dealerTakeCard($roomId);
+        $this->calculateAndPayResults($roomId);
+        $this->startNewRound($roomId); // Автоматически новый раунд
+    }
+    private function finishRound($roomId) {
+        $this->calculateAndPayResults($roomId);
+        $this->startNewRound($roomId);
     }
 
     public function pass($roomId, $userId) {
@@ -215,6 +269,7 @@ class Player {
             return ['error' => 909];
         }
 
+        $this->moveToNextPlayer($roomId);
         return ['success' => true];
     }
 
@@ -257,6 +312,7 @@ class Player {
         $currentCards[] = $newCard;
         $this->db->updateMemberCards($roomId, $userId, $currentCards);
         $this->db->updateRoomAction($roomId);
+        $this->moveToNextPlayer($roomId);
 
         return [
             'success' => true,
