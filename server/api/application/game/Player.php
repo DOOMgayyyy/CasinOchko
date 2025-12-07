@@ -81,6 +81,7 @@ class Player {
                 return ['success' => false, 'error' => 'NO_PLAYERS'];
             }
 
+            // Раздаем карты игрокам
             foreach ($playingMembers as $member) {
                 $card1 = $this->deck->getCard($roomId);
                 $card2 = $this->deck->getCard($roomId);
@@ -91,17 +92,64 @@ class Player {
                 $this->db->updateMemberCards($roomId, $member->user_id, [$card1, $card2]);
             }
 
+            // Дилер берет карту
             $dealerCard = $this->deck->getCard($roomId);
             if ($dealerCard === false) {
                 return ['success' => false, 'error' => 'NO_DECK'];
             }
 
             $this->db->updateDealerCards($roomId, $dealerCard);
-            $firstPlayer = reset($playingMembers);
+
+            // проверка на туз или 10/фигуру у дилера (потенциальный блэкджек)
+            $dealerFirstValue = $dealerCard[0];
+            $checkDealerBlackjack = ($dealerFirstValue === 'E' || $dealerFirstValue === 'A' || 
+                                     $dealerFirstValue === 'B' || $dealerFirstValue === 'C' || 
+                                     $dealerFirstValue === 'D');
+
+            if ($checkDealerBlackjack) {
+                $dealerSecondCard = $this->deck->getCard($roomId);
+                if ($dealerSecondCard !== false) {
+                    $dealerFullCards = [$dealerCard, $dealerSecondCard];
+                    if (self::isBlackjack($dealerFullCards)) {
+                        // Блэкджек дилера - немедленное завершение
+                        $this->db->updateDealerCards($roomId, $dealerFullCards);
+                        $this->db->updateRoomStatus($roomId, 'playing');
+                        $this->calculateAndPayResults($roomId);
+                        $this->startNewRound($roomId);
+                        return ['success' => true, 'dealerBlackjack' => true];
+                    }
+                    // Нет блэкджека - скрываем вторую карту (не сохраняем)
+                }
+            }
+
+            // Находим первого игрока, который может ходить
+            $firstPlayer = null;
+            foreach ($playingMembers as $member) {
+                $cards = $this->db->getRoomMember($roomId, $member->user_id);
+                if ($cards) {
+                    $playerCards = $this->parseCards($cards->cards);
+                    // ДОБАВЛЕНО: пропускаем игроков с блэкджеком
+                    if (!self::isBlackjack($playerCards)) {
+                        $firstPlayer = $member;
+                        break;
+                    }
+                }
+            }
+
+            // Если все игроки с блэкджеком - сразу к дилеру
+            if (!$firstPlayer) {
+                $this->db->updateRoomStatus($roomId, 'playing');
+                $this->dealerTakeCard($roomId);
+                $this->calculateAndPayResults($roomId);
+                $this->startNewRound($roomId);
+                return ['success' => true, 'allBlackjack' => true];
+            }
+
             $this->db->setCurrentPlayer($roomId, $firstPlayer->member_id);
             $this->db->updateRoomStatus($roomId, 'playing');
             $this->db->updateRoomAction($roomId);
             return ['success' => true];
+
         } catch (Exception $e) {
             return ['success' => false, 'error' => $e->getMessage()];
         }
@@ -187,7 +235,9 @@ class Player {
         $currentCards[] = $newCard;
         $this->db->updateMemberCards($roomId, $userId, $currentCards);
 
-        $shouldPass = self::isBust($currentCards) || count($currentCards) >= self::MAX_CARDS;
+        // проверка на 21 очко, а не только на перебор
+        $currentScore = self::calculateScore($currentCards);
+        $shouldPass = $currentScore >= 21 || count($currentCards) >= self::MAX_CARDS;
 
         if ($shouldPass) {
             $this->moveToNextPlayer($roomId);
@@ -201,6 +251,7 @@ class Player {
             'shouldPass' => $shouldPass
         ];
     }
+
     private function moveToNextPlayer($roomId) {
         $members = $this->db->getRoomMembers($roomId);
         $room = $this->db->getRoom($roomId);
@@ -230,9 +281,10 @@ class Player {
         for ($i = $currentIndex + 1; $i < count($playingArray); $i++) {
             $nextMember = $playingArray[$i];
             $cards = $this->parseCards($nextMember->cards);
+            $score = self::calculateScore($cards);
 
-            // Пропускаем перебравших или имеющих максимум карт
-            if (!self::isBust($cards) && count($cards) < self::MAX_CARDS) {
+            //пропускаем игроков с перебором, 21 очком или максимумом карт
+            if ($score < 21 && count($cards) < self::MAX_CARDS) {
                 $this->db->setCurrentPlayer($roomId, $nextMember->member_id);
                 $this->db->updateRoomAction($roomId);
                 return;
@@ -243,8 +295,9 @@ class Player {
         $this->db->resetCurrentMember($roomId);
         $this->dealerTakeCard($roomId);
         $this->calculateAndPayResults($roomId);
-        $this->startNewRound($roomId); // Автоматически новый раунд
+        $this->startNewRound($roomId);
     }
+    
     private function finishRound($roomId) {
         $this->calculateAndPayResults($roomId);
         $this->startNewRound($roomId);
@@ -351,8 +404,10 @@ class Player {
         $dealerCards = $this->parseCards($room->dealerCards);
         $dealerScore = self::calculateScore($dealerCards);
         $dealerBust = $dealerScore > 21;
+        $dealerBlackjack = self::isBlackjack($dealerCards);
 
         $members = $this->db->getRoomMembers($roomId);
+
         foreach ($members as $member) {
             if ($member->status !== 'player' || $member->bet == 0) {
                 continue;
@@ -361,21 +416,30 @@ class Player {
             $playerCards = $this->parseCards($member->cards);
             $playerScore = self::calculateScore($playerCards);
             $playerBust = $playerScore > 21;
+            $playerBlackjack = self::isBlackjack($playerCards);
 
             $winAmount = 0;
+
             if ($playerBust) {
+                // Игрок перебрал - проигрыш
                 $winAmount = 0;
+            } elseif ($playerBlackjack && $dealerBlackjack) {
+                // Оба блэкджек - возврат ставки (push)
+                $winAmount = $member->bet;
+            } elseif ($playerBlackjack) {
+                // Блэкджек игрока - выплата 3:2
+                $winAmount = $member->bet * 2.5;
             } elseif ($dealerBust) {
+                // Дилер перебрал - игрок выигрывает
                 $winAmount = $member->bet * 2;
             } elseif ($playerScore > $dealerScore) {
-                if (self::isBlackjack($playerCards)) {
-                    $winAmount = $member->bet * 2.5;
-                } else {
-                    $winAmount = $member->bet * 2;
-                }
+                // Игрок больше - выигрыш
+                $winAmount = $member->bet * 2;
             } elseif ($playerScore == $dealerScore) {
+                // Ничья (push) - возврат ставки
                 $winAmount = $member->bet;
             }
+            // Иначе ($playerScore < $dealerScore) - проигрыш, winAmount = 0
 
             if ($winAmount > 0) {
                 $this->db->updateBalance($member->user_id, $winAmount);

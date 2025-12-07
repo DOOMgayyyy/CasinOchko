@@ -3,7 +3,7 @@
 class GameLogic {
     private $db;
 
-    const BET_TIMEOUT_S = 30;
+    const BET_TIMEOUT_S = 5;
     const ACTION_TIMEOUT_S = 15;
     const FULL_TIMEOUT_S = 600;
 
@@ -52,24 +52,22 @@ class GameLogic {
         ];
     }
     
-    private function checkTimeouts($roomId)
-    {
+    private function checkTimeouts($roomId) {
         $room = $this->db->getRoom($roomId);
         if (!$room || $room->status === 'closed') {
             return;
         }
-        
+
         $now = time();
         $members = $this->db->getRoomMembers($roomId);
-        
+
         if (!$room->last_update) {
             $this->db->touchRoom($roomId);
             return;
         }
-        
+
         $lastUpdateTimestamp = strtotime($room->last_update);
         if ($lastUpdateTimestamp === false) {
-            // УБРАТЬ touchRoom отсюда!
             return;
         }
 
@@ -94,6 +92,7 @@ class GameLogic {
                     if ($member->status === 'player' && (int)$member->bet === 0) {
                         $this->db->updateMemberStatus($roomId, $member->user_id, 'spectator');
                     }
+
                     if ($member->status !== 'spectator') {
                         $playersLeft++;
                     }
@@ -117,7 +116,6 @@ class GameLogic {
                 }
             }
         }
-
         // Проверка хода игрока (15 сек)
         elseif ($room->current_member_id && $room->status === 'playing') {
             $currentPlayer = null;
@@ -133,9 +131,10 @@ class GameLogic {
                 $timePassed = $now - $turnStartTime;
 
                 if ($timePassed > self::ACTION_TIMEOUT_S) {
-                    // Время истекло - автоматический пасс
-                    $this->db->resetCurrentMember($roomId);
-                    $this->db->updateRoomAction($roomId);
+                    // вызываем pass вместо просто сброса
+                    require_once 'Player.php';
+                    $player = new Player($this->db);
+                    $player->pass($roomId, $currentPlayer->user_id);
                 }
             }
         }
