@@ -163,15 +163,11 @@ class GameLogic {
         $players = [];
         
         foreach ($members as $member) {
-            $cards = [];
-            
-            if (!empty($member->cards)) {
-                $cards = str_split($member->cards, 2);
-            }
+            $cards = $member->cards ?? '';
             
             $players[] = [
                 'memberId' => $member->member_id,
-                'userId' => $member->user_id,  // ← ИСПРАВЛЕНО: было $userId
+                'userId' => $member->user_id, 
                 'name' => $member->name,
                 'balance' => (int)$member->balance,
                 'bet' => (int)$member->bet,
@@ -189,11 +185,10 @@ class GameLogic {
         $member = $this->db->getRoomMember($roomId, $userId);
 
         if (!$member || empty($member->cards)) {
-            return [];  // Возвращаем пустой массив
+            return '';  // Возвращаем пустую строку
         }
 
-        // Возвращаем карты как МАССИВ для фронта: ["9C", "6H", "DH", "8S"]
-        return str_split($member->cards, 2);
+        return $member->cards;
     }
 
     private function getTimer($room)

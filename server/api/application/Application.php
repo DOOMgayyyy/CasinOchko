@@ -359,5 +359,31 @@ class Application {
         }
         return ['error' => 242];
     }
+
+    /**
+     * Вычислить счёт карт
+     */
+    public function calculateScore($params) {
+        if ($params['token'] && isset($params['cards'])) {
+            $user = $this->user->getUser($params['token']);
+            if (!$user) {
+                return ['error' => 705];
+            }
+
+            // Преобразуем строку карт в массив (по 2 символа)
+            $cardsString = $params['cards'];
+            if (empty($cardsString)) {
+                $cards = [];
+            } else {
+                $cards = str_split($cardsString, 2);
+            }
+
+            // Вычисляем счёт используя метод из Player
+            $score = Player::calculateScore($cards);
+            
+            return ['score' => $score];
+        }
+        return ['error' => 242];
+    }
 }
 ?>

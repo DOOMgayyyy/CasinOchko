@@ -151,6 +151,9 @@ class Server {
     async getUserStat(): Promise<TUserStats | null> {
     const result = await this.request<{ stats: TRawUserStats }>('getUserStat');
 
+
+    
+
     if (!result) {
         return null;
     }
@@ -163,8 +166,21 @@ class Server {
         totalMoney: Number(totalbalance),
         totalHours: totalhours ? Number(totalhours) : 0
     };
-}
+    }
 
+    // Метод для вычисления счёта карт через сервер
+    async calculateUserScore(cardsString: string): Promise<number | null> {
+        // Отправляем строку карт напрямую на сервер
+        const result = await this.request<{ score: number }>('calculateScore', { 
+            cards: cardsString 
+        });
+        
+        if (result && typeof result.score === 'number') {
+            return result.score;
+        }
+        
+        return null;
+    }
 
 
     async addBalance(amount: number): Promise<{ ok: boolean; newBalance?: number }> {

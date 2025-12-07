@@ -35,8 +35,10 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     let interval: NodeJS.Timeout | null = null;
 
     // Состояние игры из сервера
-    const [myCards, setMyCards] = useState<string[]>([]);
+    const [myCards, setMyCards] = useState<string>('');
+    const [myScore, setMyScore] = useState<number>(0);
     const [players, setPlayers] = useState<TPlayer[]>([]);
+    const [playersScores, setPlayersScores] = useState<{ [memberId: number]: number }>({});
     const [timer, setTimer] = useState<number | null>(null);
     const [currentPlayerId, setCurrentPlayerId] = useState<number | null>(null);
     const [myMemberId, setMyMemberId] = useState<number | null>(null);
@@ -208,14 +210,41 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         }
 
         // Функция обработки обновлений игры
-        const handleGameUpdate = (roomInfo: TRoomInfoResponse) => {
+        const handleGameUpdate = async (roomInfo: TRoomInfoResponse) => {
             // Всегда обновляем таймер (он всегда присутствует)
             setTimer(roomInfo.timer);
             
             // Обновляем остальные данные только если они пришли (при полном обновлении)
-            // Используем проверку на undefined, так как пустые массивы тоже валидны
-            if (roomInfo.myCards !== undefined) setMyCards(roomInfo.myCards);
-            if (roomInfo.players !== undefined) setPlayers(roomInfo.players);
+            if (roomInfo.myCards !== undefined) {
+                setMyCards(roomInfo.myCards);
+                // Вычисляем счёт моих карт через сервер
+                if (roomInfo.myCards && roomInfo.myCards.length > 0) {
+                    const score = await server.calculateUserScore(roomInfo.myCards);
+                    if (score !== null) {
+                        setMyScore(score);
+                    }
+                } else {
+                    setMyScore(0);
+                }
+            }
+            
+            if (roomInfo.players !== undefined) {
+                setPlayers(roomInfo.players);
+                // Вычисляем счёт для каждого игрока через сервер
+                const scores: { [memberId: number]: number } = {};
+                for (const player of roomInfo.players) {
+                    if (player.cards && player.cards.length > 0) {
+                        const score = await server.calculateUserScore(player.cards);
+                        if (score !== null) {
+                            scores[player.memberId] = score;
+                        }
+                    } else {
+                        scores[player.memberId] = 0;
+                    }
+                }
+                setPlayersScores(scores);
+            }
+            
             if (roomInfo.currentPlayerId !== undefined) setCurrentPlayerId(roomInfo.currentPlayerId);
             
             // Находим себя в списке игроков
@@ -261,7 +290,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                     const position = positions[index] || 'left-top';
                     const isCurrentPlayer = myMemberId !== null && player.memberId === myMemberId;
                     const isActiveTurn = currentPlayerId === player.memberId;
-                    const score = player.cards.length * 5; // Реализовать правильный расчет очков
+                    const score = playersScores[player.memberId] ?? 0;
                     
                     return (
                         <div 
@@ -294,8 +323,9 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                         <span className="your-cards-label">Ваши карты:</span>
                     </div>
                     <div className="my-cards">
-                        {myCards.length > 0 ? (
-                            myCards.map((card, index) => {
+                        {myCards && myCards.length > 0 ? (
+                            // Преобразуем строку карт в массив по 2 символа
+                            myCards.match(/.{1,2}/g)?.map((card, index) => {
                                 const cardImage = getCardImage(card);
                                 return (
                                     <div className="card" key={index}>
@@ -343,7 +373,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         {!isSpectator && (
             <div className='count-div'>
                 <span className='count-span'>Ваши очки:</span>
-                <span className='count-number'>{myCards.length * 5}</span>
+                <span className='count-number'>{myScore}</span>
             </div>
         )}
 
