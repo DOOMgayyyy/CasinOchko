@@ -307,6 +307,41 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                     );
                 })}
             </div>
+
+            {/* карты игроков на столе */}
+            <div className="table-cards-container">
+                {players.map((player, index) => {
+                    const positions = ['left-top', 'left-middle', 'left-bottom', 'right-bottom', 'right-middle', 'right-top'];
+                    const position = positions[index] || 'left-top';
+                    const playerCards = player.cards ? player.cards.match(/.{1,2}/g) : [];
+                    
+                    return (
+                        <div 
+                            className={`table-player-cards ${position}`} 
+                            key={`table-cards-${player.memberId}`}
+                        >
+                            {playerCards && playerCards.length > 0 ? (
+                                playerCards.map((card, cardIndex) => {
+                                    const cardImage = getCardImage(card);
+                                    return (
+                                        <div 
+                                            className="table-card" 
+                                            key={cardIndex}
+                                            style={{ animationDelay: `${cardIndex * 0.2}s` }}
+                                        >
+                                            {cardImage ? (
+                                                <img src={cardImage} alt={card} />
+                                            ) : (
+                                                <span>{card}</span>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            ) : null}
+                        </div>
+                    );
+                })}
+            </div>
              {/* дилер */}
              <div className='diller-slot'>
                 <span className="diller-name">Дилер: </span>
