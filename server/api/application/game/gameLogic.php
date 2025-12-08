@@ -4,7 +4,7 @@ class GameLogic {
     private $db;
 
     const BET_TIMEOUT_S = 5;
-    const ACTION_TIMEOUT_S = 15;
+    const ACTION_TIMEOUT_S = 600;
     const FULL_TIMEOUT_S = 600;
 
     public function __construct($db) {
@@ -37,8 +37,7 @@ class GameLogic {
         // Всегда возвращаем полную информацию для игры
         $players = $this->getPlayersInfo($roomId);
         $myCards = $this->getUserCards($roomId, $userId);
-        $dealerCards = !empty($room->dealerCards) ? str_split($room->dealerCards, 2) : [];
-        
+        $dealerCards = !empty($room->dealerCards) ? $room->dealerCards: '';        
         return [
             'players' => $players,
             'myCards' => $myCards,
@@ -148,10 +147,7 @@ class GameLogic {
         $players = [];
 
         foreach ($members as $member) {
-            $cards = [];
-            if (!empty($member->cards)) {
-                $cards = str_split($member->cards, 2);
-            }
+            $cards = $member->cards ?? '';
 
             $players[] = [
                 'memberId' => $member->member_id,
