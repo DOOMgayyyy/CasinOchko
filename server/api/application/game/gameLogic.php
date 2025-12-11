@@ -4,7 +4,7 @@ class GameLogic {
     private $db;
 
     const BET_TIMEOUT_S = 30;
-    const ACTION_TIMEOUT_S = 15;
+    const ACTION_TIMEOUT_S = 600;
     const FULL_TIMEOUT_S = 600;
 
     public function __construct($db) {
@@ -56,11 +56,11 @@ class GameLogic {
             'players' => $players,
             'myCards' => $myCards,
             'dealerCards' => $dealerCards,
-            'userId' => $userId,
+            'userId' => (int)$userId,
             'timer' => $timer,
             'status' => $room->status,
             'hash' => $currentHash,
-            'currentMemberId' => $currentMemberId,
+            'currentMemberId' => $currentMemberId ? (int)$currentMemberId : null,
             'changed' => true
         ];
     }
@@ -165,8 +165,8 @@ class GameLogic {
             $cards = $member->cards ?? '';
             
             $players[] = [
-                'memberId' => $member->member_id,
-                'userId' => $member->user_id, 
+                'memberId' => (int)$member->member_id,
+                'userId' => (int)$member->user_id, 
                 'name' => $member->name,
                 'balance' => (int)$member->balance,
                 'bet' => (int)$member->bet,
