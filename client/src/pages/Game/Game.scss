@@ -360,11 +360,11 @@
 
 .my-cards {
   position: absolute;
-  right: -2.5%;
-  bottom: 6%;
+  right: -150px;
+  bottom: 5%;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0;
   pointer-events: none;
   z-index: 8;
 
@@ -383,7 +383,11 @@
       object-fit: cover;
     }
   }
+  // Сдвиг карт для перекрытия (веер)
   .card:nth-child(2) { transform: translateX(-87px); }
+  .card:nth-child(3) { transform: translateX(-174px); }
+  .card:nth-child(4) { transform: translateX(-261px); }
+  .card:nth-child(5) { transform: translateX(-348px); }
 }
 
 // Контейнер для карт на столе
