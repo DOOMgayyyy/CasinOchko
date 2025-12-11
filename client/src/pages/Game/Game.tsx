@@ -11,21 +11,10 @@ import chatIcon from '../../assets/img/chat_bubble.svg';
 import './Game.scss';
 import Chat from '../Chat/Chat';
 import SnowEffect from '../../components/SnowEffect/SnowEffect';
+import useGetCardImage from './hooks/useGetCardImage';
 
 
 const GAME_FIELD = 'game-field';
-
-// Функция для получения пути к изображению карты
-const getCardImage = (cardCode: string): string => {
-    try {
-        const image = require(`../../assets/img/deckOfCards/${cardCode}.png`);
-        return typeof image === 'string' ? image : image.default || image;
-    } catch (error) {
-        // Если изображение не найдено, возвращаем пустую строку
-        console.warn(`Card image not found: ${cardCode}`);
-        return '';
-    }
-};
 
 const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const { setPage } = props;
@@ -50,6 +39,9 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const [showBetModal, setShowBetModal] = useState(false);
     const [currentBet, setCurrentBet] = useState(0);
     const betInputRef = useRef<HTMLInputElement>(null);
+    
+    // Мемоизированная функция для получения изображений карт
+    const getCardImage = useMemo(useGetCardImage, []);
     
     // Получаем roomId из store
     const roomId = store.getCurrentRoomId();
