@@ -204,45 +204,44 @@ startChatMessages(cb: (hash: string) => void, roomId?: number | null): void {
         return null;
     }
 
+    async addBalance(amount: number): Promise<number | null> {
+    // ожидаем, что сервер может вернуть balance числом ИЛИ строкой
+    const result = await this.request<{ balance: number | string }>(
+        'addBalance',
+        { amount: String(amount) }
+    );
 
-    async addBalance(amount: number): Promise<{ ok: boolean; newBalance?: number }> {
-        const result = await this.request<{ balance: number }>('addBalance', { amount: String(amount) });
+    if (result && result.balance !== undefined) {
+        const numericBalance = Number(result.balance);
 
-        if (result && typeof result.balance === 'number') {
+        if (!isNaN(numericBalance)) {
             const user = this.store.getUser();
             if (user) {
-                this.store.setUser({ ...user, balance: result.balance });
+                this.store.setUser({ ...user, balance: numericBalance });
             }
-            return { ok: true, newBalance: result.balance };
+            return numericBalance;
         }
-
-        return { ok: false };
     }
+
+    return null;
+}
 
 
     async getUserBalance(): Promise<number | null> {
-        // 1. Изменяем ожидаемый тип: balance может быть строкой ИЛИ числом
         const result = await this.request<{ balance: number | string }>('getUserBalance');
 
-        // 2. Проверяем, что balance существует (как строка или число)
-        if (result && (typeof result.balance === 'number' || typeof result.balance === 'string')) {
-
-            // 3. Принудительно конвертируем в число
+        if (result && result.balance !== undefined) {
             const numericBalance = Number(result.balance);
 
-            // 4. Проверяем, что конвертация прошла успешно (не NaN)
             if (!isNaN(numericBalance)) {
                 const user = this.store.getUser();
                 if (user) {
-                    // Сохраняем в store уже число
                     this.store.setUser({ ...user, balance: numericBalance });
                 }
-                // 5. Возвращаем ЧИСЛО
                 return numericBalance;
             }
         }
 
-        // Если проверка не удалась, возвращаем null
         return null;
     }
 

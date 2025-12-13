@@ -5,6 +5,7 @@ import { IBasePage, PAGES } from '../PageManager';
 import { StoreContext, ServerContext } from '../../App';
 
 import AdReward from './AdReward/AdReward'; 
+import adVideo from '../../assets/ads/ad.mp4';
 import MenuIcon from '../../assets/img/toppanel/sidebarmenu.png';
 import SnowEffect from '../../components/SnowEffect/SnowEffect';
 import garlandImg from '../../assets/img/HNY/garland.svg';
@@ -134,7 +135,7 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     // Общий компонент AdReward для переиспользования
     const adModalComponent = showAdModal && (
         <AdReward
-            videoUrl={video}
+            videoUrl={adVideo}
             onClose={() => setShowAdModal(false)}
             onSuccess={handleAdSuccess}
         />
@@ -159,11 +160,20 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                     <span className="balance-text">Ваш баланс: </span>
                     <span className="balance-amount">${player.balance}</span>
                     
-                    <button 
-                        className="add-money-btn" 
-                        onClick={() => setShowAdModal(true)}
-                    >
-                    </button>
+                <button
+                className="add-money-btn"
+                onClick={() => {
+                    if (player.balance < 1000) {
+                        setShowAdModal(true);
+                    } else {
+                        server.showErrorCb?.({
+                            code: 2001,
+                            text: 'Ваш баланс ≥ 1000. Просмотр рекламы недоступен.',
+                        });
+                    }
+                }}
+                >
+                </button>
                 </div>
             </header>
 

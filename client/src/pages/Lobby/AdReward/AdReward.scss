@@ -51,7 +51,7 @@
   margin: 10px 0 5px 0;
 
   b {
-    color: #ffcc00; // золотистый оттенок под "казино"
+    color: #ffcc00; 
   }
 
   &.disabled {
@@ -66,6 +66,14 @@
     font-size: 20px;
   }
 }
+    .ad-reward-error {
+      margin-top: 8px;
+      color: #ff4444;
+      font-family: 'Handjet', monospace;
+      font-size: 20px;
+      text-align: center;
+    }
+
 
     .video-wrap {
       position: relative;
@@ -121,7 +129,7 @@
         .volume {
           -webkit-appearance: none;
           appearance: none;
-          flex: 1;
+          width: 95px;
           height: 6px;
           border-radius: 6px;
           background: #2a2a2a;

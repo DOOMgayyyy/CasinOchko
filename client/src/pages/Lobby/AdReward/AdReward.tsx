@@ -2,225 +2,173 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { ServerContext } from '../../../App';
 import './AdReward.scss';
 
+import soundOffIcon from '../../../assets/img/icons/sound-off.png';
+import soundOnIcon from '../../../assets/img/icons/sound-on.png';
+
+
 type Props = {
   onClose: () => void;
   onSuccess: (newBalance: number) => void;
   videoUrl: string;
 };
 
+const REWARD_AMOUNT = 100;
+const MAX_BALANCE_FOR_AD = 1000;
+
 const AdReward: React.FC<Props> = ({ onClose, onSuccess, videoUrl }) => {
   const server = useContext(ServerContext);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const lastTimeRef = useRef(0);
-  const durationRef = useRef(0);
-  const [isEligible, setIsEligible] = useState<boolean | null>(null);
+
   const [balance, setBalance] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [muted, setMuted] = useState(true);
-  const [volume, setVolume] = useState(0.6);
-  const [watchedToEnd, setWatchedToEnd] = useState(false);
+  const [isEligible, setIsEligible] = useState<boolean>(false);
+  const [isVideoEnded, setIsVideoEnded] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const ERROR_CODES = {
-    NOT_ELIGIBLE: 2001,
-    VIDEO_NOT_WATCHED: 2002,
-    TOPUP_FAIL: 2003,
-    LOAD_BALANCE_FAIL: 2004,
-  };
-
-  const fetchUserBalance = async (): Promise<number | null> => {
-    const balance = await server.getUserBalance();
-    return typeof balance === 'number' ? balance : null;
-  };
-
-  const topupByAd = async (): Promise<{ ok: boolean; newBalance?: number }> => {
-    const resp = await server.addBalance(100);
-    return resp || { ok: false };
-  };
+  const [muted, setMuted] = useState<boolean>(true);
+  const [volume, setVolume] = useState<number>(0.6);
 
   useEffect(() => {
     let isMounted = true;
-    (async () => {
-      setIsLoading(true);
-      const b = await fetchUserBalance();
-      if (!isMounted) return;
 
-      if (b === null) {
-        server.showErrorCb?.({
-          code: ERROR_CODES.LOAD_BALANCE_FAIL,
-          text: 'Не удалось получить баланс. Попробуйте позже.',
-        });
-        setIsEligible(false);
-      } else {
-        setBalance(b);
-        setIsEligible(b < 1000);
-        if (b >= 1000) {
-          server.showErrorCb?.({
-            code: ERROR_CODES.NOT_ELIGIBLE,
-            text: 'Ваш баланс ≥ 1000. Просмотр рекламы недоступен.',
-          });
-        }
+    const loadBalance = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      const currentBalance = await server.getUserBalance();
+
+      if (!isMounted) {
+        return;
       }
+
+      if (typeof currentBalance === 'number') {
+        setBalance(currentBalance);
+
+        const eligible = currentBalance < MAX_BALANCE_FOR_AD;
+        setIsEligible(eligible);
+
+        if (!eligible) {
+          setError('Реклама доступна только при балансе меньше 1000');
+        }
+      } else {
+        setError('Не удалось получить баланс. Попробуйте позже.');
+      }
+
       setIsLoading(false);
-    })();
+    };
+
+    loadBalance();
+
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [server]);
 
-  const onLoadedMetadata = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    durationRef.current = v.duration || 0;
-    v.currentTime = 0;
-    lastTimeRef.current = 0;
-    v.muted = muted;
-    v.volume = volume;
-    v.play().catch(() => {});
+  const handleLoadedMetadata = () => {
+    const player = videoRef.current;
+    if (!player) return;
+
+    player.muted = muted;
+    player.volume = volume;
+
+    player.play().catch(() => {
+    });
   };
 
-  const onTimeUpdate = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    const now = v.currentTime;
-
-    if (now - lastTimeRef.current > 1.25) {
-      v.currentTime = lastTimeRef.current;
-      return;
-    }
-    lastTimeRef.current = now;
+  const handleEnded = () => {
+    setIsVideoEnded(true);
+    setError(null);
   };
 
-  const onSeeking = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.currentTime = lastTimeRef.current;
-  };
+  const handleToggleMute = () => {
+    const player = videoRef.current;
+    const nextMuted = !muted;
 
-  const onPause = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (!v.ended) {
-      v.play().catch(() => {});
+    setMuted(nextMuted);
+
+    if (player) {
+      player.muted = nextMuted;
     }
   };
 
-  const onEnded = async () => {
-    const v = videoRef.current;
-    if (!v) return;
+  const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextVolume = parseFloat(event.target.value);
+    const player = videoRef.current;
 
-    const duration =
-      (typeof durationRef.current === 'number' && durationRef.current) ||
-      v.duration ||
-      0;
+    setVolume(nextVolume);
 
-    const watched = v.currentTime >= Math.max(0, duration - 0.4);
+    if (player) {
+      player.volume = nextVolume;
 
-    if (!watched) {
-      server.showErrorCb?.({
-        code: ERROR_CODES.VIDEO_NOT_WATCHED,
-        text: 'Видео нужно досмотреть до конца.',
-      });
-      return;
-    }
-
-    setWatchedToEnd(true);
-
-    if (!isEligible) {
-      server.showErrorCb?.({
-        code: ERROR_CODES.NOT_ELIGIBLE,
-        text: 'Баланс не подходит для пополнения через рекламу.',
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    const resp = await topupByAd();
-    setIsLoading(false);
-
-    if (resp.ok) {
-      const newB =
-        typeof resp.newBalance === 'number' ? resp.newBalance : balance ?? 0;
-      onSuccess(newB);
-      onClose();
-    } else {
-      server.showErrorCb?.({
-        code: ERROR_CODES.TOPUP_FAIL,
-        text: 'Не удалось пополнить баланс. Попробуйте позже.',
-      });
-    }
-  };
-
-  const toggleMute = () => {
-    const v = videoRef.current;
-    const next = !muted;
-    setMuted(next);
-    if (v) v.muted = next;
-  };
-
-  const changeVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const next = parseFloat(e.target.value);
-    setVolume(next);
-    const v = videoRef.current;
-    if (v) {
-      v.volume = next;
-      if (next > 0) {
-        v.muted = false;
+      if (nextVolume > 0) {
+        player.muted = false;
         setMuted(false);
       } else {
-        v.muted = true;
+        player.muted = true;
         setMuted(true);
       }
     }
   };
 
-  const disableAll = isLoading || isEligible === null;
+  const handleGetReward = async () => {
+    if (!isVideoEnded || !isEligible) {
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    const newBalance = await server.addBalance(REWARD_AMOUNT);
+
+    setIsLoading(false);
+
+    if (typeof newBalance === 'number') {
+      onSuccess(newBalance);
+      onClose();
+    } else {
+      setError('Не удалось пополнить баланс. Попробуйте позже.');
+    }
+  };
+
+  const disableControls = isLoading;
 
   return (
     <div className="ad-reward">
       <div className="ad-reward-card">
         <h2 className="ad-reward-title">Просмотр рекламы</h2>
 
-        {isEligible === false && (
-          <div className="ad-reward-note disabled">
-            Баланс: <b>${balance ?? '—'}</b>
-            <br />
-            <span>Реклама доступна только при балансе меньше 1000</span>
-          </div>
+        {!isEligible && error && (
+            <div className="ad-reward-error">{error}</div>
         )}
 
         <div className="video-wrap">
           <video
             ref={videoRef}
             className="ad-video"
-            src={videoUrl}
+            src={videoUrl}  
             playsInline
-            controls={false}
             muted={muted}
             autoPlay
-            onLoadedMetadata={onLoadedMetadata}
-            onTimeUpdate={onTimeUpdate}
-            onSeeking={onSeeking}
-            onPause={onPause}
-            onEnded={onEnded}
+            controls={false}
+            onLoadedMetadata={handleLoadedMetadata}
+            onEnded={handleEnded}
           />
+
           <div className="custom-controls">
             <button
               className="btn-sound"
               type="button"
-              onClick={toggleMute}
-              disabled={disableAll}
+              onClick={handleToggleMute}
+              disabled={disableControls}
               aria-label={muted ? 'Включить звук' : 'Выключить звук'}
               title={muted ? 'Включить звук' : 'Выключить звук'}
             >
-              <img
-                src={
-                  muted
-                    ? require('../../../assets/img/icons/sound-off.png')
-                    : require('../../../assets/img/icons/sound-on.png')
-                }
-                alt={muted ? 'Звук выключен' : 'Звук включен'}
-                className="sound-icon"
+
+            <img
+              src={muted ? soundOffIcon : soundOnIcon}
+              alt={muted ? 'Звук выключен' : 'Звук включен'}
+              className="sound-icon"
               />
             </button>
 
@@ -231,11 +179,13 @@ const AdReward: React.FC<Props> = ({ onClose, onSuccess, videoUrl }) => {
               max={1}
               step={0.01}
               value={volume}
-              onChange={changeVolume}
-              disabled={disableAll}
+              onChange={handleVolumeChange}
+              disabled={disableControls}
             />
           </div>
         </div>
+
+        {error && <div className="ad-reward-error">{error}</div>}
 
         <div className="actions">
           <button
@@ -251,15 +201,10 @@ const AdReward: React.FC<Props> = ({ onClose, onSuccess, videoUrl }) => {
           <button
             type="button"
             className="btn-submit"
-            disabled={
-              isLoading ||
-              isEligible === false ||
-              isEligible === null ||
-              !watchedToEnd
-            }
-            onClick={onEnded}
+            onClick={handleGetReward}
+            disabled={!isEligible || !isVideoEnded || isLoading}
           >
-            <span>{watchedToEnd ? 'зачислить' : 'сначала досмотрите'}</span>
+            <span>{isVideoEnded ? 'зачислить' : 'сначала досмотрите'}</span>
             <span className="arrow">&gt;</span>
           </button>
         </div>
