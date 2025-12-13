@@ -1,2 +1,8 @@
 /analitic
-/cliete/node_modules
+/client/node_modules
+/example
+node_modules
+.DS_Store
+*.log
+build
+dist

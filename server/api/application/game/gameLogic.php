@@ -7,6 +7,7 @@ class GameLogic {
     const ACTION_TIMEOUT_S = 15;
     const RESULTS_TIMEOUT_S = 200;
     const FULL_TIMEOUT_S = 600;
+    const RESULTS_TIMEOUT_S = 10;
 
     public function __construct($db) {
         $this->db = $db;

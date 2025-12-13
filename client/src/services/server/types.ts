@@ -71,6 +71,7 @@ export type TPlayer = {
 export type TRoomInfoResponse = {
     players?: TPlayer[];
     myCards?: string;
+    dealerCards?: string;  // Карты дилера
     timer: number | null;  // Количество секунд, оставшихся на ход (или null)
     hash: string;
     currentPlayerId?: number | null;  // ID игрока, чей сейчас ход
