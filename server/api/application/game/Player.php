@@ -295,12 +295,11 @@ class Player {
         $this->db->resetCurrentMember($roomId);
         $this->dealerTakeCard($roomId);
         $this->calculateAndPayResults($roomId);
-        $this->startNewRound($roomId);
     }
     
     private function finishRound($roomId) {
         $this->calculateAndPayResults($roomId);
-        $this->startNewRound($roomId);
+        
     }
 
     public function pass($roomId, $userId) {
