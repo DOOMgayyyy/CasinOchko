@@ -49,6 +49,8 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
 
     const [showSideMenu, setShowSideMenu] = useState(false);
     const [showAdModal, setShowAdModal] = useState(false);
+    const [nicknameClicks, setNicknameClicks] = useState(0);
+    const [clickTimeout, setClickTimeout] = useState<NodeJS.Timeout | null>(null);
 
     const handleQuickStart = async () => {
         const result = await server.quickStart();
@@ -75,6 +77,28 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
             if (currentUser) {
                 store.setUser({ ...currentUser, balance: newBalance });
             }
+        }
+    };
+
+    const handleNicknameClick = () => {
+        // Сбрасываем предыдущий таймаут
+        if (clickTimeout) {
+            clearTimeout(clickTimeout);
+        }
+
+        const newClickCount = nicknameClicks + 1;
+        setNicknameClicks(newClickCount);
+
+        if (newClickCount >= 5) {
+            // Открываем пасхалку
+            setPage(PAGES.STORIES);
+            setNicknameClicks(0);
+        } else {
+            // Сбрасываем счетчик через 2 секунды
+            const timeout = setTimeout(() => {
+                setNicknameClicks(0);
+            }, 2000);
+            setClickTimeout(timeout);
         }
     };
 
@@ -128,7 +152,7 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
                 <div className="header-left">
                     <button className="menu-btn" onClick={() => setShowSideMenu(true)}><img src={MenuIcon}  /></button>
                     {/* 6. Данные берутся из 'player', полученного из store */}
-                    <span className="player-name">{player.name}</span>
+                    <span className="player-name" onClick={handleNicknameClick}>{player.name}</span>
                 </div>
 
                 <div className="header-right">

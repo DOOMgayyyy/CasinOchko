@@ -83,6 +83,18 @@
   font-family: 'Handjet', monospace;
   font-size: 32px;
   font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+
+  &:hover {
+    color: #FFB800;
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 .balance-text {

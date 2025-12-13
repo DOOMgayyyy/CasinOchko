@@ -57,9 +57,10 @@
 
       }
 
-      &.split-button {
-        border: 1px solid #8F8F8F;
-        color: #8F8F8F;
+      &.double-button {
+        border: 1px solid #FFB800;
+        color: #FFB800;
+        cursor: pointer;
       }
 
       &.stand-button {
@@ -87,13 +88,14 @@
         }
       }
 
-      // &.split-button {
-      //   &:hover {
-      //     background-color: #17a2b8;
-      //     border-color: #17a2b8;
-      //     color: #ffffff;
-      //   }
-      // }
+      &.double-button {
+        &:hover {
+          background-color: #FFB800;
+          border-color: #FFB800;
+          color: #ffffff;
+          transform: translateY(-2px);
+        }
+      }
 
     }
   }
@@ -258,6 +260,7 @@
   font-size: 20px;
   font-weight: 500;
   pointer-events: none;
+  z-index: 8;
 }
 
 .players .left-top     { top: 50%; left: 13%; }
@@ -269,25 +272,28 @@
 .players .right-bottom { top: 76%; right: 31%; }
 .players .balance { color: #FFC300; padding-left: 30px; padding-right: 30px;}
 
-.diller-slot  { top: 1.5%; left: 47%; }
+.diller-slot  { 
+  top: 1.5%; 
+  left: 47%; 
+}
 .diller-name  { padding-right: 20px;}
 
 // Карты дилера
 .dealer-cards {
   position: absolute;
-  top: 5%;
+  top: 13%;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   pointer-events: none;
-  z-index: 7;
+  z-index: 4;
   
   .dealer-card {
-    width: 70px;
-    height: 98px;
-    border-radius: 6px;
+    width: 56px;
+    height: 78px;
+    border-radius: 5px;
     overflow: hidden;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     pointer-events: none;
@@ -316,10 +322,10 @@
   }
 
   // Сдвиг карт для перекрытия (как веер)
-  .dealer-card:nth-child(2) { transform: translateX(-28px); }
-  .dealer-card:nth-child(3) { transform: translateX(-56px); }
-  .dealer-card:nth-child(4) { transform: translateX(-84px); }
-  .dealer-card:nth-child(5) { transform: translateX(-112px); }
+  .dealer-card:nth-child(2) { transform: translateX(-22px); }
+  .dealer-card:nth-child(3) { transform: translateX(-45px); }
+  .dealer-card:nth-child(4) { transform: translateX(-67px); }
+  .dealer-card:nth-child(5) { transform: translateX(-90px); }
 }
 
 @keyframes cardDealAnimation {
@@ -360,11 +366,11 @@
 
 .my-cards {
   position: absolute;
-  right: -150px;
-  bottom: 5%;
+  right: -2.5%;
+  bottom: 4%;
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 0px;
   pointer-events: none;
   z-index: 8;
 
@@ -383,11 +389,11 @@
       object-fit: cover;
     }
   }
-  // Сдвиг карт для перекрытия (веер)
+  .card:nth-child(1) { transform: translateX(-87px); }
   .card:nth-child(2) { transform: translateX(-87px); }
-  .card:nth-child(3) { transform: translateX(-174px); }
-  .card:nth-child(4) { transform: translateX(-261px); }
-  .card:nth-child(5) { transform: translateX(-348px); }
+  .card:nth-child(3) { transform: translateX(-87px); }
+  .card:nth-child(4) { transform: translateX(-87px); }
+  .card:nth-child(5) { transform: translateX(-87px); }
 }
 
 // Контейнер для карт на столе
@@ -516,11 +522,12 @@
 }
 
 .game-table-image {
+  position: relative;
+  top: 1px;
   width: 95%;
   height: auto;
   max-width: 1600px;
   object-fit: contain;
-  transform: translateY(-78px);
 }
 
 #game-field{

@@ -319,6 +319,24 @@ startChatMessages(cb: (hash: string) => void, roomId?: number | null): void {
         
         return result;
     }
+
+    // Отказаться от карты (пас)
+    async pass(roomId: number): Promise<{ success: boolean } | null> {
+        const result = await this.request<{ success: boolean }>('pass', { 
+            room_id: String(roomId)
+        });
+        
+        return result;
+    }
+
+    // Удвоить ставку (получить одну карту и завершить ход)
+    async doubleBet(roomId: number): Promise<TTakeCardResponse | null> {
+        const result = await this.request<{ success: boolean, card?: string, shouldPass?: boolean }>('doubleBet', { 
+            room_id: String(roomId)
+        });
+        
+        return result;
+    }
 } 
 
 export default Server;

@@ -11,6 +11,7 @@ import Lobby from './Lobby/Lobby';
 import Rules from './Rules/Rules';
 import Leaderboard from './Leaderboard/Leaderboard';
 import PrivateRoom from './Lobby/PrivateRoom/PrivateRoom';
+import Stories from './Stories/Stories';
 export enum PAGES {
     PRELOADER,
     LOGIN,
@@ -25,6 +26,7 @@ export enum PAGES {
     QUICK_GAME,
     RULES,
     AUTHORS,
+    STORIES,
 }
 
 export interface IBasePage {
@@ -46,6 +48,7 @@ const PageManager: React.FC = () => {
             {page === PAGES.RULES && <Rules setPage={setPage} />}
             {page === PAGES.LEADERBOARD && <Leaderboard setPage={setPage} />}
             {page === PAGES.PRIVATE_ROOM && <PrivateRoom setPage={setPage} />}
+            {page === PAGES.STORIES && <Stories setPage={setPage} />}
             {page === PAGES.NOT_FOUND && <NotFound setPage={setPage} />}
         </>
     );

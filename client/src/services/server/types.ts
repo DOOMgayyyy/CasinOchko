@@ -64,7 +64,7 @@ export type TPlayer = {
     balance: number;
     bet: number;
     cards: string;
-    status: 'spectator' | 'player' ;
+    status: 'spectator' | 'player' | 'bust' | 'push' | 'blackjack' | 'win' | 'lose';
 };
 
 // Ответ getInfoRoom
