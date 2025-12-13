@@ -3,8 +3,9 @@
 class GameLogic {
     private $db;
 
-    const BET_TIMEOUT_S = 30;
-    const ACTION_TIMEOUT_S = 600;
+    const BET_TIMEOUT_S = 5;
+    const ACTION_TIMEOUT_S = 15;
+    const RESULTS_TIMEOUT_S = 200;
     const FULL_TIMEOUT_S = 600;
 
     public function __construct($db) {
@@ -95,6 +96,20 @@ class GameLogic {
             return;
         }
 
+        // Фаза показа результатов (5 сек)
+        if ($room->status === 'show_results') {
+            $resultsPhaseExpired = ($timePassedSinceLastUpdate > self::RESULTS_TIMEOUT_S);
+
+            if ($resultsPhaseExpired) {
+                // Время показа результатов истекло - начинаем новый раунд
+                require_once 'Player.php';
+                $player = new Player($this->db);
+                $player->startNewRound($roomId);
+            }
+
+            return;
+        }
+
         // Проверка фазы ставок (30 сек)
         if (!$room->current_member_id && $room->status === 'waiting_for_bets') {
             $betPhaseExpired = ($timePassedSinceLastUpdate > self::BET_TIMEOUT_S);
@@ -130,7 +145,6 @@ class GameLogic {
                 }
             }
         }
-
         // Проверка хода игрока (15 сек)
         elseif ($room->current_member_id && $room->status === 'playing') {
             $currentPlayer = null;
@@ -193,6 +207,14 @@ class GameLogic {
     {
         $now = time();
         
+        // Фаза показа результатов (5 секунд)
+        if ($room->status === 'show_results') {
+            // Используем UTC для корректного парсинга времени из БД
+            $lastUpdateTimestamp = strtotime($room->last_update . ' UTC');
+            $timeElapsed = $now - $lastUpdateTimestamp;
+            return max(0, self::RESULTS_TIMEOUT_S - $timeElapsed);
+        }
+        
         // Фаза ставок
         if (!$room->current_member_id && $room->status === 'waiting_for_bets') {
             // Используем UTC для корректного парсинга времени из БД
@@ -213,4 +235,4 @@ class GameLogic {
         return null;
     }
 }
-?>
+

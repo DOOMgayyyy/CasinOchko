@@ -385,95 +385,116 @@ class Player {
         }
 
         $dealerCards = $this->parseCards($room->dealerCards);
+        
         while (self::calculateScore($dealerCards) < 17) {
             $newCard = $this->deck->getCard($roomId);
             if ($newCard === false) break;
             $dealerCards[] = $newCard;
         }
-        // Передаем массив, метод updateDealerCards сам преобразует в строку
+        
         $this->db->updateDealerCards($roomId, $dealerCards);
         return ['success' => true];
     }
-
+    
     public function calculateAndPayResults($roomId) {
         $room = $this->db->getRoom($roomId);
         if (!$room) {
             return ['success' => false, 'error' => 901];
         }
-
+        
         $dealerCards = $this->parseCards($room->dealerCards);
         $dealerScore = self::calculateScore($dealerCards);
         $dealerBust = $dealerScore > 21;
         $dealerBlackjack = self::isBlackjack($dealerCards);
-
+        
         $members = $this->db->getRoomMembers($roomId);
-
+        
         foreach ($members as $member) {
             if ($member->status !== 'player' || $member->bet == 0) {
                 continue;
             }
-
+            
             $playerCards = $this->parseCards($member->cards);
             $playerScore = self::calculateScore($playerCards);
             $playerBust = $playerScore > 21;
             $playerBlackjack = self::isBlackjack($playerCards);
-
+            
             $winAmount = 0;
-
+            $resultStatus = 'lose';
+            
             if ($playerBust) {
                 // Игрок перебрал - проигрыш
+                $resultStatus = 'bust';
                 $winAmount = 0;
             } elseif ($playerBlackjack && $dealerBlackjack) {
                 // Оба блэкджек - возврат ставки (push)
+                $resultStatus = 'push';
                 $winAmount = $member->bet;
             } elseif ($playerBlackjack) {
                 // Блэкджек игрока - выплата 3:2
+                $resultStatus = 'blackjack';
                 $winAmount = $member->bet * 2.5;
             } elseif ($dealerBust) {
                 // Дилер перебрал - игрок выигрывает
+                $resultStatus = 'win';
                 $winAmount = $member->bet * 2;
             } elseif ($playerScore > $dealerScore) {
                 // Игрок больше - выигрыш
+                $resultStatus = 'win';
                 $winAmount = $member->bet * 2;
             } elseif ($playerScore == $dealerScore) {
                 // Ничья (push) - возврат ставки
+                $resultStatus = 'push';
                 $winAmount = $member->bet;
+            } else {
+                $resultStatus = 'lose';
+                $winAmount = 0;
             }
-            // Иначе ($playerScore < $dealerScore) - проигрыш, winAmount = 0
-
+            
+            // Устанавливаем статус результата
+            $this->db->updateMemberStatus($roomId, $member->user_id, $resultStatus);
+            
+            // Начисляем выигрыш
             if ($winAmount > 0) {
                 $this->db->updateBalance($member->user_id, $winAmount);
             }
         }
-
+        
+        // Переводим комнату в фазу показа результатов
+        $this->db->updateRoomStatus($roomId, 'show_results');
         $this->db->updateRoomAction($roomId);
+        
         return ['success' => true];
     }
-
+    
     public function startNewRound($roomId) {
         $members = $this->db->getRoomMembers($roomId);
+        
         foreach ($members as $member) {
+            // Очищаем карты и ставки
             $this->db->updateMemberCards($roomId, $member->user_id, []);
             $this->db->updateMemberBet($roomId, $member->user_id, 0);
+            
+            // Сбрасываем всех в spectator (включая win/lose/blackjack/push/bust)
             $this->db->updateMemberStatus($roomId, $member->user_id, 'spectator');
         }
-
+        
         $this->db->updateDealerCards($roomId, '');
         $this->db->setCurrentPlayer($roomId, null);
         $this->db->updateRoomStatus($roomId, 'waiting');
         $this->db->updateRoomAction($roomId);
+        
         return ['success' => true];
     }
-
+    
     // ============================================================
     // HELPERS
     // ============================================================
-
+    
     private function parseCards($cardsString) {
         if (empty($cardsString)) {
             return [];
         }
-
         return str_split($cardsString, 2);
     }
 }

@@ -78,7 +78,7 @@ INSERT INTO `roommembers` (`id`, `roomid`, `userid`, `status`, `bet`, `cards`) V
 CREATE TABLE `rooms` (
   `id` bigint UNSIGNED NOT NULL,
   `type` enum('open','private') NOT NULL,
-  `status` enum('waiting','waiting_for_bets','playing','closed') NOT NULL DEFAULT 'waiting',
+  `status` enum('waiting','waiting_for_bets','playing','show_results','closed') NOT NULL DEFAULT 'waiting',
   `current_member_id` bigint UNSIGNED DEFAULT NULL,
   `privatecode` varchar(10) DEFAULT NULL,
   `hash` varchar(255) DEFAULT NULL,
