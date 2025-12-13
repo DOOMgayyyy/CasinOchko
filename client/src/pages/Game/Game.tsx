@@ -11,22 +11,14 @@ import chatIcon from '../../assets/img/chat_bubble.svg';
 import './Game.scss';
 import Chat from '../Chat/Chat';
 import SnowEffect from '../../components/SnowEffect/SnowEffect';
+<<<<<<< HEAD
 import GameResultModal, { GameResultStatus } from '../../components/GameResultModal/GameResultModal';
+=======
+import useGetCardImage from './hooks/useGetCardImage';
+>>>>>>> 7a19073ebfeffa8431db9510dfffe638acd52683
 
 
 const GAME_FIELD = 'game-field';
-
-// Функция для получения пути к изображению карты
-const getCardImage = (cardCode: string): string => {
-    try {
-        const image = require(`../../assets/img/deckOfCards/${cardCode}.png`);
-        return typeof image === 'string' ? image : image.default || image;
-    } catch (error) {
-        // Если изображение не найдено, возвращаем пустую строку
-        console.warn(`Card image not found: ${cardCode}`);
-        return '';
-    }
-};
 
 const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const { setPage } = props;
@@ -39,6 +31,8 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     // Состояние игры из сервера
     const [myCards, setMyCards] = useState<string>('');
     const [myScore, setMyScore] = useState<number>(0);
+    const [dealerCards, setDealerCards] = useState<string>('');
+    const [dealerScore, setDealerScore] = useState<number>(0);
     const [players, setPlayers] = useState<TPlayer[]>([]);
     const [playersScores, setPlayersScores] = useState<{ [memberId: number]: number }>({});
     const [timer, setTimer] = useState<number | null>(null);
@@ -58,6 +52,9 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     } | null>(null);
     const lastResultShown = useRef<string | null>(null);
     
+    // Мемоизированная функция для получения изображений карт
+    const getCardImage = useMemo(useGetCardImage, []);
+    
     // Получаем roomId из store
     const roomId = store.getCurrentRoomId();
     const user = store.getUser();
@@ -68,22 +65,39 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         }
 
         const result = await server.takeUserCard(roomId);
+<<<<<<< HEAD
       };
     
       const handleStand = async () => {
         if (!roomId || !user) {
           return;
+=======
+        
+        if (result && result.success) {
+          if (result.shouldPass) {
+            // Автоматический пас при переборе или 5 картах
+          }
+>>>>>>> 7a19073ebfeffa8431db9510dfffe638acd52683
         }
 
         const result = await server.pass(roomId);
       };
     
+<<<<<<< HEAD
       const handleDouble = async () => {
         if (!roomId || !user) {
           return;
         }
 
         const result = await server.doubleBet(roomId);
+=======
+      const handleStand = () => {
+        // Логика для завершения хода
+      };
+    
+      const handleSplit = () => {
+        // Логика для сплита
+>>>>>>> 7a19073ebfeffa8431db9510dfffe638acd52683
       };
     
       const handleBet = () => {
@@ -222,7 +236,12 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         }
 
         // Функция обработки обновлений игры
+<<<<<<< HEAD
         const handleGameUpdate = async (roomInfo: TRoomInfoResponse) => {            
+=======
+        const handleGameUpdate = async (roomInfo: TRoomInfoResponse) => {
+            
+>>>>>>> 7a19073ebfeffa8431db9510dfffe638acd52683
             // Всегда обновляем таймер (он всегда присутствует)
             setTimer(roomInfo.timer);
             
@@ -231,12 +250,28 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                 setMyCards(roomInfo.myCards);
                 // Вычисляем счёт моих карт через сервер
                 if (roomInfo.myCards && roomInfo.myCards.length > 0) {
-                    const score = await server.calculateUserScore(roomInfo.myCards);
-                    if (score !== null) {
-                        setMyScore(score);
-                    }
+                    server.calculateUserScore(roomInfo.myCards).then(score => {
+                        if (score !== null) {
+                            setMyScore(score);
+                        }
+                    });
                 } else {
                     setMyScore(0);
+                }
+            }
+            
+            // Обновляем карты дилера
+            if (roomInfo.dealerCards !== undefined) {
+                setDealerCards(roomInfo.dealerCards);
+                // Вычисляем счёт карт дилера через сервер
+                if (roomInfo.dealerCards && roomInfo.dealerCards.length > 0) {
+                    server.calculateUserScore(roomInfo.dealerCards).then(score => {
+                        if (score !== null) {
+                            setDealerScore(score);
+                        }
+                    });
+                } else {
+                    setDealerScore(0);
                 }
             }
             
@@ -246,10 +281,12 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                 const scores: { [memberId: number]: number } = {};
                 for (const player of roomInfo.players) {
                     if (player.cards && player.cards.length > 0) {
-                        const score = await server.calculateUserScore(player.cards);
-                        if (score !== null) {
-                            scores[player.memberId] = score;
-                        }
+                        server.calculateUserScore(player.cards).then(score => {
+                            if (score !== null) {
+                                scores[player.memberId] = score;
+                                setPlayersScores({...scores});
+                            }
+                        });
                     } else {
                         scores[player.memberId] = 0;
                     }
@@ -380,8 +417,33 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
              {/* дилер */}
              <div className='diller-slot'>
                 <span className="diller-name">Дилер: </span>
-                <span className="diller-score">21</span>
+                {dealerCards && dealerCards.length > 0 && (
+                    <span className="diller-score">{dealerScore}</span>
+                )}
             </div>
+            
+            {/* карты дилера */}
+            <div className="dealer-cards">
+                {dealerCards && dealerCards.length > 0 ? (
+                    dealerCards.match(/.{1,2}/g)?.map((card, index) => {
+                        const cardImage = getCardImage(card);
+                        return (
+                            <div 
+                                className="dealer-card" 
+                                key={index}
+                                style={{ animationDelay: `${index * 0.2}s` }}
+                            >
+                                {cardImage ? (
+                                    <img src={cardImage} alt={card} />
+                                ) : (
+                                    <span>{card}</span>
+                                )}
+                            </div>
+                        );
+                    })
+                ) : null}
+            </div>
+            
             {/* лого снизу */}
             <div className="game-brand-logo" aria-label="CASINOCHKO">
                 <span className="brand-white">CASIN</span>
