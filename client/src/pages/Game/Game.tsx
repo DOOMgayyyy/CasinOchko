@@ -11,6 +11,7 @@ import chatIcon from '../../assets/img/chat_bubble.svg';
 import './Game.scss';
 import Chat from '../Chat/Chat';
 import SnowEffect from '../../components/SnowEffect/SnowEffect';
+import GameResultModal, { GameResultStatus } from '../../components/GameResultModal/GameResultModal';
 
 
 const GAME_FIELD = 'game-field';
@@ -50,6 +51,12 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const [showBetModal, setShowBetModal] = useState(false);
     const [currentBet, setCurrentBet] = useState(0);
     const betInputRef = useRef<HTMLInputElement>(null);
+    const [showResultModal, setShowResultModal] = useState(false);
+    const [gameResult, setGameResult] = useState<{
+        status: GameResultStatus;
+        betAmount: number;
+    } | null>(null);
+    const lastResultShown = useRef<string | null>(null);
     
     // Получаем roomId из store
     const roomId = store.getCurrentRoomId();
@@ -61,24 +68,22 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         }
 
         const result = await server.takeUserCard(roomId);
-        
-        if (result && result.success) {
-          console.log('Card taken:', result.card);
-          
-          if (result.shouldPass) {
-            console.log('Bust or max cards reached, should pass turn');
-          }
+      };
+    
+      const handleStand = async () => {
+        if (!roomId || !user) {
+          return;
         }
+
+        const result = await server.pass(roomId);
       };
     
-      const handleStand = () => {
-        console.log('Stand button clicked');
-        // Логика для завершения хода
-      };
-    
-      const handleSplit = () => {
-        console.log('Split button clicked');
-        // Логика для сплита
+      const handleDouble = async () => {
+        if (!roomId || !user) {
+          return;
+        }
+
+        const result = await server.doubleBet(roomId);
       };
     
       const handleBet = () => {
@@ -164,6 +169,11 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         // Логика для открытия/закрытия чата
       };
 
+      const handleCloseResultModal = () => {
+        setShowResultModal(false);
+        setGameResult(null);
+      };
+
     useEffect(() => {
         // инициализация игры
         game = new Game();
@@ -212,7 +222,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         }
 
         // Функция обработки обновлений игры
-        const handleGameUpdate = async (roomInfo: TRoomInfoResponse) => {
+        const handleGameUpdate = async (roomInfo: TRoomInfoResponse) => {            
             // Всегда обновляем таймер (он всегда присутствует)
             setTimer(roomInfo.timer);
             
@@ -251,9 +261,34 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
             
             // Находим себя в списке игроков
             if (user && roomInfo.players) {
-                const myPlayer = roomInfo.players.find(p => p.userId === user.id);
+                const myPlayer = roomInfo.players.find(p => p.userId == user.id);
                 if (myPlayer) {
                     setMyMemberId(myPlayer.memberId);
+                    
+                    // Обновляем баланс пользователя из данных игрока
+                    if (myPlayer.balance !== user.balance) {
+                        store.setUser({ ...user, balance: myPlayer.balance });
+                    }
+                    
+                    // Проверяем статус игрока на результат игры
+                    const validResultStatuses: GameResultStatus[] = ['bust', 'push', 'blackjack', 'win', 'lose'];
+                    
+                    if (validResultStatuses.includes(myPlayer.status as GameResultStatus)) {
+                        // Создаём уникальный ключ для результата (чтобы не показывать один и тот же результат повторно)
+                        const resultKey = `${myPlayer.memberId}-${myPlayer.status}-${myPlayer.bet}`;
+                        
+                        if (lastResultShown.current !== resultKey) {
+                            setGameResult({
+                                status: myPlayer.status as GameResultStatus,
+                                betAmount: myPlayer.bet
+                            });
+                            setShowResultModal(true);
+                            lastResultShown.current = resultKey;
+                        }
+                    } else {
+                        // Если статус не результат (например, spectator или player), сбрасываем отслеживание
+                        lastResultShown.current = null;
+                    }
                 }
             }
         };
@@ -392,8 +427,8 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
 
         {!isSpectator && (
             <div className='game-controls vertical'>
-                <button className="game-button split-button" onClick={handleSplit}>
-                    Сплит
+                <button className="game-button double-button" onClick={handleDouble}>
+                    Удвоить
                 </button>
                 <button className="game-button hit-button" onClick={handleHit}>
                     Взять карту
@@ -532,6 +567,14 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                     </div>
                 </div>
             </div>
+        )}
+
+        {showResultModal && gameResult && (
+            <GameResultModal
+                status={gameResult.status}
+                betAmount={gameResult.betAmount}
+                onClose={handleCloseResultModal}
+            />
         )}
     </div>)
 }

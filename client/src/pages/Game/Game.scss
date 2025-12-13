@@ -57,9 +57,10 @@
 
       }
 
-      &.split-button {
-        border: 1px solid #8F8F8F;
-        color: #8F8F8F;
+      &.double-button {
+        border: 1px solid #FFB800;
+        color: #FFB800;
+        cursor: pointer;
       }
 
       &.stand-button {
@@ -87,13 +88,14 @@
         }
       }
 
-      // &.split-button {
-      //   &:hover {
-      //     background-color: #17a2b8;
-      //     border-color: #17a2b8;
-      //     color: #ffffff;
-      //   }
-      // }
+      &.double-button {
+        &:hover {
+          background-color: #FFB800;
+          border-color: #FFB800;
+          color: #ffffff;
+          transform: translateY(-2px);
+        }
+      }
 
     }
   }
@@ -300,10 +302,10 @@
 .my-cards {
   position: absolute;
   right: -2.5%;
-  bottom: 6%;
+  bottom: 4%;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0px;
   pointer-events: none;
   z-index: 8;
 
@@ -322,7 +324,11 @@
       object-fit: cover;
     }
   }
+  .card:nth-child(1) { transform: translateX(-87px); }
   .card:nth-child(2) { transform: translateX(-87px); }
+  .card:nth-child(3) { transform: translateX(-87px); }
+  .card:nth-child(4) { transform: translateX(-87px); }
+  .card:nth-child(5) { transform: translateX(-87px); }
 }
 
 // Контейнер для карт на столе
