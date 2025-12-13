@@ -11,11 +11,8 @@ import chatIcon from '../../assets/img/chat_bubble.svg';
 import './Game.scss';
 import Chat from '../Chat/Chat';
 import SnowEffect from '../../components/SnowEffect/SnowEffect';
-<<<<<<< HEAD
 import GameResultModal, { GameResultStatus } from '../../components/GameResultModal/GameResultModal';
-=======
 import useGetCardImage from './hooks/useGetCardImage';
->>>>>>> 7a19073ebfeffa8431db9510dfffe638acd52683
 
 
 const GAME_FIELD = 'game-field';
@@ -65,39 +62,28 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         }
 
         const result = await server.takeUserCard(roomId);
-<<<<<<< HEAD
-      };
-    
-      const handleStand = async () => {
-        if (!roomId || !user) {
-          return;
-=======
         
         if (result && result.success) {
           if (result.shouldPass) {
             // Автоматический пас при переборе или 5 картах
           }
->>>>>>> 7a19073ebfeffa8431db9510dfffe638acd52683
+        }
+      };
+    
+      const handleStand = async () => {
+        if (!roomId || !user) {
+          return;
         }
 
         const result = await server.pass(roomId);
       };
     
-<<<<<<< HEAD
       const handleDouble = async () => {
         if (!roomId || !user) {
           return;
         }
 
         const result = await server.doubleBet(roomId);
-=======
-      const handleStand = () => {
-        // Логика для завершения хода
-      };
-    
-      const handleSplit = () => {
-        // Логика для сплита
->>>>>>> 7a19073ebfeffa8431db9510dfffe638acd52683
       };
     
       const handleBet = () => {
@@ -236,12 +222,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         }
 
         // Функция обработки обновлений игры
-<<<<<<< HEAD
-        const handleGameUpdate = async (roomInfo: TRoomInfoResponse) => {            
-=======
         const handleGameUpdate = async (roomInfo: TRoomInfoResponse) => {
-            
->>>>>>> 7a19073ebfeffa8431db9510dfffe638acd52683
             // Всегда обновляем таймер (он всегда присутствует)
             setTimer(roomInfo.timer);
             
