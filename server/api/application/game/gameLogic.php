@@ -5,7 +5,6 @@ class GameLogic {
 
     const BET_TIMEOUT_S = 5;
     const ACTION_TIMEOUT_S = 15;
-    const RESULTS_TIMEOUT_S = 200;
     const FULL_TIMEOUT_S = 600;
     const RESULTS_TIMEOUT_S = 10;
 
