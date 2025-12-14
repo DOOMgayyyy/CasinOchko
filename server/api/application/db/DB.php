@@ -226,9 +226,19 @@ class DB {
     }
 
     public function cleanRoom($roomId) {
+        // Удаляем всех участников комнаты
         $this->execute("DELETE FROM roommembers WHERE roomid = ?", [$roomId]);
+
+        // Удаляем все сообщения чата этой комнаты
+        $this->execute("DELETE FROM messages WHERE roomid = ?", [$roomId]);
+
+        // Удаляем хэш чата этой комнаты 
+        $this->execute("DELETE FROM messagehashes WHERE roomid = ?", [$roomId]);
+
+        // Удаляем саму комнату
         return $this->deleteRoom($roomId);
     }
+
 
     public function resetCurrentMember($roomId) {
         return $this->execute(

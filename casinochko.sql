@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Дек 08 2025 г., 08:07
+-- Время создания: Дек 15 2025 г., 00:32
 -- Версия сервера: 8.0.30
 -- Версия PHP: 7.2.34
 
@@ -62,13 +62,6 @@ CREATE TABLE `roommembers` (
   `cards` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT '' COMMENT 'HEX строка карт игрока'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Таблица участников комнат';
 
---
--- Дамп данных таблицы `roommembers`
---
-
-INSERT INTO `roommembers` (`id`, `roomid`, `userid`, `status`, `bet`, `cards`) VALUES
-(128, 70, 4, 'spectator', 0, '');
-
 -- --------------------------------------------------------
 
 --
@@ -113,7 +106,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `email`, `password`, `name`, `balance`, `token`, `totalplayed`, `totalwin`, `totalbalance`) VALUES
 (2, 'yana@awsi.com', '$2y$10$yhQWfuyAW63mcy3ZksXBFOuv4Y4m2CuCoFOucVO768BAHMekzYooe', 'owerlord', 8000, '527ad0d366406ff3acf9d677ae9f72f2', 0, 0, 5000),
 (3, 'dev@dev.com', '$2y$10$hvDnmfqRDzCBShPSqWrm2.4YVxLBpS/.FKS.FG7DiBKCwjVnI0dpq', 'dev', 5000, '8a1954228142f4c6f15188d5649b560e', 0, 0, 5000),
-(4, 'vibes@vibes.com', '25d55ad283aa400af464c76d713c07ad', 'bob', 3425, 'e6024d739d9d2cbe68e273417ea055ba', 0, 0, 5000);
+(4, 'vibes@vibes.com', '25d55ad283aa400af464c76d713c07ad', 'bob', 1625, 'b91dd5baf650b40bce3fa31d11880e32', 0, 0, 5000);
 
 --
 -- Индексы сохранённых таблиц
@@ -166,31 +159,53 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT для таблицы `messagehashes`
 --
 ALTER TABLE `messagehashes`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT для таблицы `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT для таблицы `roommembers`
 --
 ALTER TABLE `roommembers`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=129;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=134;
 
 --
 -- AUTO_INCREMENT для таблицы `rooms`
 --
 ALTER TABLE `rooms`
-  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
+  MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
   MODIFY `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- Ограничения внешнего ключа сохраненных таблиц
+--
+
+--
+-- Ограничения внешнего ключа таблицы `messagehashes`
+--
+ALTER TABLE `messagehashes`
+  ADD CONSTRAINT `fk_messagehashes_room` FOREIGN KEY (`roomid`) REFERENCES `rooms` (`id`) ON DELETE CASCADE;
+
+--
+-- Ограничения внешнего ключа таблицы `messages`
+--
+ALTER TABLE `messages`
+  ADD CONSTRAINT `fk_messages_room` FOREIGN KEY (`roomid`) REFERENCES `rooms` (`id`) ON DELETE CASCADE;
+
+--
+-- Ограничения внешнего ключа таблицы `roommembers`
+--
+ALTER TABLE `roommembers`
+  ADD CONSTRAINT `fk_roommembers_room` FOREIGN KEY (`roomid`) REFERENCES `rooms` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

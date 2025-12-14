@@ -22,14 +22,6 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
     const server = useContext(ServerContext);
     
     // 3. Получаем актуальные данные пользователя из store
-   // const [player, setPlayer] = useState(() => {
-       //  const user = store.getUser();
-        //  return user ?{
-           //  name: user.name,
-           //  balance: user.balance
-        //} : null;
-    // });
-    //==================DEV-Заглушка=====================
     const [player, setPlayer] = useState(() => {
         const user = store.getUser();
         return user ? {
@@ -37,17 +29,6 @@ const Lobby: React.FC<LobbyProps> = ({ setPage }) => {
             balance: user.balance
         } : null;
     });
-
-    //==================DEV-Заглушка=====================
-    // const [player, setPlayer] = useState(() => {
-    //     return {
-    //         name: 'dev',
-    //         balance: 123
-    //     };
-    //     console.log('No user data in store');
-    // });
-    //===================================================
-
     const [showSideMenu, setShowSideMenu] = useState(false);
     const [showAdModal, setShowAdModal] = useState(false);
     const [nicknameClicks, setNicknameClicks] = useState(0);

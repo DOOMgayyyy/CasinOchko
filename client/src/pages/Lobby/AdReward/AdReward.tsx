@@ -12,7 +12,7 @@ type Props = {
   videoUrl: string;
 };
 
-const REWARD_AMOUNT = 100;
+const REWARD_AMOUNT = 1000;
 const MAX_BALANCE_FOR_AD = 1000;
 
 const AdReward: React.FC<Props> = ({ onClose, onSuccess, videoUrl }) => {
@@ -120,7 +120,7 @@ const AdReward: React.FC<Props> = ({ onClose, onSuccess, videoUrl }) => {
     setError(null);
 
     const newBalance = await server.addBalance(REWARD_AMOUNT);
-
+    
     setIsLoading(false);
 
     if (typeof newBalance === 'number') {
