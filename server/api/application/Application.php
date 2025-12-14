@@ -56,6 +56,23 @@ class Application {
         return ['error' => 242];
     }
 
+    public function checkSession($params) {
+        if ($params['token']) {
+            $user = $this->user->getUser($params['token']);
+            if ($user) {
+                return [
+                    'id' => $user->id,
+                    'email' => $user->email,
+                    'name' => $user->name,
+                    'balance' => $user->balance,
+                    'token' => $params['token']
+                ];
+            }
+            return ['error' => 705];
+        }
+        return ['error' => 242];
+    }
+
     // ============================================================
     // USER MANAGEMENT
     // ============================================================

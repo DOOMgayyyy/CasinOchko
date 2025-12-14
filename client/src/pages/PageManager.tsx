@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Authors from './Authors/Authors';
 import Preloader from './Preloader/Preloader';
 import Login from './Login/Login';
@@ -12,6 +12,7 @@ import Rules from './Rules/Rules';
 import Leaderboard from './Leaderboard/Leaderboard';
 import PrivateRoom from './Lobby/PrivateRoom/PrivateRoom';
 import Stories from './Stories/Stories';
+import { ServerContext } from '../App';
 export enum PAGES {
     PRELOADER,
     LOGIN,
@@ -34,7 +35,28 @@ export interface IBasePage {
 }
 
 const PageManager: React.FC = () => {
-    const [page, setPage] = useState<PAGES>(PAGES.LOGIN); 
+    const [page, setPage] = useState<PAGES>(PAGES.PRELOADER);
+    const [isCheckingSession, setIsCheckingSession] = useState<boolean>(true);
+    const server = useContext(ServerContext);
+
+    useEffect(() => {
+        const checkSession = async () => {
+            const isSessionValid = await server.checkSession();
+            if (isSessionValid) {
+                setPage(PAGES.LOBBY);
+            } else {
+                setPage(PAGES.LOGIN);
+            }
+            setIsCheckingSession(false);
+        };
+        
+        checkSession();
+    }, [server]);
+
+    // Показываем прелоадер, пока проверяем сессию
+    if (isCheckingSession) {
+        return <Preloader setPage={setPage} />;
+    }
 
     return (
         <>

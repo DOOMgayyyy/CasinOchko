@@ -1,6 +1,7 @@
 import { TMessages, TUser } from "../server/types";
 
 const TOKEN = 'token';
+const USER_DATA = 'userData';
 
 class Store {
     user: TUser | null = null;
@@ -22,15 +23,29 @@ class Store {
         const { token } = user;
         this.setToken(token);
         this.user = user;
+        // Сохраняем данные пользователя в localStorage
+        localStorage.setItem(USER_DATA, JSON.stringify(user));
     }
 
     getUser(): TUser | null {
-        return this.user;
+        // Если пользователь есть в памяти, возвращаем его
+        if (this.user) {
+            return this.user;
+        }
+        // Иначе пытаемся восстановить из localStorage
+        const userData = localStorage.getItem(USER_DATA);
+        if (userData) {
+            this.user = JSON.parse(userData);
+            return this.user;
+            
+        }
+        return null;
     }
 
     clearUser(): void {
         this.user = null;
         this.setToken('');
+        localStorage.removeItem(USER_DATA);
     }
 
     private roomMessages: Map<number, TMessages> = new Map();
@@ -88,6 +103,8 @@ addMessages(messages: TMessages, roomId?: number): void {
         // Обновляем свойство name в текущем объекте пользователя
         if (this.user) {
             this.user.name = newName;
+            // Сохраняем обновленные данные в localStorage
+            localStorage.setItem(USER_DATA, JSON.stringify(this.user));
         }
     }
 

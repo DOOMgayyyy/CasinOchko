@@ -22,7 +22,7 @@ const stories: Story[] = [
     { number: '11', description: 'раз слово «архитектура» использовалось как оправдание бардака' },
     { number: '12', description: 'раз хотелось всё удалить и сделать вид, что так и было' },
     { number: '13', description: 'раз «у меня работает» считалось тестированием' },
-    { number: '14', description: 'лбов упорно трудились на проектом и пытались что-то выдавить в репозиторий (ну получилось ведь что-то, да?)' },
+    { number: '14', description: 'лбов упорно трудились над проектом и пытались что-то выдавить в репозиторий (ну получилось ведь что-то, да?)' },
 
 ];
 
@@ -34,7 +34,6 @@ const Stories: React.FC<IBasePage> = ({ setPage }) => {
     const isFinished = useRef(false);
 
     useEffect(() => {
-        // Если уже закончили показ всех сторис, не запускаем интервал
         if (isFinished.current) return;
 
         const interval = setInterval(() => {

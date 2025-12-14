@@ -62,6 +62,21 @@ class Server {
         return false;
     }
 
+    async checkSession(): Promise<boolean> {
+        const token = this.store.getToken();
+        if (!token) {
+            return false;
+        }
+        const user = await this.request<TUser>('checkSession');
+        if (user) {
+            this.store.setUser(user);
+            return true;
+        }
+        // Если токен невалиден, очищаем его
+        this.store.clearUser();
+        return false;
+    }
+
     async logout() {
         const result = await this.request<boolean>('logout');
         if (result) {
