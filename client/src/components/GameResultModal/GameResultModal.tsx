@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './GameResultModal.scss';
 import bombIcon from '../../assets/img/icons/bomb.png';
 import cupIcon from '../../assets/img/icons/cup.png';
@@ -30,6 +30,19 @@ const calculateWinAmount = (status: GameResultStatus, betAmount: number): number
 };
 
 const GameResultModal: React.FC<GameResultModalProps> = ({ status, betAmount, onClose }) => {
+    const [isVisible, setIsVisible] = useState(false);
+    
+    // Задержка перед показом модального окна, чтобы игрок мог увидеть карты дилера
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsVisible(true);
+        }, 2000); // 2 секунды задержки
+        
+        return () => {
+            clearTimeout(timer);
+        };
+    }, []);
+    
     const winAmount = calculateWinAmount(status, betAmount);
     const getResultInfo = () => {
         switch (status) {
@@ -85,6 +98,11 @@ const GameResultModal: React.FC<GameResultModalProps> = ({ status, betAmount, on
     };
 
     const resultInfo = getResultInfo();
+
+    // Не рендерим модальное окно, пока не прошла задержка
+    if (!isVisible) {
+        return null;
+    }
 
     return (
         <div className="game-result-modal-overlay" onClick={onClose}>
