@@ -12,6 +12,9 @@ import './Game.scss';
 import Chat from '../Chat/Chat';
 import SnowEffect from '../../components/SnowEffect/SnowEffect';
 import GameResultModal, { GameResultStatus } from '../../components/GameResultModal/GameResultModal';
+import PlayerGameControls from '../../components/PlayerGameControls/PlayerGameControls';
+import LeaveRoomModal from '../../components/LeaveRoomModal/LeaveRoomModal';
+import BetModal from '../../components/BetModal/BetModal';
 import useGetCardImage from './hooks/useGetCardImage';
 
 
@@ -40,8 +43,6 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const [showLeaveModal, setShowLeaveModal] = useState(false);
     const [showChat, setShowChat] = useState(false);
     const [showBetModal, setShowBetModal] = useState(false);
-    const [currentBet, setCurrentBet] = useState(0);
-    const betInputRef = useRef<HTMLInputElement>(null);
     const [showResultModal, setShowResultModal] = useState(false);
     const [gameResult, setGameResult] = useState<{
         status: GameResultStatus;
@@ -87,61 +88,25 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
       };
     
       const handleBet = () => {
-        setCurrentBet(0);
         setShowBetModal(true);
       };
 
-      const MIN_BET = 100
+      const MIN_BET = 100;
 
-      const handleBetIncrease = () => {
-        if (user) {
-          const newBet = Math.min(currentBet + 50, user.balance);
-          setCurrentBet(newBet);
-        }
-      };
-
-      const handleBetDecrease = () => {
-        const newBet = Math.max(currentBet - 50, 100);
-        setCurrentBet(newBet);
-      };
-
-      const handleBetInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        // Только числа или пустая строка
-        if (value === '' || /^\d+$/.test(value)) {
-          if (value === '') {
-            setCurrentBet(0);
-            return;
-          }
-          
-          const numValue = parseInt(value, 10);
-          if (user && numValue > user.balance) {
-            setCurrentBet(user.balance);
-          } else if (numValue < 0) {
-            setCurrentBet(0);
-          } else {
-            setCurrentBet(numValue);
-          }
-        }
-      };
-
-
-      const handlePlaceBet = async () => {
-        if (!roomId || currentBet === 0 || !user) {
+      const handlePlaceBet = async (betAmount: number) => {
+        if (!roomId || !user) {
           return;
         }
 
-        const result = await server.makeBet(roomId, currentBet);
+        const result = await server.makeBet(roomId, betAmount);
         
         if (result && result.success) {
           setShowBetModal(false);
-          setCurrentBet(0);
         }
       };
 
       const handleCancelBet = () => {
         setShowBetModal(false);
-        setCurrentBet(0);
       };
     
       const handleBackToLobby = () => {
@@ -431,34 +396,16 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                 <span className="brand-yellow">OCHKO</span>
             </div>
 
-            {/* карты справа */}
+            {/* карты и управление игрока */}
             {!isSpectator && (
-                <>
-                    <div className="player-cards">
-                        <span className="your-cards-label">Ваши карты:</span>
-                    </div>
-                    <div className="my-cards">
-                        {myCards && myCards.length > 0 ? (
-                            // Преобразуем строку карт в массив по 2 символа
-                            myCards.match(/.{1,2}/g)?.map((card, index) => {
-                                const cardImage = getCardImage(card);
-                                return (
-                                    <div className="card" key={index}>
-                                        {cardImage ? (
-                                            <img src={cardImage} alt={card} />
-                                        ) : (
-                                            <span>{card}</span>
-                                        )}
-                                    </div>
-                                );
-                            })
-                        ) : (
-                            <div className="card">
-                                <span>Нет карт</span>
-                            </div>
-                        )}
-                    </div>
-                </>
+                <PlayerGameControls
+                    myCards={myCards}
+                    myScore={myScore}
+                    getCardImage={getCardImage}
+                    onHit={handleHit}
+                    onStand={handleStand}
+                    onDouble={handleDouble}
+                />
             )}
 
         <div className='timer-div'>
@@ -468,29 +415,9 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
             </span>
         </div>
 
-        {!isSpectator && (
-            <div className='game-controls vertical'>
-                <button className="game-button double-button" onClick={handleDouble}>
-                    Удвоить
-                </button>
-                <button className="game-button hit-button" onClick={handleHit}>
-                    Взять карту
-                </button>
-                <button className="game-button stand-button" onClick={handleStand}>
-                    Отказаться
-                </button>
-            </div>
-        )}
         <button className="game-button bet-button" onClick={handleBet}>
             Ставка
         </button>
-
-        {!isSpectator && (
-            <div className='count-div'>
-                <span className='count-span'>Ваши очки:</span>
-                <span className='count-number'>{myScore}</span>
-            </div>
-        )}
 
         <button className="back-to-lobby-button" onClick={handleBackToLobby} />
             <div className="top-right-controls">
@@ -526,91 +453,24 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
             </div>
         )}
 
-        {showLeaveModal && (
-            <div className="leave-room-modal-overlay" onClick={handleStayInRoom}>
-                <div className="leave-room-modal" onClick={(e) => e.stopPropagation()}>
-                    <div className="leave-room-modal-content">
-                        <h2 className="leave-room-modal-title">Покинуть комнату?</h2>
-                        <div className="leave-room-modal-buttons">
-                            <button 
-                                className="leave-room-button leave-button" 
-                                onClick={handleLeaveRoom}
-                            >
-                                Покинуть
-                            </button>
-                            <button 
-                                className="leave-room-button stay-button" 
-                                onClick={handleStayInRoom}
-                            >
-                                Остаться
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )}
+        <LeaveRoomModal
+            isOpen={showLeaveModal}
+            onLeave={handleLeaveRoom}
+            onStay={handleStayInRoom}
+        />
         <Chat 
             isOpen={showChat} 
             onClose={() => setShowChat(false)}
-            roomId={roomId} // roomId уже объявлен в вашем компоненте
+            roomId={roomId}
         />
 
-        {showBetModal && (
-            <div className="bet-modal-overlay" onClick={handleCancelBet}>
-                <div className="bet-modal" onClick={(e) => e.stopPropagation()}>
-                    <div className="bet-modal-content">
-                        <h2 className="bet-modal-title">Сделать ставку</h2>
-                        
-                        <div className="bet-balance">
-                            <span className="bet-balance-label">Ваш баланс:</span>
-                            <span className="bet-balance-amount">${user?.balance || 0}</span>
-                        </div>
-
-                        <div className="bet-controls">
-                            <button 
-                                className="bet-control-button bet-decrease" 
-                                onClick={handleBetDecrease}
-                                disabled={currentBet === 100}
-                            >
-                                - 50$
-                            </button>
-                            <input
-                                ref={betInputRef}
-                                type="text"
-                                className="bet-amount-input"
-                                value={currentBet === 0 ? '' : currentBet}
-                                onChange={handleBetInputChange}
-                                placeholder="0"
-                                maxLength={10}
-                            />
-                            <button 
-                                className="bet-control-button bet-increase" 
-                                onClick={handleBetIncrease}
-                                disabled={!user || currentBet + 50 > (user.balance || 0)}
-                            >
-                                + 50$
-                            </button>
-                        </div>
-
-                        <div className="bet-modal-buttons">
-                            <button 
-                                className="bet-action-button bet-cancel" 
-                                onClick={handleCancelBet}
-                            >
-                                <span className="bet-arrow">&lt;</span> отмена
-                            </button>
-                            <button 
-                                className="bet-action-button bet-place" 
-                                onClick={handlePlaceBet}
-                                disabled={currentBet < MIN_BET || !user || currentBet > (user.balance || 0)}
-                            >
-                                поставить <span className="bet-arrow">&gt;</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )}
+        <BetModal
+            isOpen={showBetModal}
+            userBalance={user?.balance || 0}
+            minBet={MIN_BET}
+            onPlace={handlePlaceBet}
+            onCancel={handleCancelBet}
+        />
 
         {showResultModal && gameResult && (
             <GameResultModal
