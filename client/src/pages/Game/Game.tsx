@@ -48,6 +48,8 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         betAmount: number;
     } | null>(null);
     const lastResultShown = useRef<string | null>(null);
+    //фаза игры
+    const [gamePhase, setGamePhase] = useState<string>('');
     
     // Мемоизированная функция для получения изображений карт
     const getCardImage = useMemo(useGetCardImage, []);
@@ -205,6 +207,19 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         }
     };
 
+    // Функция для отображения названий фаз игры
+    const getPhaseDisplayName = (phase: string): string => {
+        const phaseMap: Record<string, string> = {
+            'waiting': 'Ожидание ставок',
+            'waiting_for_bets': 'Фаза ставок',
+            'playing': 'Игра',
+            'player_turn': 'Ход игроков',
+            'dealer_turn': 'Ход дилера',
+            'show_results': 'Игра завершена',
+        };
+        return phaseMap[phase] || phase;
+    };
+
     // Определяем статус текущего игрока
     const myPlayer = useMemo(() => {
         if (!user || myMemberId === null) return null;
@@ -226,6 +241,11 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
             // Всегда обновляем таймер (он всегда присутствует)
             setTimer(roomInfo.timer);
             
+            // Обновляем фазу игры, если она пришла
+            if (roomInfo.status !== undefined) {
+                setGamePhase(roomInfo.status);
+            }
+
             // Обновляем остальные данные только если они пришли (при полном обновлении)
             if (roomInfo.myCards !== undefined) {
                 setMyCards(roomInfo.myCards);
@@ -462,6 +482,12 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
             )}
 
         <div className='timer-div'>
+            {/* Фаза игры */}
+            {gamePhase && (
+                <div className="game-phase">
+                    {getPhaseDisplayName(gamePhase)}
+                </div>
+            )}
             <span className='timer-span'>Таймер хода:</span>
             <span className='timer-count'>
                 ⏱ {timer !== null ? timer : '—'}

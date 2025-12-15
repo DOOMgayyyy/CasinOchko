@@ -281,21 +281,21 @@
 // Карты дилера
 .dealer-cards {
   position: absolute;
-  top: 13%;
+  top: 17.2%;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0px;
   pointer-events: none;
   z-index: 4;
   
   .dealer-card {
-    width: 56px;
-    height: 78px;
+    width: 86px;
+    height: 108px;
     border-radius: 5px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    // box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     pointer-events: none;
     
     // Анимация появления карт
@@ -375,11 +375,11 @@
   z-index: 8;
 
   .card {
-    width: 152px;
-    height: 214px;
+    width: 172px;
+    height: 234px;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+    // box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
     pointer-events: none;
 
     img {
@@ -414,11 +414,11 @@
   pointer-events: none;
 
   .table-card {
-    width: 70px;
-    height: 98px;
+    width: 85px;
+    height: 110px;
     border-radius: 6px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    // box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
     pointer-events: none;
     animation: tableCardAppear 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     opacity: 0;
@@ -450,43 +450,45 @@
 
   // Позиции для карт на столе - точные координаты белых контуров
   &.left-top {
-    top: 39.73%;
-    left: 29.04%;
+    top: 47.73%;
+    // top: 39.73%;
+    left: 28%;
+    // left: 29.04%;
     flex-direction: row;
     transform: rotate(50deg);
   }
 
   &.left-middle {
-    top: 49.74%;
-    left: 35.16%;
+    top: 53.74%;
+    left: 34.16%;
     flex-direction: row;
     transform: rotate(30deg);
   }
 
   &.left-bottom {
-    top: 55.66%;
-    left: 42.98%;
+    top: 63.66%;
+    left: 41.98%;
     flex-direction: row;
     transform: rotate(10deg);
   }
 
   &.right-bottom {
-    top: 56.26%;
-    left: 51.22%;
+    top: 63.66%;
+    left: 50.22%;
     flex-direction: row;
     transform: rotate(-10deg);
   }
 
   &.right-middle {
-    top: 51.27%;
+    top: 53.74%;
     left: 58.59%;
     flex-direction: row;
     transform: rotate(-30deg);
   }
 
   &.right-top {
-    top: 41.5%;
-    left: 65.4%;
+    top: 47.73%;
+    left: 64.4%;
     flex-direction: row;
     transform: rotate(-50deg);
   }
@@ -542,10 +544,58 @@
   position: fixed;
   bottom: 35%;
   left: 2%;
+  padding-top: 140px; // Место для фазы над таймером
+  min-height: 140px;
 }
 
-.timer-span{
+// Стили для фазы игры
+.timer-div .game-phase {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  
+  font-size: 44px;
+  color: #FFC300;
+  font-weight: 600;
+  font-family: 'Handjet', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  margin-bottom: 15px;
+  
+  // Анимация
+  animation: pulse 2s infinite;
+}
+
+.timer-div .game-phase-label {
+  display: block;
+  font-size: 20px;
+  color: #ffffff;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.timer-div .game-phase-value {
+  display: block;
+  font-size: 28px;
+  color: #FFC300;
+  font-weight: 700;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.timer-span {
   font-size: 25px;
+  display: block;
+  margin-top: 15px;
 }
 
 .timer-count {
