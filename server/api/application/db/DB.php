@@ -67,6 +67,13 @@ class DB {
         return $this->query("SELECT totalplayed, totalwin, totalbalance FROM users WHERE id=?", [$userId]);
     }
 
+    public function updateUserStats($userId, $played, $win, $balance) {
+        return $this->execute(
+            "UPDATE users SET totalplayed = totalplayed + ?, totalwin = totalwin + ?, totalbalance = totalbalance + ? WHERE id = ?",
+            [$played, $win, $balance, $userId]
+        );
+    }
+
     public function updateUserName($userId, $newName) {
         return $this->execute("UPDATE users SET name=? WHERE id=?", [$newName, $userId]);
     }

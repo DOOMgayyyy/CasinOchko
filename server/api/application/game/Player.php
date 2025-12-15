@@ -457,7 +457,22 @@ class Player {
             if ($winAmount > 0) {
                 $this->db->updateBalance($member->user_id, $winAmount);
             }
+            
+            // Обновляем статистику игрока
+            $played = 1; // сыграл одну игру
+            $win = 0;
+            $balanceChange = -$member->bet; // потерял ставку
+            
+            if ($resultStatus === 'win' || $resultStatus === 'blackjack') {
+                $win = 1; // выигрыш засчитывается
+                $balanceChange = $winAmount - $member->bet; // чистый профит
+            } elseif ($resultStatus === 'push') {
+                $balanceChange = 0; // возврат ставки, баланс не изменился
+            }
+            
+            $this->db->updateUserStats($member->user_id, $played, $win, $balanceChange);
         }
+        
         
         // Переводим комнату в фазу показа результатов
         $this->db->updateRoomStatus($roomId, 'show_results');
