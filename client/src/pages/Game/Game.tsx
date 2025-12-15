@@ -17,6 +17,7 @@ import LeaveRoomModal from '../../components/LeaveRoomModal/LeaveRoomModal';
 import BetModal from '../../components/BetModal/BetModal';
 import RoomCodeMessage from '../../components/RoomCodeMessage/RoomCodeMessage';
 import GameTable from '../../components/GameTable/GameTable';
+import DealerInfo from '../../components/DealerInfo/DealerInfo';
 import useGetCardImage from './hooks/useGetCardImage';
 
 
@@ -304,35 +305,12 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                 currentPlayerId={currentPlayerId}
                 getCardImage={getCardImage}
             />
-             {/* дилер */}
-             <div className='diller-slot'>
-                <span className="diller-name">Дилер: </span>
-                {dealerCards && dealerCards.length > 0 && (
-                    <span className="diller-score">{dealerScore}</span>
-                )}
-            </div>
             
-            {/* карты дилера */}
-            <div className="dealer-cards">
-                {dealerCards && dealerCards.length > 0 ? (
-                    dealerCards.match(/.{1,2}/g)?.map((card, index) => {
-                        const cardImage = getCardImage(card);
-                        return (
-                            <div 
-                                className="dealer-card" 
-                                key={index}
-                                style={{ animationDelay: `${index * 0.2}s` }}
-                            >
-                                {cardImage ? (
-                                    <img src={cardImage} alt={card} />
-                                ) : (
-                                    <span>{card}</span>
-                                )}
-                            </div>
-                        );
-                    })
-                ) : null}
-            </div>
+            <DealerInfo
+                dealerCards={dealerCards}
+                dealerScore={dealerScore}
+                getCardImage={getCardImage}
+            />
             
             {/* лого снизу */}
             <div className="game-brand-logo" aria-label="CASINOCHKO">
