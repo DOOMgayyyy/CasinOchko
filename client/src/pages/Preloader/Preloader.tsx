@@ -1,14 +1,9 @@
-import React, { useEffect } from "react";
-import { IBasePage, PAGES } from "../PageManager";
+import React from "react";
+import { IBasePage } from "../PageManager";
 
 import './Preloader.scss';
 
-const Preloader: React.FC<IBasePage> = (props: IBasePage) => {
-    const { setPage } = props;
-
-    useEffect(() => {
-        setTimeout(() => setPage(PAGES.LOGIN), 1);// стояло 3000, но нам это пока не особо надо
-    });
+const Preloader: React.FC<IBasePage> = () => {
 
     return (
         <div className="preloader">

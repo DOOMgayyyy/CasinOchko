@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { StoreContext } from '../App';
 import Authors from './Authors/Authors';
 import Preloader from './Preloader/Preloader';
 import Login from './Login/Login';
@@ -34,7 +35,28 @@ export interface IBasePage {
 }
 
 const PageManager: React.FC = () => {
-    const [page, setPage] = useState<PAGES>(PAGES.LOGIN); 
+    const [page, setPage] = useState<PAGES>(PAGES.PRELOADER);
+    const store = useContext(StoreContext);
+
+    useEffect(() => {
+        // Проверяем наличие пользователя в Store (из localStorage)
+        const user = store.getUser();
+        const token = store.getToken();
+        
+        // Если есть пользователь и валидный токен (не пустая строка), показываем лобби
+        // Валидность токена проверится при первом API запросе
+        if (user && token && token.trim() !== '') {
+            // Проверяем, не установлена ли уже правильная страница
+            if (page !== PAGES.LOBBY) {
+                setPage(PAGES.LOBBY);
+            }
+        } else {
+            // Проверяем, не установлена ли уже правильная страница
+            if (page !== PAGES.LOGIN) {
+                setPage(PAGES.LOGIN);
+            }
+        }
+    }, [store]);
 
     return (
         <>
