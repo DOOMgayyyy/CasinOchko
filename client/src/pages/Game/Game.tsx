@@ -15,6 +15,7 @@ import GameResultModal, { GameResultStatus } from '../../components/GameResultMo
 import PlayerGameControls from '../../components/PlayerGameControls/PlayerGameControls';
 import LeaveRoomModal from '../../components/LeaveRoomModal/LeaveRoomModal';
 import BetModal from '../../components/BetModal/BetModal';
+import RoomCodeMessage from '../../components/RoomCodeMessage/RoomCodeMessage';
 import useGetCardImage from './hooks/useGetCardImage';
 
 
@@ -39,7 +40,6 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const [currentPlayerId, setCurrentPlayerId] = useState<number | null>(null);
     const [myMemberId, setMyMemberId] = useState<number | null>(null);
     const [roomCode, setRoomCode] = useState<string | null>(null);
-    const [copySuccess, setCopySuccess] = useState(false);
     const [showLeaveModal, setShowLeaveModal] = useState(false);
     const [showChat, setShowChat] = useState(false);
     const [showBetModal, setShowBetModal] = useState(false);
@@ -162,13 +162,6 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         }
     }, [store]);
 
-    const handleCopyCode = async () => {
-        if (roomCode) {
-            await navigator.clipboard.writeText(roomCode);
-            setCopySuccess(true);
-            setTimeout(() => setCopySuccess(false), 2000);
-        }
-    };
 
     // Определяем статус текущего игрока
     const myPlayer = useMemo(() => {
@@ -432,25 +425,10 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         </div>
 
         {roomCode && (
-            <div className="room-created-message">
-                <div className="room-created-header">
-                    <span className="success-icon">✅</span>
-                    <span className="success-text">Комната создана!</span>
-                    <button className="close-message-btn" onClick={() => setRoomCode(null)}>×</button>
-                </div>
-                <div className="room-code-display">
-                    <div className="room-code-label">Код комнаты:</div>
-                    <div 
-                        className="room-code-value clickable" 
-                        onClick={handleCopyCode}
-                        title="Нажмите, чтобы скопировать код">
-                        {roomCode}
-                    </div>
-                </div>
-                {copySuccess && (
-                    <div className="copy-success">Код скопирован!</div>
-                )}
-            </div>
+            <RoomCodeMessage
+                roomCode={roomCode}
+                onClose={() => setRoomCode(null)}
+            />
         )}
 
         <LeaveRoomModal
