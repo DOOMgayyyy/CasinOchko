@@ -17,12 +17,15 @@ const GameTable: React.FC<GameTableProps> = ({
     getCardImage
 }) => {
     const positions = ['left-top', 'left-middle', 'left-bottom', 'right-bottom', 'right-middle', 'right-top'];
+    
+    // Фильтруем игроков, исключая спектаторов
+    const activePlayers = players.filter(player => player.status !== 'spectator');
 
     return (
         <>
             {/* надписи с инфой игроков за столом */}
             <div className="players">
-                {players.map((player, index) => {
+                {activePlayers.map((player, index) => {
                     const position = positions[index] || 'left-top';
                     const isCurrentPlayer = myMemberId !== null && player.memberId === myMemberId;
                     const isActiveTurn = currentPlayerId === player.memberId;
@@ -44,7 +47,7 @@ const GameTable: React.FC<GameTableProps> = ({
 
             {/* карты игроков на столе */}
             <div className="table-cards-container">
-                {players.map((player, index) => {
+                {activePlayers.map((player, index) => {
                     const position = positions[index] || 'left-top';
                     const playerCards = player.cards ? player.cards.match(/.{1,2}/g) : [];
                     

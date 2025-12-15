@@ -1,9 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
+import { ServerContext } from '../../App';
 
 interface BetModalProps {
     isOpen: boolean;
     userBalance: number;
     minBet: number;
+    isSpectator: boolean;
+    activePlayersCount: number;
     onPlace: (betAmount: number) => void;
     onCancel: () => void;
 }
@@ -12,9 +15,12 @@ const BetModal: React.FC<BetModalProps> = ({
     isOpen,
     userBalance,
     minBet,
+    isSpectator,
+    activePlayersCount,
     onPlace,
     onCancel
 }) => {
+    const server = useContext(ServerContext);
     const [currentBet, setCurrentBet] = useState(0);
     const betInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,6 +65,16 @@ const BetModal: React.FC<BetModalProps> = ({
         if (currentBet === 0 || currentBet < minBet || currentBet > userBalance) {
             return;
         }
+        
+        // Проверка для спектатора: если уже 6 активных игроков, нельзя поставить ставку
+        if (isSpectator && activePlayersCount >= 6) {
+            server.showErrorManually({
+                code: 815,
+                text: 'Стол полон! Максимум 6 активных игроков. Подождите, пока освободится место.'
+            });
+            return;
+        }
+        
         onPlace(currentBet);
         setCurrentBet(0);
     };

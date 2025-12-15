@@ -104,6 +104,8 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
         
         if (result && result.success) {
           setShowBetModal(false);
+        } else if (result && !result.success) {
+          alert('Не удалось сделать ставку. Возможно, стол полон или произошла ошибка.');
         }
       };
 
@@ -172,6 +174,11 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     }, [players, myMemberId, user]);
 
     const isSpectator = myPlayer?.status === 'spectator';
+    
+    // Подсчитываем количество активных игроков (не спектаторов)
+    const activePlayersCount = useMemo(() => {
+        return players.filter(player => player.status !== 'spectator').length;
+    }, [players]);
 
     // Game loop - каждую секунду запрашиваем обновления состояния игры
     useEffect(() => {
@@ -375,6 +382,8 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
             isOpen={showBetModal}
             userBalance={user?.balance || 0}
             minBet={MIN_BET}
+            isSpectator={isSpectator}
+            activePlayersCount={activePlayersCount}
             onPlace={handlePlaceBet}
             onCancel={handleCancelBet}
         />

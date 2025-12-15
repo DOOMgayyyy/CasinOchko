@@ -50,6 +50,11 @@ class Server {
         this.showErrorCb = cb;
     }
 
+    // Публичный метод для показа ошибки вручную
+    showErrorManually(error: TError): void {
+        this.setError(error);
+    }
+
     async login(email: string, password: string): Promise<boolean> {
         const rnd = Math.round(Math.random() * 100000);
         const passHash = md5(password);
