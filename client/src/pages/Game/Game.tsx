@@ -71,6 +71,26 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
           }
         }
       };
+
+    const zoomRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+    const updateZoom = () => {
+        const zoom = window.devicePixelRatio || 1;
+
+        if (zoomRef.current) {
+        zoomRef.current.style.transform = `scale(${1 / zoom})`;
+        }
+    };
+
+    updateZoom();
+    window.addEventListener('resize', updateZoom);
+
+    return () => {
+        window.removeEventListener('resize', updateZoom);
+    };
+    }, []);
+
     
       const handleStand = async () => {
         if (!roomId || !user) {
@@ -350,7 +370,8 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     }, [roomId, server, user, setPage]);
 
     return (<div className='game-page'>
-        <SnowEffect />
+        <div className="game-zoom-root" ref={zoomRef}>
+            <SnowEffect />
         <div className="game-scale-wrapper">
            
         <div className="game-table-container">
@@ -645,6 +666,7 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                 onClose={handleCloseResultModal}
             />
         )}
+        </div>
     </div>)
 }
 
