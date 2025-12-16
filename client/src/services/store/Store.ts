@@ -1,6 +1,7 @@
 import { TMessages, TUser } from "../server/types";
 
 const TOKEN = 'token';
+const USER_DATA = 'userData';
 
 class Store {
     user: TUser | null = null;
@@ -9,6 +10,11 @@ class Store {
     roomHash: string = 'empty room hash';
     currentRoomId: number | null = null;
     roomCode: string | null = null;
+
+    constructor() {
+        // При создании Store пытаемся восстановить пользователя из localStorage
+        this.getUser();
+    }
 
     setToken(token: string): void {
         localStorage.setItem(TOKEN, token);
@@ -22,15 +28,43 @@ class Store {
         const { token } = user;
         this.setToken(token);
         this.user = user;
+        // Сохраняем данные пользователя в localStorage
+        localStorage.setItem(USER_DATA, JSON.stringify(user));
     }
 
     getUser(): TUser | null {
-        return this.user;
+        // Если пользователь есть в памяти, возвращаем его
+        if (this.user) {
+            return this.user;
+        }
+        
+        // Иначе пытаемся восстановить из localStorage
+        const userData = localStorage.getItem(USER_DATA);
+        
+        if (userData) {
+            try {
+                this.user = JSON.parse(userData);
+                
+                // Восстанавливаем токен из пользователя, если он есть
+                if (this.user && this.user.token) {
+                    this.setToken(this.user.token);
+                }
+                
+                return this.user;
+            } catch (e) {
+                // Если ошибка парсинга, очищаем поврежденные данные
+                localStorage.removeItem(USER_DATA);
+                this.setToken('');
+            }
+        }
+        
+        return null;
     }
 
     clearUser(): void {
         this.user = null;
         this.setToken('');
+        localStorage.removeItem(USER_DATA);
     }
 
     private roomMessages: Map<number, TMessages> = new Map();
@@ -39,7 +73,6 @@ addMessages(messages: TMessages, roomId?: number): void {
     const targetRoomId = roomId || this.currentRoomId;
     
     if (!targetRoomId) {
-        console.error('No room ID for messages');
         return;
     }
     
@@ -88,6 +121,8 @@ addMessages(messages: TMessages, roomId?: number): void {
         // Обновляем свойство name в текущем объекте пользователя
         if (this.user) {
             this.user.name = newName;
+            // Сохраняем обновленные данные в localStorage
+            localStorage.setItem(USER_DATA, JSON.stringify(this.user));
         }
     }
 
