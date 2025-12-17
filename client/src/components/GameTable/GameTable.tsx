@@ -5,7 +5,8 @@ interface GameTableProps {
     players: TPlayer[];
     playersScores: { [memberId: number]: number };
     myMemberId: number | null;
-    currentPlayerId: number | null;
+    currentMemberId: number | null;
+    currentUserId: number | null;
     getCardImage: (card: string) => string;
 }
 
@@ -13,7 +14,8 @@ const GameTable: React.FC<GameTableProps> = ({
     players,
     playersScores,
     myMemberId,
-    currentPlayerId,
+    currentMemberId,
+    currentUserId,
     getCardImage
 }) => {
     const positions = ['left-top', 'left-middle', 'left-bottom', 'right-bottom', 'right-middle', 'right-top'];
@@ -27,13 +29,13 @@ const GameTable: React.FC<GameTableProps> = ({
             <div className="players">
                 {activePlayers.map((player, index) => {
                     const position = positions[index] || 'left-top';
-                    const isCurrentPlayer = myMemberId !== null && player.memberId === myMemberId;
-                    const isActiveTurn = currentPlayerId === player.memberId;
+                    const isActiveTurn = currentMemberId === player.memberId;
+                    const isCurrentUser = currentUserId !== null && player.userId === currentUserId;
                     const score = playersScores[player.memberId] ?? 0;
                     
                     return (
                         <div 
-                            className={`player-slot ${position} ${isCurrentPlayer ? 'active-player' : ''} ${isActiveTurn ? 'current-turn' : ''}`} 
+                            className={`player-slot ${position} ${isCurrentUser ? 'active-player' : ''} ${isActiveTurn ? 'current-turn' : ''}`} 
                             key={player.memberId}
                         >
                             <span className="name">{player.name}</span>
