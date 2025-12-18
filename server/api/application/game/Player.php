@@ -115,7 +115,6 @@ class Player {
                         $this->db->updateDealerCards($roomId, $dealerFullCards);
                         $this->db->updateRoomStatus($roomId, 'playing');
                         $this->calculateAndPayResults($roomId);
-                        $this->startNewRound($roomId);
                         return ['success' => true, 'dealerBlackjack' => true];
                     }
                     // Нет блэкджека - скрываем вторую карту (не сохраняем)
@@ -141,7 +140,6 @@ class Player {
                 $this->db->updateRoomStatus($roomId, 'playing');
                 $this->dealerTakeCard($roomId);
                 $this->calculateAndPayResults($roomId);
-                $this->startNewRound($roomId);
                 return ['success' => true, 'allBlackjack' => true];
             }
 
