@@ -74,7 +74,7 @@ export type TRoomInfoResponse = {
     dealerCards?: string;  // Карты дилера
     timer: number | null;  // Количество секунд, оставшихся на ход (или null)
     hash: string;
-    currentPlayerId?: number | null;  // ID игрока, чей сейчас ход
+    currentMemberId?: number | null;  // memberId игрока, чей сейчас ход
     changed?: boolean;  // Опционально, может отсутствовать если только таймер обновился
     status?: string;
     userId?: number;

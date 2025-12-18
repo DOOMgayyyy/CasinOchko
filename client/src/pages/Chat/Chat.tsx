@@ -17,6 +17,7 @@ const ChatPopup: React.FC<ChatPopupProps> = ({ isOpen, onClose, roomId }) => {
     const [error, setError] = useState<string | null>(null);
     const messageRef = useRef<HTMLInputElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
     const user = store.getUser();
 
     // Функция для загрузки сообщений
@@ -60,7 +61,9 @@ const ChatPopup: React.FC<ChatPopupProps> = ({ isOpen, onClose, roomId }) => {
 
     // Автопрокрутка к новым сообщениям
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
     };
 
     useEffect(() => {
@@ -138,7 +141,7 @@ const ChatPopup: React.FC<ChatPopupProps> = ({ isOpen, onClose, roomId }) => {
                     </button>
                 </div>
                 
-                <div className="chat-popup-messages">
+                <div className="chat-popup-messages" ref={messagesContainerRef}>
                     {error ? (
                         <div className="chat-error">{error}</div>
                     ) : isLoading ? (

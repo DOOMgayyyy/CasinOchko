@@ -18,6 +18,7 @@ import BetModal from '../../components/BetModal/BetModal';
 import RoomCodeMessage from '../../components/RoomCodeMessage/RoomCodeMessage';
 import GameTable from '../../components/GameTable/GameTable';
 import DealerInfo from '../../components/DealerInfo/DealerInfo';
+import CurrentTurnInfo from '../../components/CurrentTurnInfo/CurrentTurnInfo';
 import useGetCardImage from './hooks/useGetCardImage';
 
 
@@ -39,7 +40,8 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     const [players, setPlayers] = useState<TPlayer[]>([]);
     const [playersScores, setPlayersScores] = useState<{ [memberId: number]: number }>({});
     const [timer, setTimer] = useState<number | null>(null);
-    const [currentPlayerId, setCurrentPlayerId] = useState<number | null>(null);
+    const [currentMemberId, setCurrentMemberId] = useState<number | null>(null);
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [myMemberId, setMyMemberId] = useState<number | null>(null);
     const [roomCode, setRoomCode] = useState<string | null>(null);
     const [showLeaveModal, setShowLeaveModal] = useState(false);
@@ -192,12 +194,12 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
     // Функция для отображения названий фаз игры
     const getPhaseDisplayName = (phase: string): string => {
         const phaseMap: Record<string, string> = {
-            'waiting': 'Ожидание ставок',
-            'waiting_for_bets': 'Фаза ставок',
-            'playing': 'Игра',
-            'player_turn': 'Ход игроков',
-            'dealer_turn': 'Ход дилера',
-            'show_results': 'Игра завершена',
+            'waiting': 'ОЖИДАНИЕ',
+            'waiting_for_bets': 'СТАВКИ',
+            'playing': 'ИГРА',
+            'player_turn': 'ХОДЫ ИГРОКОВ',
+            'dealer_turn': 'ХОД ДИЛЛЕРА',
+            'show_results': 'КОНЕЦ',
         };
         return phaseMap[phase] || phase;
     };
@@ -282,7 +284,9 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                 setPlayersScores(scores);
             }
             
-            if (roomInfo.currentPlayerId !== undefined) setCurrentPlayerId(roomInfo.currentPlayerId);
+            if (roomInfo.currentMemberId !== undefined) setCurrentMemberId(roomInfo.currentMemberId);
+            
+            if (roomInfo.userId !== undefined) setCurrentUserId(roomInfo.userId);
             
             // Находим себя в списке игроков
             if (user && roomInfo.players) {
@@ -350,7 +354,8 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                 players={players}
                 playersScores={playersScores}
                 myMemberId={myMemberId}
-                currentPlayerId={currentPlayerId}
+                currentMemberId={currentMemberId}
+                currentUserId={currentUserId}
                 getCardImage={getCardImage}
             />
             
@@ -358,6 +363,11 @@ const GamePage: React.FC<IBasePage> = (props: IBasePage) => {
                 dealerCards={dealerCards}
                 dealerScore={dealerScore}
                 getCardImage={getCardImage}
+            />
+            
+            <CurrentTurnInfo
+                players={players}
+                currentMemberId={currentMemberId}
             />
             
             {/* лого снизу */}

@@ -1,0 +1,46 @@
+.current-turn-info {
+  position: fixed;
+  bottom: 650px;
+  left: 40px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: rgba(32, 32, 32, 0.9);
+  border: 2px solid #FFC300;
+  border-radius: 8px;
+  padding: 11px 21px;
+  font-family: 'Handjet', monospace;
+  font-size: 17px;
+  font-weight: 600;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(255, 195, 0, 0.3);
+  backdrop-filter: blur(10px);
+  z-index: 100;
+  pointer-events: none;
+  animation: fadeIn 0.3s ease-out;
+
+  .current-turn-label {
+    color: #FFC300;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+  }
+
+  .current-turn-player {
+    color: #ffffff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
