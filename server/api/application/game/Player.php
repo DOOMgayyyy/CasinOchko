@@ -141,7 +141,6 @@ class Player {
                 $this->db->updateRoomStatus($roomId, 'playing');
                 $this->dealerTakeCard($roomId);
                 $this->calculateAndPayResults($roomId);
-                $this->startNewRound($roomId);
                 return ['success' => true, 'allBlackjack' => true];
             }
 
