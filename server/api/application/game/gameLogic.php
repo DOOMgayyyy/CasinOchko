@@ -168,6 +168,34 @@ class GameLogic {
                 }
             }
         }
+        // Проверка: если игра идет, но нет активных игроков - завершаем раунд
+        elseif (!$room->current_member_id && $room->status === 'playing') {
+            // Проверяем, есть ли активные игроки (status === 'player' && bet > 0)
+            $hasActivePlayers = false;
+            foreach ($members as $member) {
+                if ($member->status === 'player' && (int)$member->bet > 0) {
+                    $hasActivePlayers = true;
+                    break;
+                }
+            }
+            
+            // Если нет активных игроков, но игра идет - завершаем раунд
+            // Это может произойти, если все игроки покинули комнату во время игры
+            if (!$hasActivePlayers) {
+                require_once 'Player.php';
+                $player = new Player($this->db);
+                
+                // Если у дилера есть карты, завершаем раунд корректно
+                if (!empty($room->dealerCards)) {
+                    // Дилер берет оставшиеся карты и рассчитываются результаты
+                    $player->dealerTakeCard($roomId);
+                    $player->calculateAndPayResults($roomId);
+                } else {
+                    // Если у дилера нет карт, просто переводим в waiting
+                    $player->startNewRound($roomId);
+                }
+            }
+        }
     }
 
     private function getPlayersInfo($roomId)
