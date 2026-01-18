@@ -24,7 +24,7 @@ function result($params) {
         case 'getMessages': return $app->getMessages($params);
 
         // Balance
-        case 'addBalance': return $app->addBalance($params);
+        case 'claimAdReward': return $app->claimAdReward($params);
         case 'subtractBalance': return $app->subtractBalance($params);
 
         // Menu

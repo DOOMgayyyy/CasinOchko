@@ -250,7 +250,7 @@ class Player {
         ];
     }
 
-    private function moveToNextPlayer($roomId) {
+    public function moveToNextPlayer($roomId) {
         $members = $this->db->getRoomMembers($roomId);
         $room = $this->db->getRoom($roomId);
 

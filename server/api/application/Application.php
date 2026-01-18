@@ -97,11 +97,15 @@ class Application {
     // BALANCE
     // ============================================================
 
-    public function addBalance($params) {
-        if ($params['token'] && $params['amount']) {
+    /**
+     * Метод для получения награды за просмотр рекламы
+     * Проверяет баланс < 1000 и начисляет фиксированную сумму 1000
+     */
+    public function claimAdReward($params) {
+        if ($params['token']) {
             $user = $this->user->getUser($params['token']);
             if ($user) {
-                return $this->user->addBalance($user->id, $params['amount']);
+                return $this->user->claimAdReward($user->id);
             }
             return ['error' => 705];
         }

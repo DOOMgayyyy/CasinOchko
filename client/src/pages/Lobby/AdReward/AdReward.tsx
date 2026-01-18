@@ -119,7 +119,7 @@ const AdReward: React.FC<Props> = ({ onClose, onSuccess, videoUrl }) => {
     setIsLoading(true);
     setError(null);
 
-    const newBalance = await server.addBalance(REWARD_AMOUNT);
+    const newBalance = await server.claimAdReward();
     
     setIsLoading(false);
 

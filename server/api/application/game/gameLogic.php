@@ -155,16 +155,20 @@ class GameLogic {
                 }
             }
 
-            if ($currentPlayer) {
-                // Используем UTC для корректного парсинга времени из БД
-                $turnStartTime = strtotime($room->turn_start_time . ' UTC');
-                $timePassed = $now - $turnStartTime;
+            // Используем UTC для корректного парсинга времени из БД
+            $turnStartTime = strtotime($room->turn_start_time . ' UTC');
+            $timePassed = $now - $turnStartTime;
 
-                if ($timePassed > self::ACTION_TIMEOUT_S) {
-                    // Вызываем pass для корректной логики смены хода
-                    require_once 'Player.php';
-                    $player = new Player($this->db);
+            if ($timePassed > self::ACTION_TIMEOUT_S) {
+                require_once 'Player.php';
+                $player = new Player($this->db);
+                
+                if ($currentPlayer) {
+                    // Игрок найден - вызываем pass для корректной логики смены хода
                     $player->pass($roomId, $currentPlayer->user_id);
+                } else {
+                    // Игрок вышел из комнаты во время своего хода - переходим к следующему
+                    $player->moveToNextPlayer($roomId);
                 }
             }
         }
