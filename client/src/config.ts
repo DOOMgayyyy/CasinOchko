@@ -20,7 +20,7 @@ export type TWINDOW = {
 const CONFIG = {
     // Для openserver 6.4.0
     // Для open server 
-     HOST: 'http://casinochko/api',
+     HOST: 'https://casino.owerlord.ru/api',
     // Для ПРАКТИКИ
     // HOST: 'http://casinochko:81/api',
     // Для MAMP 

@@ -1,16 +1,24 @@
 .chat-popup-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1000;
-    display: flex;
-    align-items: flex-start;
-    justify-content: flex-end;
-    padding: 80px 20px 20px 20px;
-    pointer-events: auto;
-    background: transparent;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 80px 20px 20px 20px;
+  pointer-events: auto;
+  background: transparent;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  
+  // ИСПРАВЛЕНИЕ 3: Класс для скрытия чата
+  &.chat-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
 }
 
 .chat-popup-content {
