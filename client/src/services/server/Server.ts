@@ -209,27 +209,30 @@ startChatMessages(cb: (hash: string) => void, roomId?: number | null): void {
         return null;
     }
 
-    async addBalance(amount: number): Promise<number | null> {
-    // ожидаем, что сервер может вернуть balance числом ИЛИ строкой
-    const result = await this.request<{ balance: number | string }>(
-        'addBalance',
-        { amount: String(amount) }
-    );
+    /**
+     * Метод для получения награды за просмотр рекламы
+     * На сервере проверяется баланс < 1000 и начисляется фиксированная сумма 1000
+     */
+    async claimAdReward(): Promise<number | null> {
+        const result = await this.request<{ balance: number | string }>(
+            'claimAdReward',
+            {}
+        );
 
-    if (result && result.balance !== undefined) {
-        const numericBalance = Number(result.balance);
+        if (result && result.balance !== undefined) {
+            const numericBalance = Number(result.balance);
 
-        if (!isNaN(numericBalance)) {
-            const user = this.store.getUser();
-            if (user) {
-                this.store.setUser({ ...user, balance: numericBalance });
+            if (!isNaN(numericBalance)) {
+                const user = this.store.getUser();
+                if (user) {
+                    this.store.setUser({ ...user, balance: numericBalance });
+                }
+                return numericBalance;
             }
-            return numericBalance;
         }
-    }
 
-    return null;
-}
+        return null;
+    }
 
 
     async getUserBalance(): Promise<number | null> {

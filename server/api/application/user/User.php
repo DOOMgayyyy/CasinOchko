@@ -90,7 +90,11 @@ class User {
         return ['error' => 705];
     }
 
-    public function addBalance($userId, $amount){
+    /**
+     * Приватный метод для добавления баланса
+     * Используется только внутри класса для внутренних операций
+     */
+    private function addBalance($userId, $amount){
         if (!is_numeric($amount) || $amount <= 0) {
             return ['error' => 242];
         }
@@ -101,6 +105,28 @@ class User {
             return ['balance' => $user->balance];
         }
         return ['error' => 9000];
+    }
+
+    /**
+     * Публичный метод для получения награды за просмотр рекламы
+     * Проверяет баланс < 1000 и начисляет фиксированную сумму 1000
+     */
+    public function claimAdReward($userId) {
+        $REWARD_AMOUNT = 1000;
+        $MAX_BALANCE_FOR_AD = 1000;
+
+        $user = $this->db->getUserById($userId);
+        if (!$user) {
+            return ['error' => 705];
+        }
+
+        // Проверка баланса - реклама доступна только если баланс < 1000
+        if ($user->balance >= $MAX_BALANCE_FOR_AD) {
+            return ['error' => 2001, 'message' => 'Реклама доступна только при балансе меньше 1000'];
+        }
+
+        // Вызываем приватный метод addBalance с фиксированной суммой
+        return $this->addBalance($userId, $REWARD_AMOUNT);
     }
 
     public function subtractBalance($userId, $amount) {
