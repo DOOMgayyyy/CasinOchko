@@ -353,6 +353,7 @@ class Player {
             return ['error' => 804];
         }
 
+        $originalBet = $member->bet;
         $this->db->updateMemberBet($roomId, $userId, $member->bet * 2);
         $this->db->updateBalance($userId, -$member->bet);
 
@@ -363,6 +364,7 @@ class Player {
 
         $currentCards[] = $newCard;
         $this->db->updateMemberCards($roomId, $userId, $currentCards);
+        
         $this->db->updateRoomAction($roomId);
         $this->moveToNextPlayer($roomId);
 
@@ -392,6 +394,7 @@ class Player {
         }
         
         $this->db->updateDealerCards($roomId, $dealerCards);
+        
         return ['success' => true];
     }
     
