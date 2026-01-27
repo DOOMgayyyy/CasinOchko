@@ -296,8 +296,10 @@ class Player {
     }
     
     private function finishRound($roomId) {
+        // Дилер должен взять карты перед расчетом результатов
+        $this->db->resetCurrentMember($roomId);
+        $this->dealerTakeCard($roomId);
         $this->calculateAndPayResults($roomId);
-        
     }
 
     public function pass($roomId, $userId) {
