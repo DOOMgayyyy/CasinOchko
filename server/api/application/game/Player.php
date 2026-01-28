@@ -51,6 +51,9 @@ class Player {
             // Если это первая ставка, переводим комнату в waiting_for_bets
             if ($room->status === 'waiting') {
                 $this->db->updateRoomStatus($roomId, 'waiting_for_bets');
+            } else if ($room->status === 'waiting_for_bets') {
+                // В фазе ставок НЕ обновляем last_update (не сбрасываем таймер)
+                $this->db->updateRoomActionOnly($roomId);
             } else {
                 $this->db->updateRoomAction($roomId);
             }
@@ -296,8 +299,10 @@ class Player {
     }
     
     private function finishRound($roomId) {
+        // Дилер должен взять карты перед расчетом результатов
+        $this->db->resetCurrentMember($roomId);
+        $this->dealerTakeCard($roomId);
         $this->calculateAndPayResults($roomId);
-        
     }
 
     public function pass($roomId, $userId) {
@@ -351,6 +356,7 @@ class Player {
             return ['error' => 804];
         }
 
+        $originalBet = $member->bet;
         $this->db->updateMemberBet($roomId, $userId, $member->bet * 2);
         $this->db->updateBalance($userId, -$member->bet);
 
@@ -361,6 +367,7 @@ class Player {
 
         $currentCards[] = $newCard;
         $this->db->updateMemberCards($roomId, $userId, $currentCards);
+        
         $this->db->updateRoomAction($roomId);
         $this->moveToNextPlayer($roomId);
 
@@ -390,6 +397,7 @@ class Player {
         }
         
         $this->db->updateDealerCards($roomId, $dealerCards);
+        
         return ['success' => true];
     }
     

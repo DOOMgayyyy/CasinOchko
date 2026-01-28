@@ -122,7 +122,8 @@ class GameLogic {
                     if ($member->status === 'player' && (int)$member->bet === 0) {
                         $this->db->updateMemberStatus($roomId, $member->user_id, 'spectator');
                     }
-                    if ($member->status !== 'spectator') {
+                    // Считаем игроков со ставками (независимо от статуса подключения)
+                    if ((int)$member->bet > 0) {
                         $playersLeft++;
                     }
                 }

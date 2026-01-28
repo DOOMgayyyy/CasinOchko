@@ -53,14 +53,44 @@ class Lobby {
         return $success ? $newHash : false;
     }
 
+    private function refreshRoomHashOnly($roomId) {
+        // Обновляет только hash, НЕ трогая last_update (для комнат с активными таймерами)
+        $newHash = md5(microtime(true) . rand(1000, 9999) . $roomId);
+        $success = $this->db->updateRoomHashOnly($roomId, $newHash);
+        return $success ? $newHash : false;
+    }
+
     // ============================================================
     // PUBLIC METHODS
     // ============================================================
 
     public function quickStart($userId) {
-        // if ($this->isUserPlaying($userId)) {
-        //     return ['error' => 800];
-        // }
+        // Проверяем, не находится ли пользователь уже в комнате
+        $existingRoomData = $this->db->getRoomId($userId);
+        if ($existingRoomData && $existingRoomData->roomid) {
+            $existingRoom = $this->db->getRoom($existingRoomData->roomid);
+            $existingMember = $this->db->getRoomMember($existingRoomData->roomid, $userId);
+            
+            // Если пользователь в комнате со ставкой или игра идёт, возвращаем эту комнату
+            if ($existingRoom && $existingMember) {
+                $roomIsActive = in_array($existingRoom->status, ['waiting', 'waiting_for_bets', 'playing', 'show_results']);
+                $userHasBet = $existingMember->bet > 0;
+                
+                if ($roomIsActive && ($userHasBet || $existingRoom->status === 'playing')) {
+                    // Обновляем хэш комнаты для синхронизации
+                    // Для комнат с таймером (waiting_for_bets, show_results) НЕ обновляем last_update
+                    $hasTimer = in_array($existingRoom->status, ['waiting_for_bets', 'show_results']);
+                    if ($hasTimer) {
+                        $this->refreshRoomHashOnly($existingRoomData->roomid);
+                    } else {
+                        $this->refreshRoomHash($existingRoomData->roomid);
+                    }
+                    return $this->db->getRoom($existingRoomData->roomid);
+                }
+            }
+        }
+        
+        // Пользователь не в активной комнате или там нет ставки - удаляем из всех комнат
         $this->db->removeUserFromAllRooms($userId);
         $room = $this->getOpenRoom();
         $isNewRoom = false;
@@ -112,9 +142,26 @@ class Lobby {
     }
 
     public function createPrivateRoom($userId) {
-        // if ($this->isUserPlaying($userId)) {
-        //     return ['error' => 800];
-        // }
+        // Проверяем, не находится ли пользователь уже в активной комнате со ставкой
+        $existingRoomData = $this->db->getRoomId($userId);
+        if ($existingRoomData && $existingRoomData->roomid) {
+            $existingRoom = $this->db->getRoom($existingRoomData->roomid);
+            $existingMember = $this->db->getRoomMember($existingRoomData->roomid, $userId);
+            
+            if ($existingRoom && $existingMember) {
+                $roomIsActive = in_array($existingRoom->status, ['waiting', 'waiting_for_bets', 'playing', 'show_results']);
+                $userHasBet = $existingMember->bet > 0;
+                
+                if ($roomIsActive && ($userHasBet || $existingRoom->status === 'playing')) {
+                    // Пользователь уже в активной игре, нельзя создавать новую комнату
+                    return ['error' => 800];
+                }
+            }
+        }
+        
+        // Удаляем из всех комнат перед созданием новой
+        $this->db->removeUserFromAllRooms($userId);
+        
         $attempts = 0;
         $privateCode = null;
         do {
@@ -165,9 +212,35 @@ class Lobby {
     }
 
     public function joinPrivateRoom($userId, $code) {
-        // if ($this->isUserPlaying($userId)) {
-        //     return ['error' => 800];
-        // }
+        // Проверяем, не находится ли пользователь уже в активной комнате со ставкой
+        $existingRoomData = $this->db->getRoomId($userId);
+        if ($existingRoomData && $existingRoomData->roomid) {
+            $existingRoom = $this->db->getRoom($existingRoomData->roomid);
+            $existingMember = $this->db->getRoomMember($existingRoomData->roomid, $userId);
+            
+            if ($existingRoom && $existingMember) {
+                $roomIsActive = in_array($existingRoom->status, ['waiting', 'waiting_for_bets', 'playing', 'show_results']);
+                $userHasBet = $existingMember->bet > 0;
+                
+                if ($roomIsActive && ($userHasBet || $existingRoom->status === 'playing')) {
+                    // Пользователь уже в активной игре
+                    // Если это та же комната, просто возвращаем её
+                    $targetRoom = $this->db->getRoomByPrivateCode(strtoupper($code));
+                    if ($targetRoom && $targetRoom->id == $existingRoomData->roomid) {
+                        // Для комнат с таймером НЕ обновляем last_update
+                        $hasTimer = in_array($existingRoom->status, ['waiting_for_bets', 'show_results']);
+                        if ($hasTimer) {
+                            $this->refreshRoomHashOnly($existingRoomData->roomid);
+                        } else {
+                            $this->refreshRoomHash($existingRoomData->roomid);
+                        }
+                        return $this->db->getRoom($existingRoomData->roomid);
+                    }
+                    // Иначе возвращаем ошибку
+                    return ['error' => 800];
+                }
+            }
+        }
         
         $code = strtoupper($code);
         if (!preg_match('/^[A-Z]{4}$/', $code)) {
@@ -188,7 +261,14 @@ class Lobby {
             return ['error' => 900];
         }
 
-        $newHash = $this->refreshRoomHash($room->id);
+        // Для комнат с таймером НЕ обновляем last_update
+        $hasTimer = in_array($room->status, ['waiting_for_bets', 'show_results']);
+        if ($hasTimer) {
+            $newHash = $this->refreshRoomHashOnly($room->id);
+        } else {
+            $newHash = $this->refreshRoomHash($room->id);
+        }
+        
         if ($newHash === false) {
             return ['error' => 808];
         }
@@ -202,7 +282,14 @@ class Lobby {
             return ['error' => 901];
         }
 
-        $newHash = $this->refreshRoomHash($roomId);
+        // Для комнат с таймером НЕ обновляем last_update
+        $hasTimer = in_array($roomData->status, ['waiting_for_bets', 'show_results']);
+        if ($hasTimer) {
+            $newHash = $this->refreshRoomHashOnly($roomId);
+        } else {
+            $newHash = $this->refreshRoomHash($roomId);
+        }
+        
         if ($newHash === false) {
             return ['error' => 808];
         }
@@ -222,13 +309,32 @@ class Lobby {
             return ['error' => 901];
         }
 
+        // Проверяем, можно ли удалить игрока из комнаты
+        $member = $this->db->getRoomMember($roomId, $userId);
+        $roomIsActive = in_array($room->status, ['waiting_for_bets', 'playing', 'show_results']);
+        $userHasBet = $member && $member->bet > 0;
+
+        // Если у игрока есть ставка и игра активна, НЕ удаляем его из комнаты
+        if ($roomIsActive && $userHasBet) {
+            // Игрок остаётся в комнате, просто отключается
+            // Когда он вернётся, он автоматически переподключится к той же комнате
+            return ['success' => true, 'stayed_in_room' => true];
+        }
+
+        // В остальных случаях удаляем игрока из комнаты
         $this->db->removeUserFromRoom($roomId, $userId);
 
         $membersCount = $this->db->getMembersCount($roomId);
         if ($membersCount && $membersCount->count == 0) {
             $this->db->deleteRoom($roomId);
         } else {
-            $this->refreshRoomHash($roomId);
+            // Для комнат с таймером НЕ обновляем last_update
+            $hasTimer = in_array($room->status, ['waiting_for_bets', 'show_results']);
+            if ($hasTimer) {
+                $this->refreshRoomHashOnly($roomId);
+            } else {
+                $this->refreshRoomHash($roomId);
+            }
         }
 
         return ['success' => true];
