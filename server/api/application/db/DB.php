@@ -159,7 +159,7 @@ class DB {
         return $this->queryAll(
             "SELECT id, type, status, current_member_id, privatecode, hash 
              FROM rooms 
-             WHERE type='open' AND (status='waiting' OR status='playing')",
+             WHERE type='open' AND (status='waiting' OR status='waiting_for_bets' OR status='playing' OR status='show_results')",
             []
         );
     }
@@ -283,7 +283,19 @@ class DB {
 
     public function addRoomMember($roomId, $userId, $status = 'spectator', $bet = 0) {
         try {
+            // Проверяем, не находится ли пользователь уже в этой комнате
+            $existingMember = $this->getRoomMember($roomId, $userId);
+            
+            if ($existingMember) {
+                // Пользователь уже в комнате, ничего не делаем
+                // Сохраняем его текущие данные (ставку, карты и т.д.)
+                return true;
+            }
+            
+            // Удаляем пользователя из других комнат
             $this->execute("DELETE FROM roommembers WHERE userid = ? AND roomid != ?", [$userId, $roomId]);
+            
+            // Добавляем в текущую комнату
             return $this->execute(
                 "INSERT INTO roommembers (roomid, userid, status, bet, cards) VALUES (?, ?, ?, ?, '')",
                 [$roomId, $userId, $status, $bet]
