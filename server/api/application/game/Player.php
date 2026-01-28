@@ -51,6 +51,9 @@ class Player {
             // Если это первая ставка, переводим комнату в waiting_for_bets
             if ($room->status === 'waiting') {
                 $this->db->updateRoomStatus($roomId, 'waiting_for_bets');
+            } else if ($room->status === 'waiting_for_bets') {
+                // В фазе ставок НЕ обновляем last_update (не сбрасываем таймер)
+                $this->db->updateRoomActionOnly($roomId);
             } else {
                 $this->db->updateRoomAction($roomId);
             }

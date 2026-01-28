@@ -53,6 +53,13 @@ class Lobby {
         return $success ? $newHash : false;
     }
 
+    private function refreshRoomHashOnly($roomId) {
+        // Обновляет только hash, НЕ трогая last_update (для комнат с активными таймерами)
+        $newHash = md5(microtime(true) . rand(1000, 9999) . $roomId);
+        $success = $this->db->updateRoomHashOnly($roomId, $newHash);
+        return $success ? $newHash : false;
+    }
+
     // ============================================================
     // PUBLIC METHODS
     // ============================================================
@@ -71,7 +78,13 @@ class Lobby {
                 
                 if ($roomIsActive && ($userHasBet || $existingRoom->status === 'playing')) {
                     // Обновляем хэш комнаты для синхронизации
-                    $this->refreshRoomHash($existingRoomData->roomid);
+                    // Для комнат с таймером (waiting_for_bets, show_results) НЕ обновляем last_update
+                    $hasTimer = in_array($existingRoom->status, ['waiting_for_bets', 'show_results']);
+                    if ($hasTimer) {
+                        $this->refreshRoomHashOnly($existingRoomData->roomid);
+                    } else {
+                        $this->refreshRoomHash($existingRoomData->roomid);
+                    }
                     return $this->db->getRoom($existingRoomData->roomid);
                 }
             }
@@ -214,7 +227,13 @@ class Lobby {
                     // Если это та же комната, просто возвращаем её
                     $targetRoom = $this->db->getRoomByPrivateCode(strtoupper($code));
                     if ($targetRoom && $targetRoom->id == $existingRoomData->roomid) {
-                        $this->refreshRoomHash($existingRoomData->roomid);
+                        // Для комнат с таймером НЕ обновляем last_update
+                        $hasTimer = in_array($existingRoom->status, ['waiting_for_bets', 'show_results']);
+                        if ($hasTimer) {
+                            $this->refreshRoomHashOnly($existingRoomData->roomid);
+                        } else {
+                            $this->refreshRoomHash($existingRoomData->roomid);
+                        }
                         return $this->db->getRoom($existingRoomData->roomid);
                     }
                     // Иначе возвращаем ошибку
@@ -242,7 +261,14 @@ class Lobby {
             return ['error' => 900];
         }
 
-        $newHash = $this->refreshRoomHash($room->id);
+        // Для комнат с таймером НЕ обновляем last_update
+        $hasTimer = in_array($room->status, ['waiting_for_bets', 'show_results']);
+        if ($hasTimer) {
+            $newHash = $this->refreshRoomHashOnly($room->id);
+        } else {
+            $newHash = $this->refreshRoomHash($room->id);
+        }
+        
         if ($newHash === false) {
             return ['error' => 808];
         }
@@ -256,7 +282,14 @@ class Lobby {
             return ['error' => 901];
         }
 
-        $newHash = $this->refreshRoomHash($roomId);
+        // Для комнат с таймером НЕ обновляем last_update
+        $hasTimer = in_array($roomData->status, ['waiting_for_bets', 'show_results']);
+        if ($hasTimer) {
+            $newHash = $this->refreshRoomHashOnly($roomId);
+        } else {
+            $newHash = $this->refreshRoomHash($roomId);
+        }
+        
         if ($newHash === false) {
             return ['error' => 808];
         }
@@ -295,7 +328,13 @@ class Lobby {
         if ($membersCount && $membersCount->count == 0) {
             $this->db->deleteRoom($roomId);
         } else {
-            $this->refreshRoomHash($roomId);
+            // Для комнат с таймером НЕ обновляем last_update
+            $hasTimer = in_array($room->status, ['waiting_for_bets', 'show_results']);
+            if ($hasTimer) {
+                $this->refreshRoomHashOnly($roomId);
+            } else {
+                $this->refreshRoomHash($roomId);
+            }
         }
 
         return ['success' => true];

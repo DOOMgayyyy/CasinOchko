@@ -205,6 +205,11 @@ class DB {
         return $this->execute("UPDATE rooms SET hash = ?, last_update = UTC_TIMESTAMP() WHERE id = ?", [$hash, $roomId]);
     }
 
+    public function updateRoomHashOnly($roomId, $hash) {
+        // Обновляет только hash, НЕ трогая last_update (для комнат с активными таймерами)
+        return $this->execute("UPDATE rooms SET hash = ? WHERE id = ?", [$hash, $roomId]);
+    }
+
     public function updateRoomStatus($roomId, $status) {
         $hash = md5(time() . $roomId . rand(1, 10000));
         return $this->execute(
@@ -221,6 +226,15 @@ class DB {
         $newHash = md5(time() . $roomId . rand(1, 10000));
         return $this->execute(
             "UPDATE rooms SET hash = ?, last_update = UTC_TIMESTAMP() WHERE id = ?",
+            [$newHash, $roomId]
+        );
+    }
+
+    public function updateRoomActionOnly($roomId) {
+        // Обновляет только hash, НЕ трогая last_update (для фаз с таймером)
+        $newHash = md5(time() . $roomId . rand(1, 10000));
+        return $this->execute(
+            "UPDATE rooms SET hash = ? WHERE id = ?",
             [$newHash, $roomId]
         );
     }
